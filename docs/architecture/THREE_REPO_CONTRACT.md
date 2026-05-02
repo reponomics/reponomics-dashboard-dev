@@ -1,5 +1,7 @@
 # Reponomics Three-Repository Architecture Contract
 
+Version: 0.1 initial sketch
+
 This document describes the intended architecture. It is a design contract, not
 an inventory of whatever happens to be implemented at a given moment.
 
@@ -26,6 +28,28 @@ The architectural rule is simple:
 Human changes should flow from dev source to generated template to user-created
 consumer repositories. Runtime behavior should flow from the action into
 consumer repositories through an explicitly pinned action ref.
+
+## Why The Action Is Separate
+
+The runtime action is separate primarily to create a clean versioning boundary.
+Without a separate action repository, every user-created repository would copy
+the runtime scripts at template creation time. Fixing bugs, improving the UI,
+or changing artifact behavior would then require a per-repository migration
+story. That is a poor fit for a template product whose runtime will need to
+evolve.
+
+The action repository lets Reponomics publish behavior independently from the
+template shell:
+
+- users get runtime fixes by moving from one action ref to another
+- the template can stay thin and low-friction
+- runtime tests and release discipline live next to the runtime code
+- the trust boundary is explicit: users choose which action ref they allow to
+  run with their workflow permissions and secrets
+
+This split is not meant to hide behavior from users. The generated template
+should make the action ref visible and document that it is part of the product
+supply chain.
 
 ## Repository Contracts
 
@@ -221,6 +245,7 @@ The action should expose a narrow runtime contract.
 
 - `collect`
 - `rotate-key`
+- `publish`, under consideration
 
 Authentication inputs:
 
@@ -233,9 +258,13 @@ Dashboard and artifact inputs:
 - `dashboard-secret`
 - `dashboard-next-secret`
 - `readme-dashboard`: `disabled` or `metrics_summary`
-- `pages-dashboard`: `disabled`, `public`, or `encrypted`
+- `pages-dashboard`: `disabled`, `plain`, or `encrypted`
 - `artifact-security-mode`: `plain`, `encrypted`, or `auto`
 - `retention-days`
+
+Repository visibility and dashboard disclosure are separate concepts. A public
+repository can use an encrypted dashboard, and a private repository can choose
+plain dashboard output. Use `plain` to mean unencrypted output, not "public."
 
 Path inputs:
 
@@ -300,7 +329,7 @@ Writes:
 - `README.md`, depending on README mode
 - `docs/index.html`, depending on Pages mode
 - `docs/assets/*`, when README metrics are enabled
-- optional `dist/dashboard-standalone.html` artifact when Pages mode is public
+- optional `dist/dashboard-standalone.html` artifact when Pages mode is plain
 - optional commit to the caller repository
 
 Required secrets:
@@ -352,6 +381,57 @@ Required behavior:
 - Must leave the repository in a state where the user must manually promote the
   next key and delete the temporary key.
 
+### `publish` (Under Consideration)
+
+Purpose:
+
+- Render and publish outputs from already-retained data without collecting new
+  GitHub traffic.
+
+Why it may belong as a separate mode:
+
+- Collection and publication are conceptually distinct.
+- Some users may want artifact-backed traffic history without publishing a
+  README summary or Pages dashboard.
+- A separate publish mode makes accidental data exposure easier to reason
+  about: collection can be enabled while publication remains disabled.
+- It gives users a clean way to change presentation settings after data has
+  already been collected.
+
+Reads:
+
+- existing retained artifact
+- caller repository configuration
+- selected README/Pages publication modes
+- dashboard secret when encrypted output is selected
+
+Writes:
+
+- `README.md`, if README publication is enabled
+- `docs/index.html`, if Pages publication is enabled
+- `docs/assets/*`, when README metrics are enabled
+- optional standalone dashboard artifact when Pages mode is plain
+- optional commit to the caller repository
+
+Required behavior:
+
+- Must not collect new traffic.
+- Must not mutate retained data except for schema migration if migration is
+  explicitly part of the runtime contract.
+- Must allow "store only" operation by keeping publish modes disabled.
+
+Open design decision:
+
+- Whether `collect` should always include publish behavior, or whether the
+  default template should call `collect` followed by `publish`.
+
+Current design preference:
+
+- Treat `collect` as "collect and maintain retained state" and `publish` as
+  "render selected disclosure surfaces" if doing so keeps the user model clearer.
+  If the split adds too much workflow complexity for v1, keep publish behavior
+  inside `collect` but preserve internal boundaries so it can be split later.
+
 ## Template Workflow Contracts
 
 ### Setup Workflow
@@ -380,11 +460,35 @@ Open design decision:
 - Whether setup should trigger an immediate first collection, or stop after
   enabling collection and require the user to run collection manually.
 
+Tradeoffs:
+
+- Immediate first collection gives users fast feedback and proves that secrets,
+  permissions, artifact storage, rendering, and commits work before they leave
+  setup. It also avoids a confusing state where setup succeeds but the first
+  scheduled collection fails hours later because a token or dashboard secret was
+  missing or misunderstood.
+- Immediate first collection is riskier because setup is the moment when users
+  are least likely to understand the privacy consequences. A user may choose an
+  unsafe publication mode, provide a weak dashboard secret, or misunderstand
+  whether metrics will be written in plaintext. Running collection immediately
+  can turn that misunderstanding into published output before the user has
+  reviewed the configured workflow.
+- Delayed first collection keeps setup as a pure configuration step and gives
+  users a natural pause to review `collect.yml`, repository secrets, Pages
+  settings, and publication choices.
+- Delayed first collection can create a different failure mode: collection may
+  be enabled on a schedule, the user walks away, and the first run happens six
+  hours later with incomplete or mistaken configuration.
+
 Current design preference:
 
 - Setup should stop after enabling/configuring collection. The first collection
   should be a normal `collect` workflow run so setup remains a pure
   configuration step.
+- To reduce delayed-run risk, setup should validate that required secrets exist,
+  that the traffic token is usable enough to authenticate, and that encrypted
+  modes have a dashboard secret of acceptable strength. Setup should also make
+  the next required action explicit in the workflow summary.
 
 ### Collection Workflow
 
@@ -483,4 +587,3 @@ The decision should be made after a private staging consumer validates:
 - Demo requirements forcing complexity back into the template.
 - Mutable pre-release action refs being mistaken for a public stability
   guarantee.
-
