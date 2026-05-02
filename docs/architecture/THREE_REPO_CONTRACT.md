@@ -13,6 +13,12 @@ Reponomics is split into three primary repositories:
 2. `reponomics-dashboard`
 3. `reponomics-action`
 
+Reponomics may also need an umbrella product repository, likely named
+`reponomics`, for the public project home. That repository would be the thing
+people star, share, discuss, and visit first. It should not replace the
+template repository, because a template repo is primarily an installation
+surface rather than a community or product narrative surface.
+
 `reponomics-dashboard-demo` is intentionally excluded from the core contract
 until the first three repositories are validated together. The demo should be
 designed after the template/action integration is proven in a real staging
@@ -24,6 +30,7 @@ The architectural rule is simple:
   template product.
 - `reponomics-dashboard` is a generated template artifact.
 - `reponomics-action` is the runtime engine.
+- an umbrella repo, if created, is the public product home.
 
 Human changes should flow from dev source to generated template to user-created
 consumer repositories. Runtime behavior should flow from the action into
