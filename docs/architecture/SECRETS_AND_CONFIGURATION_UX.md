@@ -1,6 +1,6 @@
 # Reponomics Secrets And Configuration UX
 
-Version: 0.1 intended design
+Version: 1.0 intended design
 
 The setup experience should help users choose a privacy model and generate a
 strong dashboard secret without requiring terminal fluency.
@@ -67,8 +67,10 @@ Cons:
 
 ### Hosted Static Key Generator
 
-Reponomics should consider a static, client-side HTML page that generates a
-dashboard key locally in the browser.
+Reponomics should provide a static, client-side HTML page that generates a
+dashboard key locally in the browser. It can live in the umbrella `reponomics`
+repo or a static docs site, but it must be usable without trusting a server with
+the generated value.
 
 Requirements:
 
@@ -106,8 +108,8 @@ Example copy:
 
 ## Privacy Modeler Page
 
-Reponomics should consider a static "privacy modeler" page, either standalone
-or part of docs, that helps users understand the consequences of each setup
+Reponomics should provide a static "privacy modeler" page, either standalone or
+part of docs, that helps users understand the consequences of each setup
 choice.
 
 Inputs:
@@ -140,8 +142,10 @@ Important explanations:
 
 ## Local-Only Path
 
-Reponomics should consider a local workflow for users who do not want GitHub
-Actions to publish outputs.
+Reponomics should eventually provide a local workflow for users who do not want
+GitHub Actions to publish outputs. This is not required for the first public
+template path, but the action runtime should be structured so the same modules
+can be exposed through a CLI later.
 
 Possible commands:
 
@@ -158,11 +162,10 @@ Use cases:
 - users with strict review requirements before committing metrics
 - users using private repos but avoiding Pages entirely
 
-Open questions:
+Design direction:
 
-- whether local collection should live in `reponomics-action`, a separate CLI,
-  or both
-- how local auth should be configured
-- whether local collection should reuse Actions artifacts or store a local data
-  directory only
-
+- core collect/publish/rotate modules live in `reponomics-action`
+- a later CLI can call those modules without depending on GitHub Actions
+- local auth should use standard GitHub CLI or token environment variables
+- local rendering should be able to use a local data directory without
+  uploading artifacts

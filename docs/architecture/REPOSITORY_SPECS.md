@@ -1,6 +1,6 @@
 # Reponomics Repository Specs
 
-Version: 0.1 intended design
+Version: 1.0 intended design
 
 This document gives the intended contract for each primary repository. The
 `reponomics-dashboard` section is a spec for a generated artifact, not a normal
@@ -97,6 +97,7 @@ Must contain:
 - placeholder `docs/index.html`
 - `.github/workflows/setup.yml`
 - `.github/workflows/collect.yml.disabled`
+- `.github/workflows/publish.yml.disabled`
 - `.github/workflows/rotate-key.yml`
 - license and ignore rules
 
@@ -129,6 +130,7 @@ Generated artifact tests:
 - No action-owned runtime internals are present.
 - Workflows call a pinned `reponomics-action` ref.
 - `collect.yml` is absent; `collect.yml.disabled` is present.
+- `publish.yml` is absent; `publish.yml.disabled` is present.
 
 ## User-created repository from `reponomics-dashboard`
 
@@ -152,9 +154,10 @@ Optional credentials:
 
 Workflows:
 
-- Setup configures modes and enables collection.
-- Collection maintains retained data and, depending on the chosen mode,
-  publishes selected outputs.
+- Setup validates configuration with the action's `doctor` mode, records mode
+  choices, and enables collection/publication workflows.
+- Collection maintains retained data.
+- Publication renders selected README/Pages outputs from retained data.
 - Rotation re-encrypts retained state and dashboard output without collecting.
 
 Outputs:
@@ -203,9 +206,10 @@ Workflows:
 
 Action modes:
 
+- `doctor`
 - `collect`
+- `publish`
 - `rotate-key`
-- `publish`, under consideration
 
 Outputs:
 
@@ -218,7 +222,7 @@ Non-goals:
 - Mutating user repository secrets.
 - Serving as the template source of truth.
 
-## Umbrella Product Repository: `reponomics` (Proposed)
+## Umbrella Product Repository: `reponomics`
 
 Role:
 
@@ -263,12 +267,11 @@ Secrets:
 
 - none required for normal operation
 
-Open decisions:
+Launch decisions:
 
-- whether the umbrella repo is created now or after the first live staging
-  validation
-- whether GitHub Discussions live there
-- whether issues live there or stay split by component repo
-- whether public docs are served from the umbrella repo, the template repo, or a
-  separate site
-
+- create/populate before public launch; it does not block private staging
+- GitHub Discussions live in the umbrella repo
+- product/support issues live in the umbrella repo; component implementation
+  issues may live in the relevant action/template/dev repo
+- public docs start in the umbrella repo and can move to a static docs site
+  later without changing the template/action contract

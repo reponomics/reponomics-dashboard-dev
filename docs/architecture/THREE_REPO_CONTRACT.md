@@ -1,23 +1,23 @@
 # Reponomics Three-Repository Architecture Contract
 
-Version: 0.1 initial sketch
+Version: 1.0 intended contract
 
 This document describes the intended architecture. It is a design contract, not
 an inventory of whatever happens to be implemented at a given moment.
 
 ## System Shape
 
-Reponomics is split into three primary repositories:
+Reponomics is split into three primary runtime/template repositories:
 
 1. `reponomics-dashboard-dev`
 2. `reponomics-dashboard`
 3. `reponomics-action`
 
-Reponomics may also need an umbrella product repository, likely named
-`reponomics`, for the public project home. That repository would be the thing
-people star, share, discuss, and visit first. It should not replace the
-template repository, because a template repo is primarily an installation
-surface rather than a community or product narrative surface.
+Reponomics should also have an umbrella product repository, likely named
+`reponomics`, for the public project home. That repository is the thing people
+star, share, discuss, and visit first. It does not replace the template
+repository, because a template repo is primarily an installation surface rather
+than a community or product narrative surface.
 
 `reponomics-dashboard-demo` is intentionally excluded from the core contract
 until the first three repositories are validated together. The demo should be
@@ -30,7 +30,7 @@ The architectural rule is simple:
   template product.
 - `reponomics-dashboard` is a generated template artifact.
 - `reponomics-action` is the runtime engine.
-- an umbrella repo, if created, is the public product home.
+- an umbrella repo is the public product home.
 
 Human changes should flow from dev source to generated template to user-created
 consumer repositories. Runtime behavior should flow from the action into
@@ -118,6 +118,7 @@ Must contain:
 - placeholder `docs/index.html`
 - `.github/workflows/setup.yml`
 - `.github/workflows/collect.yml.disabled`
+- `.github/workflows/publish.yml.disabled`
 - `.github/workflows/rotate-key.yml`
 - license and ignore rules
 
@@ -136,6 +137,8 @@ Workflows:
 - `setup.yml` configures the caller repository for Reponomics.
 - `collect.yml.disabled` is shipped disabled and becomes `collect.yml` only in
   user-created repositories after setup.
+- `publish.yml.disabled` is shipped disabled and becomes `publish.yml` only
+  when README or Pages publication is selected.
 - `rotate-key.yml` launches dashboard/artifact key rotation.
 
 Secrets:
@@ -214,6 +217,8 @@ Initial state:
 - `setup.yml` is available.
 - `collect.yml.disabled` is present.
 - `collect.yml` is absent.
+- `publish.yml.disabled` is present.
+- `publish.yml` is absent.
 - `rotate-key.yml` is available.
 - `README.md` is onboarding documentation.
 - `docs/index.html` is a placeholder.
@@ -225,14 +230,23 @@ Setup state:
 - The user runs setup.
 - Setup records the selected README/Pages/artifact modes.
 - Setup enables collection by renaming or creating `collect.yml`.
+- Setup enables publication by renaming or creating `publish.yml` only when
+  README or Pages publication is selected.
 - Setup commits workflow configuration changes.
+- Setup does not collect or publish traffic data.
 
 Collection state:
 
 - Collection runs on schedule or manual dispatch.
 - The action reads config and prior artifact state.
-- The action collects, merges, renders, uploads retained data, and commits
-  selected outputs.
+- The action collects, merges, and uploads retained data.
+
+Publication state:
+
+- Publication runs after collection when enabled, or manually when the user
+  wants to republish from retained data.
+- The action renders README and Pages outputs from retained data.
+- The action optionally commits selected outputs.
 
 Rotation state:
 
@@ -250,9 +264,10 @@ The action should expose a narrow runtime contract.
 
 `mode`:
 
+- `doctor`
 - `collect`
+- `publish`
 - `rotate-key`
-- `publish`, under consideration
 
 Authentication inputs:
 
@@ -264,7 +279,7 @@ Dashboard and artifact inputs:
 
 - `dashboard-secret`
 - `dashboard-next-secret`
-- `readme-dashboard`: `disabled` or `metrics_summary`
+- `readme-dashboard`: `disabled` or `enabled`
 - `pages-dashboard`: `disabled`, `plain`, or `encrypted`
 - `artifact-security-mode`: `plain`, `encrypted`, or `auto`
 - `retention-days`
@@ -286,7 +301,7 @@ Commit input:
 
 ### Environment Fallbacks
 
-The action may support these fallbacks for template convenience and backwards
+The action supports these fallbacks for template convenience and backwards
 compatibility:
 
 - `TRAFFIC_TOKEN`
@@ -316,11 +331,46 @@ retained artifacts.
 
 ## Action Modes
 
+### `doctor`
+
+Purpose:
+
+- Validate setup choices without collecting, rendering, publishing, rotating,
+  or committing product outputs.
+
+Reads:
+
+- caller repository `config.yaml`
+- selected workflow inputs
+- caller repository metadata
+- secrets passed by the workflow
+
+Writes:
+
+- workflow summary
+- action metadata outputs
+
+Required secrets:
+
+- `traffic-token` or `TRAFFIC_TOKEN` when collection is being enabled
+- `dashboard-secret` or `TRAFFIC_DASHBOARD_SECRET` when encrypted retained
+  artifacts or encrypted Pages output are selected
+
+Required behavior:
+
+- Validate token presence and basic authentication.
+- Validate required secrets for selected modes.
+- Validate dashboard secret strength when a secret is required.
+- Resolve `artifact-security-mode=auto`.
+- Explain the effective privacy boundary in the workflow summary.
+- Fail before setup enables scheduled collection when required inputs are
+  missing or incoherent.
+
 ### `collect`
 
 Purpose:
 
-- Perform a normal traffic collection and render cycle.
+- Collect GitHub traffic data and maintain retained canonical state.
 
 Reads:
 
@@ -333,11 +383,8 @@ Reads:
 Writes:
 
 - updated retained artifact
-- `README.md`, depending on README mode
-- `docs/index.html`, depending on Pages mode
-- `docs/assets/*`, when README metrics are enabled
-- optional `dist/dashboard-standalone.html` artifact when Pages mode is plain
-- optional commit to the caller repository
+- workflow summary
+- action metadata outputs
 
 Required secrets:
 
@@ -351,7 +398,10 @@ Required behavior:
 - Restore prior data before collecting.
 - Treat missing prior artifact as first run.
 - Preserve normalized CSV as the canonical reporting input.
-- Upload refreshed retained state after rendering.
+- Upload refreshed retained state after merge/retention.
+- Never publish README or Pages output by itself. The template may run
+  `publish` after successful collection when the user explicitly enabled
+  publication.
 
 ### `rotate-key`
 
@@ -388,14 +438,14 @@ Required behavior:
 - Must leave the repository in a state where the user must manually promote the
   next key and delete the temporary key.
 
-### `publish` (Under Consideration)
+### `publish`
 
 Purpose:
 
 - Render and publish outputs from already-retained data without collecting new
   GitHub traffic.
 
-Why it may belong as a separate mode:
+Why it belongs as a separate mode:
 
 - Collection and publication are conceptually distinct.
 - Some users may want artifact-backed traffic history without publishing a
@@ -426,18 +476,7 @@ Required behavior:
 - Must not mutate retained data except for schema migration if migration is
   explicitly part of the runtime contract.
 - Must allow "store only" operation by keeping publish modes disabled.
-
-Open design decision:
-
-- Whether `collect` should always include publish behavior, or whether the
-  default template should call `collect` followed by `publish`.
-
-Current design preference:
-
-- Treat `collect` as "collect and maintain retained state" and `publish` as
-  "render selected disclosure surfaces" if doing so keeps the user model clearer.
-  If the split adds too much workflow complexity for v1, keep publish behavior
-  inside `collect` but preserve internal boundaries so it can be split later.
+- Must support rich static README dashboards, not only short summaries.
 
 ## Template Workflow Contracts
 
@@ -449,9 +488,12 @@ Purpose:
 
 Intended responsibilities:
 
+- Call `reponomics-action` with `mode: doctor`.
 - Validate required secrets for the selected modes.
 - Resolve `readme-dashboard`, `pages-dashboard`, and `artifact-security-mode`.
 - Enable collection by renaming or creating `collect.yml`.
+- Enable publication by renaming or creating `publish.yml` only when README or
+  Pages publication is selected.
 - Persist selected mode values into the collection workflow or another
   explicit config surface.
 - Commit setup/configuration changes.
@@ -461,11 +503,12 @@ Non-responsibilities:
 - It should not own collection semantics.
 - It should not own rendering semantics.
 - It should not own key rotation semantics.
+- It should not trigger an immediate first collection or publication.
 
-Open design decision:
+Decision:
 
-- Whether setup should trigger an immediate first collection, or stop after
-  enabling collection and require the user to run collection manually.
+- Setup stops after validating, configuring, and enabling the selected
+  workflows. The first collection is a normal `collect` workflow run.
 
 Tradeoffs:
 
@@ -487,11 +530,6 @@ Tradeoffs:
   be enabled on a schedule, the user walks away, and the first run happens six
   hours later with incomplete or mistaken configuration.
 
-Current design preference:
-
-- Setup should stop after enabling/configuring collection. The first collection
-  should be a normal `collect` workflow run so setup remains a pure
-  configuration step.
 - To reduce delayed-run risk, setup should validate that required secrets exist,
   that the traffic token is usable enough to authenticate, and that encrypted
   modes have a dashboard secret of acceptable strength. Setup should also make
@@ -509,12 +547,35 @@ Responsibilities:
 - Refuse incomplete key rotation.
 - Check out the caller repository.
 - Call `reponomics-action` with `mode: collect`.
+- Call `reponomics-action` with `mode: publish` after successful collection
+  only when publication is enabled.
 - Pass selected modes and required secrets.
 
 Non-responsibilities:
 
 - It should not contain runtime Python implementation.
 - It should not duplicate rendering, artifact, or schema logic.
+
+### Publish Workflow
+
+Purpose:
+
+- Manually render selected output surfaces from retained data without
+  collecting new traffic.
+
+Responsibilities:
+
+- Check out the caller repository.
+- Restore retained artifact state through `reponomics-action`.
+- Call `reponomics-action` with `mode: publish`.
+- Pass selected README/Pages modes and required dashboard secret.
+- Optionally commit selected outputs.
+
+Non-responsibilities:
+
+- It should not collect traffic.
+- It should not rotate keys.
+- It should not duplicate renderer internals.
 
 ### Rotation Workflow
 

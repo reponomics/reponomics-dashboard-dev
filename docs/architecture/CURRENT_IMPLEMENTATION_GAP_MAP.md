@@ -1,6 +1,6 @@
 # Reponomics Current Implementation Gap Map
 
-Version: 0.1 snapshot
+Version: 1.0 snapshot against intended design
 
 This document describes the current implementation state so it can be compared
 against the intended architecture. Unlike the other architecture documents, this
@@ -12,12 +12,15 @@ file is intentionally implementation-specific.
 
 - has an initial composite action on `main`
 - supports `mode: collect` and `mode: rotate-key`
+- does not yet support the intended `doctor` and `publish` modes
 - contains copied Python runtime scripts
 - has local fixture tests
 - currently uses `github-token` as an overloaded input for traffic API and
   artifact/repository operations
 - currently uses `pages-dashboard: public` in implementation rather than the
   intended `plain` terminology
+- currently uses `readme-dashboard: metrics_summary` terminology rather than
+  the intended richer `enabled` README dashboard terminology
 
 `reponomics-dashboard-dev`:
 
@@ -37,7 +40,7 @@ file is intentionally implementation-specific.
 Umbrella product repo:
 
 - not created or populated as part of this architecture snapshot
-- under consideration as the public star/share/discussion surface
+- intended as the public star/share/discussion surface
 
 ## Known Contract Gaps
 
@@ -89,10 +92,11 @@ Likely fix:
 
 Intended contract:
 
-- setup configures and enables collection
+- setup calls `doctor`, configures selected modes, and enables collection and
+  publication workflows
 - setup should not own collection semantics
-- setup should probably stop before first collection, after validating secrets
-  and explaining the next action
+- setup stops before first collection, after validating secrets and explaining
+  the next action
 
 Current state:
 
@@ -107,16 +111,39 @@ Risk:
 Likely fix:
 
 - remove first collection from setup
+- add `doctor` mode to the action
 - add stronger validation and summary output
 - ask the user to run the collection workflow manually for the first run
+
+### Doctor Mode
+
+Intended contract:
+
+- `doctor` validates setup choices, token availability, required dashboard
+  secret, artifact mode, and privacy consequences without collecting or
+  publishing.
+
+Current state:
+
+- no separate `doctor` mode exists
+
+Risk:
+
+- setup must either duplicate validation logic or accidentally run collection
+  as validation
+
+Likely fix:
+
+- add `mode: doctor` before live staging
+- make setup call `doctor` before enabling schedules
 
 ### Publish Mode
 
 Intended contract:
 
-- `publish` is under consideration as a distinct mode
-- collection and publication should have clear internal boundaries even if v1
-  keeps them in one mode
+- `publish` is a distinct mode
+- collection and publication have clear internal boundaries
+- collect can run in store-only mode without committing README or Pages output
 
 Current state:
 
@@ -126,11 +153,13 @@ Risk:
 
 - users who only want retained artifacts may find publication semantics hard to
   reason about
+- rendering improvements are harder to describe as a separate update channel
 
 Likely fix:
 
-- either add `publish` before public release or ensure `collect` can run with
-  all publication disabled and cleanly document that profile
+- add `mode: publish` before public release
+- update template workflows to run `collect`, then `publish` only when
+  publication is selected
 
 ### Existing User Update Path
 
@@ -138,6 +167,7 @@ Intended contract:
 
 - action-owned rendering transmits most UI/runtime fixes through action refs
 - template changes need a separate migration story
+- generated template should not ship renderer internals
 
 Current state:
 
@@ -157,7 +187,7 @@ Likely fix:
 
 Intended contract:
 
-- a possible `reponomics` repository acts as the public project home
+- `reponomics` acts as the public product home
 - `reponomics-dashboard` remains the install/template artifact
 
 Current state:
@@ -177,12 +207,12 @@ Likely fix:
 ## Suggested Next Work Order
 
 1. Align action contract terminology and token inputs.
-2. Decide setup first-run behavior.
-3. Decide whether `publish` is a v1 mode or a post-v1 internal boundary.
-4. Regenerate and publish `reponomics-dashboard`.
-5. Create a private staging repository from the template.
-6. Validate setup, collect, artifact restore, publish/disclosure behavior, and
+2. Add action `doctor` mode and make setup validation non-publishing.
+3. Add action `publish` mode and split collect from rendering.
+4. Update generated template workflows for setup, collect, publish, and rotate.
+5. Regenerate and publish `reponomics-dashboard`.
+6. Create a private staging repository from the template.
+7. Validate setup, collect, artifact restore, publish/disclosure behavior, and
    rotate-key.
-7. Decide the `reponomics-dashboard-demo` model from staging evidence.
-8. Decide whether to create the umbrella `reponomics` product repo before
-   public launch.
+8. Decide the `reponomics-dashboard-demo` model from staging evidence.
+9. Create/populate the umbrella `reponomics` product repo before public launch.

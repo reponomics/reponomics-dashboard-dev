@@ -1,6 +1,6 @@
 # Reponomics Versioning And Update Policy
 
-Version: 0.1 intended design
+Version: 1.0 intended design
 
 Reponomics has two update channels:
 
@@ -68,39 +68,38 @@ If a user pins:
   advances.
 - exact tag or SHA: they receive no runtime updates until they change the ref.
 
-Template shell updates require a separate mechanism.
+Template shell updates require a separate mechanism. The v1 policy is:
 
-Possible mechanisms:
+- runtime rendering, storage behavior, schema migrations, and compatible UI
+  improvements live in `reponomics-action`
+- template-owned files are limited to workflows, docs, config defaults, and
+  placeholders
+- workflow changes are rare, explicit, and migration-documented
+- existing users do not need to copy template files for compatible dashboard UI
+  improvements
+- when a workflow/config/docs change is required, release notes provide exact
+  manual migration steps
 
-1. documentation-only manual migration steps
-2. an `upgrade` mode in `reponomics-action`
-3. a separate template sync action
-4. a release note that tells users exactly which workflow/doc changes to copy
+A future `upgrade` or `doctor` mode can detect stale workflow shells and print
+instructions, but automatic workflow mutation is not required for v1.
 
-Preferred direction:
+## Dashboard Rendering Ownership
 
-- Runtime rendering and storage behavior should live in `reponomics-action` so
-  most users do not need to pull template changes for UI improvements.
-- Template-owned files should be limited to workflows, docs, config defaults,
-  and placeholders.
-- Workflow changes should be rare, explicit, and migration-documented.
-
-## Dashboard Templates And Rendering Ownership
-
-The dashboard renderer should be action-owned if it needs to update existing
-users. If dashboard templates live only in `reponomics-dashboard`, then users
-who already created repositories will not get renderer fixes or new UI without
-copying template files.
+The dashboard renderer is action-owned because it needs to update existing
+users. If dashboard templates or rendering scripts live only in
+`reponomics-dashboard`, then users who already created repositories will not get
+renderer fixes or new UI without copying template files.
 
 Therefore:
 
 - runtime renderers should live in `reponomics-action`
 - generated `reponomics-dashboard` should ship placeholders and workflow
   shells, not renderer templates
-- if user-customizable dashboard templates are introduced, they should be
-  versioned build artifacts with explicit compatibility rules
+- action `publish` mode should render README, Pages, and asset outputs from
+  retained data
+- compatible renderer changes should ship through action releases
 
-Possible future model:
+Future advanced model:
 
 - `reponomics-action` publishes renderer bundles by version
 - user workflows reference a renderer version or action version
@@ -113,8 +112,10 @@ Before advancing a stable action tag:
 
 - action tests pass
 - fixture collect passes
+- fixture publish passes
 - fixture rotate-key passes
 - staging consumer collect passes
+- staging consumer publish passes
 - staging consumer rotate-key passes
 - privacy/disclosure behavior matches docs
 
@@ -135,4 +136,3 @@ Every release should state:
 - whether secrets or permissions changed
 - whether retained artifacts migrate automatically
 - whether the change affects committed output disclosure
-

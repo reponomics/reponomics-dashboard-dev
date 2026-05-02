@@ -1,6 +1,6 @@
 # Reponomics Privacy And Configuration Matrix
 
-Version: 0.1 intended design
+Version: 1.0 intended design
 
 This document separates repository visibility from output disclosure.
 
@@ -89,6 +89,11 @@ Each profile should show:
 - whether a dashboard secret is required
 - whether the user can later switch modes without losing retained history
 
+For the vibe-coder persona, setup should lead with these profiles and plain
+language consequences. For the senior-engineer persona, setup should expose the
+resolved low-level settings and allow exact config edits before the first
+collection.
+
 ## Presentation Principles
 
 - Treat README dashboard as a full static dashboard, not merely a summary.
@@ -99,4 +104,3 @@ Each profile should show:
 - Explain that repository visibility is not the same as output encryption.
 - Warn when a configuration mixes encrypted UI with plain retained artifacts,
   because users often assume the key protects all data.
-
