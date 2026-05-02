@@ -1,0 +1,174 @@
+name: Set up Reponomics dashboard
+
+on:
+  workflow_dispatch:
+    inputs:
+      readme_dashboard:
+        description: "README dashboard summary"
+        type: choice
+        required: true
+        default: disabled
+        options:
+          - disabled
+          - metrics_summary
+      pages_dashboard:
+        description: "GitHub Pages HTML dashboard"
+        type: choice
+        required: true
+        default: encrypted
+        options:
+          - encrypted
+          - public
+          - disabled
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  RETENTION_DAYS: "90"
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve setup modes
+        env:
+          README_INPUT: ${{ inputs.readme_dashboard }}
+          PAGES_INPUT: ${{ inputs.pages_dashboard }}
+          REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
+        run: |
+          set -euo pipefail
+
+          artifact_mode="plain"
+          if [ "$REPOSITORY_PRIVATE" = "false" ] && [ "$PAGES_INPUT" != "public" ]; then
+            artifact_mode="encrypted"
+          fi
+
+          {
+            echo "README_DASHBOARD=$README_INPUT"
+            echo "PAGES_DASHBOARD=$PAGES_INPUT"
+            echo "ARTIFACT_SECURITY_MODE=$artifact_mode"
+          } >> "$GITHUB_ENV"
+
+      - name: Validate required secrets
+        env:
+          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+          TRAFFIC_DASHBOARD_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          TRAFFIC_DASHBOARD_NEXT_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${TRAFFIC_TOKEN:-}" ]; then
+            {
+              echo "## Setup stopped"
+              echo
+              echo "Create a repository secret named \`TRAFFIC_TOKEN\`, then run setup again."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          if [ -n "${TRAFFIC_DASHBOARD_NEXT_SECRET:-}" ]; then
+            {
+              echo "## Setup stopped"
+              echo
+              echo "\`TRAFFIC_DASHBOARD_NEXT_SECRET\` is still set."
+              echo "Finish key rotation by replacing \`TRAFFIC_DASHBOARD_SECRET\`"
+              echo "with the new key, then delete \`TRAFFIC_DASHBOARD_NEXT_SECRET\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          needs_dashboard_secret="false"
+          if [ "$PAGES_DASHBOARD" = "encrypted" ] || [ "$ARTIFACT_SECURITY_MODE" = "encrypted" ]; then
+            needs_dashboard_secret="true"
+          fi
+
+          if [ "$needs_dashboard_secret" = "true" ]; then
+            if [ -z "${TRAFFIC_DASHBOARD_SECRET:-}" ]; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "This setup needs a repository secret named \`TRAFFIC_DASHBOARD_SECRET\`."
+                echo
+                echo "See \`docs/SECURE_DASHBOARD_KEY.md\` for key generation options."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            if [ "${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ]; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "\`TRAFFIC_DASHBOARD_SECRET\` is too short. Use a generated key of at least 40 characters."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          fi
+
+      - name: Enable and configure collection workflow
+        run: |
+          set -euo pipefail
+
+          workflow=".github/workflows/collect.yml"
+          disabled_workflow=".github/workflows/collect.yml.disabled"
+
+          if [ -f "$disabled_workflow" ]; then
+            mv "$disabled_workflow" "$workflow"
+          elif [ ! -f "$workflow" ]; then
+            echo "Could not find $disabled_workflow or $workflow."
+            exit 1
+          fi
+
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          workflow = Path(".github/workflows/collect.yml")
+          text = workflow.read_text(encoding="utf-8")
+          replacements = {
+              "README_DASHBOARD": os.environ["README_DASHBOARD"],
+              "PAGES_DASHBOARD": os.environ["PAGES_DASHBOARD"],
+              "ARTIFACT_SECURITY_MODE": os.environ["ARTIFACT_SECURITY_MODE"],
+              "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+          }
+          for key, value in replacements.items():
+              text = re.sub(
+                  rf'^  {key}: ".*"$',
+                  f'  {key}: "{value}"',
+                  text,
+                  flags=re.MULTILINE,
+              )
+          workflow.write_text(text, encoding="utf-8")
+          PY
+
+      - name: Collect and render first dashboard
+        uses: reponomics/reponomics-action@main
+        with:
+          mode: collect
+          github-token: ${{ secrets.TRAFFIC_TOKEN }}
+          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          readme-dashboard: ${{ env.README_DASHBOARD }}
+          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
+          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}
+          commit-outputs: "false"
+
+      - name: Commit setup changes
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A .github/workflows README.md docs/index.html
+          if [ -d docs/assets ]; then
+            git add docs/assets
+          else
+            git rm -r --ignore-unmatch docs/assets
+          fi
+          git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
+          git push

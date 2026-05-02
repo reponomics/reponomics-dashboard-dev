@@ -1,0 +1,80 @@
+name: Rotate Reponomics dashboard key
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_rotation:
+        description: "I created TRAFFIC_DASHBOARD_NEXT_SECRET and saved the new key"
+        type: boolean
+        required: true
+        default: false
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  RETENTION_DAYS: "90"
+
+jobs:
+  rotate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Load collection modes
+        env:
+          CONFIRM_ROTATION: ${{ inputs.confirm_rotation }}
+        run: |
+          set -euo pipefail
+
+          if [ "$CONFIRM_ROTATION" != "true" ]; then
+            echo "Rotation was not confirmed."
+            exit 1
+          fi
+
+          if [ ! -f ".github/workflows/collect.yml" ]; then
+            {
+              echo "## Rotation stopped"
+              echo
+              echo "Run setup before rotating the dashboard key."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          python - <<'PY'
+          import os
+          import re
+          from pathlib import Path
+
+          text = Path(".github/workflows/collect.yml").read_text(encoding="utf-8")
+
+          def env_value(name, default=""):
+              match = re.search(rf'^  {name}: "([^"]*)"$', text, flags=re.MULTILINE)
+              return match.group(1) if match else default
+
+          values = {
+              "README_DASHBOARD": env_value("README_DASHBOARD", "disabled"),
+              "PAGES_DASHBOARD": env_value("PAGES_DASHBOARD", "encrypted"),
+              "ARTIFACT_SECURITY_MODE": env_value("ARTIFACT_SECURITY_MODE", "auto"),
+              "RETENTION_DAYS": env_value("RETENTION_DAYS", "90"),
+          }
+
+          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
+              for key, value in values.items():
+                  env_file.write(f"{key}={value}\n")
+          PY
+
+      - name: Rotate dashboard key
+        uses: reponomics/reponomics-action@main
+        with:
+          mode: rotate-key
+          github-token: ${{ secrets.TRAFFIC_TOKEN }}
+          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          dashboard-next-secret: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
+          readme-dashboard: ${{ env.README_DASHBOARD }}
+          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
+          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}

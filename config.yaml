@@ -1,0 +1,34 @@
+# Reponomics dashboard configuration
+#
+# By default, Reponomics auto-discovers up to 50 eligible repositories visible
+# to TRAFFIC_TOKEN and fills the tracked set from newest to oldest by creation
+# date.
+#
+# Use full owner/repo names for explicit entries.
+
+max_repos: 50
+
+# If non-empty, track exactly these repositories and ignore all other selection
+# settings.
+include_only:
+  # - owner/repo-name
+
+# Repositories that must always be tracked when accessible.
+include:
+  # - owner/important-repo
+
+# Repositories that must never be tracked automatically.
+exclude:
+  # - owner/noisy-repo
+
+# Fill remaining slots with other eligible repositories.
+include_others: true
+
+# Allow repositories created after the initial automatic-selection baseline to
+# enter the automatic pool.
+include_new: false
+
+# Allow private repositories in the automatic pool when TRAFFIC_TOKEN can see
+# them.
+include_private: true
+

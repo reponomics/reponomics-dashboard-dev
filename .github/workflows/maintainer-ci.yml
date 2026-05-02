@@ -1,0 +1,35 @@
+name: Maintainer CI
+
+on:
+  push:
+    branches:
+      - main
+      - template-dev
+  pull_request:
+    branches:
+      - main
+      - template-dev
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install maintainer dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run test suite
+        env:
+          PYTHONPATH: scripts
+        run: python -m pytest tests/ -v

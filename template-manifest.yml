@@ -1,0 +1,43 @@
+version: 1
+
+description: >
+  Files copied into the generated Reponomics dashboard template repository.
+  Anything not listed here is maintainer, demo, cache, or internal source
+  material.
+
+include:
+  - .github/workflows/collect.yml.disabled
+  - .github/workflows/rotate-key.yml
+  - .github/workflows/setup.yml
+  - .gitignore
+  - LICENSE
+  - README.md
+  - config.yaml
+  - docs/README.md
+  - docs/SECURE_DASHBOARD_KEY.md
+  - docs/index.html
+
+forbidden:
+  - .github/workflows/maintainer-ci.yml
+  - AGENTS.md
+  - SPEC.md
+  - __INTERNAL__
+  - Makefile
+  - data
+  - demo-data
+  - dist
+  - docs/BRANCH_MODEL.md
+  - docs/GENERATED_REPOSITORY_MODEL.md
+  - docs/LAUNCH_CHECKLIST.md
+  - docs/REPOSITORY_POLICY.md
+  - docs/adr
+  - docs/privacy-model-explainer.html
+  - maintainer.mk
+  - requirements.txt
+  - requirements-dev.txt
+  - scripts
+  - template-manifest.yml
+  - tests
+  - vendor
+  - venv
+

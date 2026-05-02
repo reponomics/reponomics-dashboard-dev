@@ -1,0 +1,58 @@
+name: Collect Reponomics traffic
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: reponomics-collect-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  README_DASHBOARD: "disabled"
+  PAGES_DASHBOARD: "encrypted"
+  ARTIFACT_SECURITY_MODE: "auto"
+  RETENTION_DAYS: "90"
+
+jobs:
+  collect:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Refuse incomplete key rotation
+        env:
+          TRAFFIC_DASHBOARD_NEXT_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${TRAFFIC_DASHBOARD_NEXT_SECRET:-}" ]; then
+            {
+              echo "## Collection stopped"
+              echo
+              echo "\`TRAFFIC_DASHBOARD_NEXT_SECRET\` is still set."
+              echo "Finish key rotation by replacing \`TRAFFIC_DASHBOARD_SECRET\`"
+              echo "with the new key, then delete \`TRAFFIC_DASHBOARD_NEXT_SECRET\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+      - name: Collect and render dashboard
+        uses: reponomics/reponomics-action@main
+        with:
+          mode: collect
+          github-token: ${{ secrets.TRAFFIC_TOKEN }}
+          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          readme-dashboard: ${{ env.README_DASHBOARD }}
+          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
+          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}
