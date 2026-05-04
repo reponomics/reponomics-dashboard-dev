@@ -154,8 +154,8 @@ Optional credentials:
 
 Workflows:
 
-- Setup validates configuration with the action's `doctor` mode, records mode
-  choices, and enables collection/publication workflows.
+- Setup validates configuration, records mode choices, and enables
+  collection/publication workflows.
 - Collection maintains retained data.
 - Publication renders selected README/Pages outputs from retained data.
 - Rotation re-encrypts retained state and dashboard output without collecting.
@@ -206,7 +206,6 @@ Workflows:
 
 Action modes:
 
-- `doctor`
 - `collect`
 - `publish`
 - `rotate-key`

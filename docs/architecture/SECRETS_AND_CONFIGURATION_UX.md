@@ -5,7 +5,7 @@ Version: 1.0 intended design
 The setup experience should help users choose a privacy model and generate a
 strong dashboard secret without requiring terminal fluency.
 
-## Dashboard Secret Requirements
+## Dashboard Secret Recommendations
 
 `TRAFFIC_DASHBOARD_SECRET` should be:
 
@@ -19,6 +19,17 @@ It should not be:
 - a memorable password
 - reused from another service
 - recoverable from GitHub after saving
+
+Reponomics should require the secret to be present when encrypted output or
+encrypted retained artifacts are selected. It should fail setup when the secret
+is below the policy entropy threshold unless the user explicitly enables
+`allow-weak-dashboard-secret`. When that override is used, setup should continue
+with a high-visibility warning.
+
+The entropy estimate is a product guardrail, not a cryptographic proof. It is
+there to stop obviously weak or human-chosen secrets in the default path. The
+override exists for advanced users, compatibility testing, and unusual secret
+management situations.
 
 ## Secret Generation Paths
 

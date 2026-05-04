@@ -34,6 +34,8 @@ Breaking changes include:
 - changing committed output paths without compatibility
 - changing workflow permissions required by normal operation
 - changing the meaning of `plain`, `encrypted`, or `disabled`
+- changing dashboard secret entropy gate semantics or removing the
+  `allow-weak-dashboard-secret` override
 
 Non-breaking changes include:
 
@@ -80,8 +82,8 @@ Template shell updates require a separate mechanism. The v1 policy is:
 - when a workflow/config/docs change is required, release notes provide exact
   manual migration steps
 
-A future `upgrade` or `doctor` mode can detect stale workflow shells and print
-instructions, but automatic workflow mutation is not required for v1.
+A future setup validation or upgrade check can detect stale workflow shells and
+print instructions, but automatic workflow mutation is not required for v1.
 
 ## Dashboard Rendering Ownership
 

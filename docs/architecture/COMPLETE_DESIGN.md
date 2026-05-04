@@ -130,39 +130,17 @@ same privacy model should still be legible from config and workflow files.
 
 ## Action Modes
 
-The action should support four modes.
+The public action contract should expose three product operations:
 
-### `doctor`
+- `collect`
+- `publish`
+- `rotate-key`
 
-Purpose:
-
-- validate setup choices without collecting, rendering, publishing, rotating,
-  or committing product outputs
-
-Reads:
-
-- caller repository config
-- selected workflow inputs
-- repository metadata
-- available secrets passed by the workflow
-
-Writes:
-
-- action outputs
-- workflow summary
-
-Required behavior:
-
-- validate token presence and basic authentication
-- validate required secrets for encrypted modes
-- validate dashboard secret strength when a secret is required
-- validate that selected modes are coherent
-- explain the effective privacy boundary
-- fail before enabling collection when required setup is incomplete
-
-`doctor` is the setup-time safety valve. It lets setup prove that the user has
-enough configuration to proceed without doing the dangerous thing: collecting
-and publishing data while the user is still orienting.
+Validation is not a separate public action mode. Setup validation belongs to
+the setup workflow. Collection validation belongs to `collect`. Publication
+validation belongs to `publish`. Rotation validation belongs to `rotate-key`.
+Shared validation helpers can exist internally, but they are implementation
+details rather than workflow-level verbs.
 
 ### `collect`
 
@@ -185,6 +163,10 @@ Writes:
 
 Required behavior:
 
+- validate traffic token presence and basic authentication
+- validate that retained artifact encryption settings are coherent
+- fail encrypted retained-artifact runs when the dashboard secret is below the
+  policy entropy threshold unless `allow-weak-dashboard-secret` is true
 - treat missing prior artifact as first run
 - restore and decrypt prior retained state when needed
 - collect required v1 data families: views, clones, top referrers, top paths
@@ -221,6 +203,12 @@ Writes:
 
 Required behavior:
 
+- validate that publication modes are coherent
+- validate dashboard secret presence when encrypted Pages output is selected
+- fail encrypted Pages publication when the dashboard secret is below the
+  policy entropy threshold unless `allow-weak-dashboard-secret` is true
+- emit a high-visibility workflow warning whenever the weak-secret override is
+  used
 - never call GitHub traffic APIs
 - never collect new data
 - render README and Pages from the same normalized data
@@ -260,6 +248,8 @@ Required behavior:
 - never collect new traffic
 - never rewrite GitHub repository secrets
 - fail if current or next key is missing
+- fail when the next dashboard secret is below the policy entropy threshold
+  unless `allow-weak-dashboard-secret` is true
 - fail if no encrypted retained artifact or encrypted dashboard output exists
 - leave the user with explicit instructions to promote
   `TRAFFIC_DASHBOARD_NEXT_SECRET` to `TRAFFIC_DASHBOARD_SECRET` and then delete
@@ -276,7 +266,16 @@ Responsibilities:
 
 - accept user setup profile choices
 - require explicit confirmations for any plain committed or hosted output
-- call `reponomics-action` with `mode: doctor`
+- run setup validation before enabling scheduled workflows
+- validate traffic token presence and basic authentication when collection is
+  being enabled
+- validate dashboard secret presence when encrypted retained artifacts or
+  encrypted Pages output are selected
+- fail encrypted profiles when the dashboard secret is below the policy entropy
+  threshold unless the user explicitly selects the weak-secret override
+- persist the weak-secret override into the enabled workflows if the user
+  chooses it
+- explain the effective privacy boundary in the workflow summary
 - persist selected modes into config/workflow variables
 - enable collection only after validation passes
 - optionally enable publication after collection, depending on the selected
@@ -295,9 +294,8 @@ Non-responsibilities:
 Setup should not trigger an immediate first collection. The risk is that setup
 is precisely when the user is least likely to understand what will be
 committed, hosted, encrypted, or retained. The counter-risk is that a scheduled
-run may fail later if secrets are wrong, so setup must run `doctor` first and
-must not enable scheduled collection unless required secrets and token checks
-pass.
+run may fail later if secrets are wrong, so setup must not enable scheduled
+collection unless required secrets and token checks pass.
 
 ### `collect.yml`
 
@@ -353,9 +351,18 @@ Action inputs should preserve the same separation:
 - `github-token` for artifact, commit, and workflow operations
 - `dashboard-secret` for current encryption
 - `dashboard-next-secret` for rotation
+- `allow-weak-dashboard-secret`, default `false`, to explicitly bypass the
+  dashboard secret entropy gate
 
 Environment fallbacks may exist for convenience, but they must not blur the
 roles.
+
+Dashboard secret entropy checks are intentionally a product guardrail, not a
+cryptographic proof. The default policy should reject obviously weak or
+human-chosen secrets for encrypted modes, while allowing an explicit
+`allow-weak-dashboard-secret: true` override for users who understand and
+accept the risk. The override never bypasses secret presence, decryptability, or
+encryptability checks.
 
 ## Privacy Model
 

@@ -264,7 +264,6 @@ The action should expose a narrow runtime contract.
 
 `mode`:
 
-- `doctor`
 - `collect`
 - `publish`
 - `rotate-key`
@@ -279,6 +278,7 @@ Dashboard and artifact inputs:
 
 - `dashboard-secret`
 - `dashboard-next-secret`
+- `allow-weak-dashboard-secret`: boolean, default `false`
 - `readme-dashboard`: `disabled` or `enabled`
 - `pages-dashboard`: `disabled`, `plain`, or `encrypted`
 - `artifact-security-mode`: `plain`, `encrypted`, or `auto`
@@ -313,6 +313,10 @@ compatibility:
 Fallbacks must not obscure the token boundary. Traffic API authentication and
 workflow/repository operations are different roles.
 
+The weak-secret override bypasses only the entropy policy gate. It must never
+bypass required secret presence, decryptability, encryptability, or rotation
+correctness checks.
+
 ### Outputs
 
 Action outputs are metadata, not the main product surface:
@@ -331,40 +335,10 @@ retained artifacts.
 
 ## Action Modes
 
-### `doctor`
-
-Purpose:
-
-- Validate setup choices without collecting, rendering, publishing, rotating,
-  or committing product outputs.
-
-Reads:
-
-- caller repository `config.yaml`
-- selected workflow inputs
-- caller repository metadata
-- secrets passed by the workflow
-
-Writes:
-
-- workflow summary
-- action metadata outputs
-
-Required secrets:
-
-- `traffic-token` or `TRAFFIC_TOKEN` when collection is being enabled
-- `dashboard-secret` or `TRAFFIC_DASHBOARD_SECRET` when encrypted retained
-  artifacts or encrypted Pages output are selected
-
-Required behavior:
-
-- Validate token presence and basic authentication.
-- Validate required secrets for selected modes.
-- Validate dashboard secret strength when a secret is required.
-- Resolve `artifact-security-mode=auto`.
-- Explain the effective privacy boundary in the workflow summary.
-- Fail before setup enables scheduled collection when required inputs are
-  missing or incoherent.
+The action modes are product operations, not generic validation commands.
+Validation gates exist inside setup, collection, publication, and rotation.
+Shared validation helpers can exist internally, but they are not a public action
+mode.
 
 ### `collect`
 
@@ -394,6 +368,10 @@ Required secrets:
 
 Required behavior:
 
+- Validate traffic token presence and basic authentication.
+- Validate retained artifact encryption settings.
+- Fail encrypted retained-artifact runs when the dashboard secret is below the
+  policy entropy threshold unless `allow-weak-dashboard-secret` is true.
 - Refuse to run while `TRAFFIC_DASHBOARD_NEXT_SECRET` is set.
 - Restore prior data before collecting.
 - Treat missing prior artifact as first run.
@@ -431,6 +409,8 @@ Required secrets:
 
 Required behavior:
 
+- Must fail when the next dashboard secret is below the policy entropy
+  threshold unless `allow-weak-dashboard-secret` is true.
 - Must not collect new traffic.
 - Must not rewrite repository secrets.
 - Must fail clearly if the current or next key is missing.
@@ -472,6 +452,13 @@ Writes:
 
 Required behavior:
 
+- Must validate selected README/Pages publication modes.
+- Must validate dashboard secret presence when encrypted Pages output is
+  selected.
+- Must fail encrypted Pages publication when the dashboard secret is below the
+  policy entropy threshold unless `allow-weak-dashboard-secret` is true.
+- Must emit a high-visibility workflow warning whenever the weak-secret
+  override is used.
 - Must not collect new traffic.
 - Must not mutate retained data except for schema migration if migration is
   explicitly part of the runtime contract.
@@ -488,9 +475,17 @@ Purpose:
 
 Intended responsibilities:
 
-- Call `reponomics-action` with `mode: doctor`.
 - Validate required secrets for the selected modes.
+- Validate traffic token presence and basic authentication when collection is
+  being enabled.
+- Validate dashboard secret presence when encrypted retained artifacts or
+  encrypted Pages output are selected.
+- Fail encrypted profiles when the dashboard secret is below the policy entropy
+  threshold unless the user explicitly selects the weak-secret override.
+- Persist the weak-secret override into the enabled workflows if the user
+  chooses it.
 - Resolve `readme-dashboard`, `pages-dashboard`, and `artifact-security-mode`.
+- Explain the effective privacy boundary in the workflow summary.
 - Enable collection by renaming or creating `collect.yml`.
 - Enable publication by renaming or creating `publish.yml` only when README or
   Pages publication is selected.
@@ -530,10 +525,11 @@ Tradeoffs:
   be enabled on a schedule, the user walks away, and the first run happens six
   hours later with incomplete or mistaken configuration.
 
-- To reduce delayed-run risk, setup should validate that required secrets exist,
-  that the traffic token is usable enough to authenticate, and that encrypted
-  modes have a dashboard secret of acceptable strength. Setup should also make
-  the next required action explicit in the workflow summary.
+- To reduce delayed-run risk, setup should validate that required secrets exist
+  and that the traffic token is usable enough to authenticate. Setup should fail
+  encrypted profiles when the dashboard secret is below the policy entropy
+  threshold unless the user explicitly selects the weak-secret override. Setup
+  should also make the next required action explicit in the workflow summary.
 
 ### Collection Workflow
 

@@ -12,7 +12,7 @@ file is intentionally implementation-specific.
 
 - has an initial composite action on `main`
 - supports `mode: collect` and `mode: rotate-key`
-- does not yet support the intended `doctor` and `publish` modes
+- does not yet support the intended `publish` mode
 - contains copied Python runtime scripts
 - has local fixture tests
 - currently uses `github-token` as an overloaded input for traffic API and
@@ -21,6 +21,8 @@ file is intentionally implementation-specific.
   intended `plain` terminology
 - currently uses `readme-dashboard: metrics_summary` terminology rather than
   the intended richer `enabled` README dashboard terminology
+- does not yet expose the intended `allow-weak-dashboard-secret` entropy-gate
+  override
 
 `reponomics-dashboard-dev`:
 
@@ -92,8 +94,8 @@ Likely fix:
 
 Intended contract:
 
-- setup calls `doctor`, configures selected modes, and enables collection and
-  publication workflows
+- setup validates selected modes and enables collection and publication
+  workflows
 - setup should not own collection semantics
 - setup stops before first collection, after validating secrets and explaining
   the next action
@@ -111,31 +113,31 @@ Risk:
 Likely fix:
 
 - remove first collection from setup
-- add `doctor` mode to the action
-- add stronger validation and summary output
+- add clearer validation and warning summary output
 - ask the user to run the collection workflow manually for the first run
 
-### Doctor Mode
+### Dashboard Secret Entropy Override
 
 Intended contract:
 
-- `doctor` validates setup choices, token availability, required dashboard
-  secret, artifact mode, and privacy consequences without collecting or
-  publishing.
+- encrypted modes fail when the dashboard secret is below the policy entropy
+  threshold unless `allow-weak-dashboard-secret` is true
+- the override bypasses only the entropy gate, not required secret presence,
+  decryptability, encryptability, or rotation correctness
 
 Current state:
 
-- no separate `doctor` mode exists
+- no explicit weak-secret override exists
 
 Risk:
 
-- setup must either duplicate validation logic or accidentally run collection
-  as validation
+- users may accidentally use weak human-chosen secrets, or the product may block
+  advanced users who intentionally accept the risk
 
 Likely fix:
 
-- add `mode: doctor` before live staging
-- make setup call `doctor` before enabling schedules
+- add `allow-weak-dashboard-secret`, default `false`
+- emit a high-visibility warning whenever the override is used
 
 ### Publish Mode
 
@@ -207,7 +209,8 @@ Likely fix:
 ## Suggested Next Work Order
 
 1. Align action contract terminology and token inputs.
-2. Add action `doctor` mode and make setup validation non-publishing.
+2. Make setup validation non-publishing and keep runtime gates inside collect,
+   publish, and rotate-key.
 3. Add action `publish` mode and split collect from rendering.
 4. Update generated template workflows for setup, collect, publish, and rotate.
 5. Regenerate and publish `reponomics-dashboard`.
