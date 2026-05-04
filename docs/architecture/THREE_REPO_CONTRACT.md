@@ -317,6 +317,14 @@ The weak-secret override bypasses only the entropy policy gate. It must never
 bypass required secret presence, decryptability, encryptability, or rotation
 correctness checks.
 
+The weak-secret override is also a disclosure signal. In a repository with
+public read access, committed workflow files, workflow inputs, logs, summaries,
+annotations, and action outputs should be treated as publicly observable. If the
+override is visible, an attacker can use it as a signal that the encrypted
+traffic payload may be brute-forceable. Generated README, Pages, retained
+artifact outputs, and action metadata should not add unnecessary weak-secret
+labels or entropy details.
+
 ### Outputs
 
 Action outputs are metadata, not the main product surface:
@@ -457,8 +465,8 @@ Required behavior:
   selected.
 - Must fail encrypted Pages publication when the dashboard secret is below the
   policy entropy threshold unless `allow-weak-dashboard-secret` is true.
-- Must emit a high-visibility workflow warning whenever the weak-secret
-  override is used.
+- Must not write entropy estimates, weak-secret labels, or override diagnostics
+  into generated README, Pages, or retained artifact outputs.
 - Must not collect new traffic.
 - Must not mutate retained data except for schema migration if migration is
   explicitly part of the runtime contract.
@@ -484,6 +492,9 @@ Intended responsibilities:
   threshold unless the user explicitly selects the weak-secret override.
 - Persist the weak-secret override into the enabled workflows if the user
   chooses it.
+- Warn that, in repositories with public read access, the override flag,
+  workflow logs, workflow summaries, and annotations may publicly advertise
+  that the encrypted data is easier to brute force.
 - Resolve `readme-dashboard`, `pages-dashboard`, and `artifact-security-mode`.
 - Explain the effective privacy boundary in the workflow summary.
 - Enable collection by renaming or creating `collect.yml`.

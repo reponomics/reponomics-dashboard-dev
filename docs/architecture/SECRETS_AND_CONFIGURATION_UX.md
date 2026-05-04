@@ -24,12 +24,40 @@ Reponomics should require the secret to be present when encrypted output or
 encrypted retained artifacts are selected. It should fail setup when the secret
 is below the policy entropy threshold unless the user explicitly enables
 `allow-weak-dashboard-secret`. When that override is used, setup should continue
-with a high-visibility warning.
+only after warning that the override can itself become visible repository
+metadata.
 
 The entropy estimate is a product guardrail, not a cryptographic proof. It is
 there to stop obviously weak or human-chosen secrets in the default path. The
 override exists for advanced users, compatibility testing, and unusual secret
 management situations.
+
+## Weak-Secret Override Disclosure
+
+The weak-secret override is not a private fact in many GitHub configurations.
+
+Treat these surfaces as visible to everyone with repository read access:
+
+- committed workflow files
+- workflow dispatch inputs
+- workflow logs
+- workflow summaries
+- annotations
+- action outputs
+
+For public repositories, that means the override can advertise to anyone that
+the encrypted traffic data may be easier to brute force. This is true even when
+the README dashboard is disabled and the Pages dashboard is encrypted.
+
+Reponomics should therefore:
+
+- fail by default when encrypted modes use a low-entropy dashboard secret
+- require an explicit `allow-weak-dashboard-secret` override
+- explain that the override itself may be observable in public repos
+- avoid writing entropy estimates or weak-secret labels into generated README,
+  Pages, or retained artifact outputs
+- direct users toward generating a strong random secret instead of using the
+  override
 
 ## Secret Generation Paths
 

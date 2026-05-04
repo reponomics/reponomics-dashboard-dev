@@ -137,7 +137,10 @@ Risk:
 Likely fix:
 
 - add `allow-weak-dashboard-secret`, default `false`
-- emit a high-visibility warning whenever the override is used
+- warn during setup that the override flag and workflow warnings may be visible
+  to anyone with repository read access
+- avoid writing entropy estimates or weak-secret labels into generated README,
+  Pages, or retained artifact outputs
 
 ### Publish Mode
 

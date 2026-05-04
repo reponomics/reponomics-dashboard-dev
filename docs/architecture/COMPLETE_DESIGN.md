@@ -207,8 +207,8 @@ Required behavior:
 - validate dashboard secret presence when encrypted Pages output is selected
 - fail encrypted Pages publication when the dashboard secret is below the
   policy entropy threshold unless `allow-weak-dashboard-secret` is true
-- emit a high-visibility workflow warning whenever the weak-secret override is
-  used
+- never write entropy estimates, weak-secret labels, or override diagnostics
+  into generated README, Pages, or retained artifact outputs
 - never call GitHub traffic APIs
 - never collect new data
 - render README and Pages from the same normalized data
@@ -275,6 +275,9 @@ Responsibilities:
   threshold unless the user explicitly selects the weak-secret override
 - persist the weak-secret override into the enabled workflows if the user
   chooses it
+- warn that, in repositories with public read access, the override flag,
+  workflow logs, workflow summaries, and annotations may publicly advertise
+  that the encrypted data is easier to brute force
 - explain the effective privacy boundary in the workflow summary
 - persist selected modes into config/workflow variables
 - enable collection only after validation passes
@@ -363,6 +366,16 @@ human-chosen secrets for encrypted modes, while allowing an explicit
 `allow-weak-dashboard-secret: true` override for users who understand and
 accept the risk. The override never bypasses secret presence, decryptability, or
 encryptability checks.
+
+The weak-secret override has its own disclosure risk. In a public repository,
+committed workflow files, workflow inputs, logs, summaries, annotations, and
+action outputs should be treated as publicly observable. If the override is
+visible, an attacker can use it as a signal that the encrypted traffic payload
+may be brute-forceable. Reponomics cannot warn a public-repo user secretly from
+inside GitHub Actions, so the setup UX and key-generation docs must explain
+this tradeoff before the user enables the override. Runtime and generated
+outputs should avoid adding unnecessary weak-secret signals beyond the explicit
+override state needed to run.
 
 ## Privacy Model
 
