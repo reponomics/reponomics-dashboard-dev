@@ -1,0 +1,46 @@
+name: Publish Reponomics dashboard
+
+on:
+  workflow_run:
+    workflows: ["Collect Reponomics traffic"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: reponomics-publish-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  README_DASHBOARD: "disabled"
+  PAGES_DASHBOARD: "encrypted"
+  ARTIFACT_SECURITY_MODE: "auto"
+  RETENTION_DAYS: "90"
+  ALLOW_WEAK_DASHBOARD_SECRET: "false"
+
+jobs:
+  publish:
+    if: >-
+      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Publish dashboard outputs
+        uses: reponomics/reponomics-action@main
+        with:
+          mode: publish
+          github-token: ${{ github.token }}
+          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          allow-weak-dashboard-secret: ${{ env.ALLOW_WEAK_DASHBOARD_SECRET }}
+          readme-dashboard: ${{ env.README_DASHBOARD }}
+          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
+          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}

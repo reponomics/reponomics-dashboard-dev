@@ -17,11 +17,11 @@ database, or account to connect.
 
 The setup workflow asks for:
 
-- README dashboard summary: `disabled` or `metrics_summary`
-- GitHub Pages dashboard: `encrypted`, `public`, or `disabled`
+- README dashboard: `disabled` or `enabled`
+- GitHub Pages dashboard: `encrypted`, `plain`, or `disabled`
 
 The private default for public repositories is encrypted Pages plus encrypted
-Actions artifacts. Choose public output only if you are comfortable publishing
+Actions artifacts. Choose plain output only if you are comfortable publishing
 the traffic data.
 
 ## Token
@@ -66,12 +66,12 @@ and ignores the automatic pool.
 
 ## After Setup
 
-Setup enables `.github/workflows/collect.yml`, runs the first collection, and
-replaces this README with the selected dashboard output. The collection
-workflow then runs twice daily on `main`.
+Setup enables `.github/workflows/collect.yml` and, when README or Pages output
+is selected, `.github/workflows/publish.yml`. It does not collect or publish
+traffic data immediately. Collection runs twice daily on `main`; publish runs
+after successful collection and can also be run manually.
 
 For hosted Pages, set **Settings -> Pages -> Source** to **Deploy from a
 branch**, choose branch `main`, folder `/docs`, then save.
 
 More details are in [docs/README.md](docs/README.md).
-

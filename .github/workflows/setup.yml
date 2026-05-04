@@ -4,13 +4,13 @@ on:
   workflow_dispatch:
     inputs:
       readme_dashboard:
-        description: "README dashboard summary"
+        description: "README dashboard"
         type: choice
         required: true
         default: disabled
         options:
           - disabled
-          - metrics_summary
+          - enabled
       pages_dashboard:
         description: "GitHub Pages HTML dashboard"
         type: choice
@@ -18,8 +18,13 @@ on:
         default: encrypted
         options:
           - encrypted
-          - public
+          - plain
           - disabled
+      allow_weak_dashboard_secret:
+        description: "Allow a weak dashboard secret for encrypted modes"
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: write
@@ -40,12 +45,13 @@ jobs:
         env:
           README_INPUT: ${{ inputs.readme_dashboard }}
           PAGES_INPUT: ${{ inputs.pages_dashboard }}
+          ALLOW_WEAK_INPUT: ${{ inputs.allow_weak_dashboard_secret }}
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
 
           artifact_mode="plain"
-          if [ "$REPOSITORY_PRIVATE" = "false" ] && [ "$PAGES_INPUT" != "public" ]; then
+          if [ "$REPOSITORY_PRIVATE" = "false" ] && [ "$PAGES_INPUT" != "plain" ]; then
             artifact_mode="encrypted"
           fi
 
@@ -53,6 +59,7 @@ jobs:
             echo "README_DASHBOARD=$README_INPUT"
             echo "PAGES_DASHBOARD=$PAGES_INPUT"
             echo "ARTIFACT_SECURITY_MODE=$artifact_mode"
+            echo "ALLOW_WEAK_DASHBOARD_SECRET=$ALLOW_WEAK_INPUT"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets
@@ -68,6 +75,16 @@ jobs:
               echo "## Setup stopped"
               echo
               echo "Create a repository secret named \`TRAFFIC_TOKEN\`, then run setup again."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
+          if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api rate_limit >/dev/null 2>&1; then
+            {
+              echo "## Setup stopped"
+              echo
+              echo "\`TRAFFIC_TOKEN\` did not authenticate with the GitHub API."
+              echo "Check the token value and repository permissions, then run setup again."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
@@ -100,28 +117,50 @@ jobs:
               exit 1
             fi
 
-            if [ "${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ]; then
+            if [ "${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$ALLOW_WEAK_DASHBOARD_SECRET" != "true" ]; then
               {
                 echo "## Setup stopped"
                 echo
                 echo "\`TRAFFIC_DASHBOARD_SECRET\` is too short. Use a generated key of at least 40 characters."
+                echo
+                echo "To continue anyway, rerun setup with \`allow_weak_dashboard_secret=true\`."
+                echo "In repositories with public read access, that override can itself"
+                echo "advertise that encrypted traffic data may be easier to brute force."
               } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
+
+            if [ "${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ]; then
+              {
+                echo "## Weak dashboard secret override enabled"
+                echo
+                echo "Setup will continue because \`allow_weak_dashboard_secret=true\`."
+                echo "In repositories with public read access, the override and workflow"
+                echo "logs may advertise that encrypted traffic data is easier to brute force."
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
           fi
 
-      - name: Enable and configure collection workflow
+      - name: Enable and configure workflows
         run: |
           set -euo pipefail
 
-          workflow=".github/workflows/collect.yml"
-          disabled_workflow=".github/workflows/collect.yml.disabled"
+          enable_workflow() {
+            local workflow="$1"
+            local disabled_workflow="$1.disabled"
 
-          if [ -f "$disabled_workflow" ]; then
-            mv "$disabled_workflow" "$workflow"
-          elif [ ! -f "$workflow" ]; then
-            echo "Could not find $disabled_workflow or $workflow."
-            exit 1
+            if [ -f "$disabled_workflow" ]; then
+              mv "$disabled_workflow" "$workflow"
+            elif [ ! -f "$workflow" ]; then
+              echo "Could not find $disabled_workflow or $workflow."
+              exit 1
+            fi
+          }
+
+          enable_workflow ".github/workflows/collect.yml"
+
+          if [ "$README_DASHBOARD" != "disabled" ] || [ "$PAGES_DASHBOARD" != "disabled" ]; then
+            enable_workflow ".github/workflows/publish.yml"
           fi
 
           python - <<'PY'
@@ -129,46 +168,40 @@ jobs:
           import re
           from pathlib import Path
 
-          workflow = Path(".github/workflows/collect.yml")
-          text = workflow.read_text(encoding="utf-8")
-          replacements = {
-              "README_DASHBOARD": os.environ["README_DASHBOARD"],
-              "PAGES_DASHBOARD": os.environ["PAGES_DASHBOARD"],
-              "ARTIFACT_SECURITY_MODE": os.environ["ARTIFACT_SECURITY_MODE"],
-              "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+          workflow_values = {
+              Path(".github/workflows/collect.yml"): {
+                  "ARTIFACT_SECURITY_MODE": os.environ["ARTIFACT_SECURITY_MODE"],
+                  "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+                  "ALLOW_WEAK_DASHBOARD_SECRET": os.environ["ALLOW_WEAK_DASHBOARD_SECRET"],
+              },
+              Path(".github/workflows/publish.yml"): {
+                  "README_DASHBOARD": os.environ["README_DASHBOARD"],
+                  "PAGES_DASHBOARD": os.environ["PAGES_DASHBOARD"],
+                  "ARTIFACT_SECURITY_MODE": os.environ["ARTIFACT_SECURITY_MODE"],
+                  "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+                  "ALLOW_WEAK_DASHBOARD_SECRET": os.environ["ALLOW_WEAK_DASHBOARD_SECRET"],
+              },
           }
-          for key, value in replacements.items():
-              text = re.sub(
-                  rf'^  {key}: ".*"$',
-                  f'  {key}: "{value}"',
-                  text,
-                  flags=re.MULTILINE,
-              )
-          workflow.write_text(text, encoding="utf-8")
-          PY
 
-      - name: Collect and render first dashboard
-        uses: reponomics/reponomics-action@main
-        with:
-          mode: collect
-          github-token: ${{ secrets.TRAFFIC_TOKEN }}
-          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
-          readme-dashboard: ${{ env.README_DASHBOARD }}
-          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
-          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
-          retention-days: ${{ env.RETENTION_DAYS }}
-          commit-outputs: "false"
+          for workflow, replacements in workflow_values.items():
+              if not workflow.exists():
+                  continue
+              text = workflow.read_text(encoding="utf-8")
+              for key, value in replacements.items():
+                  text = re.sub(
+                      rf'^  {key}: ".*"$',
+                      f'  {key}: "{value}"',
+                      text,
+                      flags=re.MULTILINE,
+                  )
+              workflow.write_text(text, encoding="utf-8")
+          PY
 
       - name: Commit setup changes
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A .github/workflows README.md docs/index.html
-          if [ -d docs/assets ]; then
-            git add docs/assets
-          else
-            git rm -r --ignore-unmatch docs/assets
-          fi
+          git add -A .github/workflows
           git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
           git push

@@ -19,6 +19,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
 
     required = [
         ".github/workflows/collect.yml.disabled",
+        ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
         "README.md",
@@ -60,15 +61,21 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
 
     workflows = output / ".github" / "workflows"
     collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
+    publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
 
     assert "uses: reponomics/reponomics-action@main" in collect
-    assert "uses: reponomics/reponomics-action@main" in setup
+    assert "uses: reponomics/reponomics-action@main" in publish
+    assert "uses: reponomics/reponomics-action@main" not in setup
     assert "uses: reponomics/reponomics-action@main" in rotate
     assert "python scripts/" not in collect
+    assert "python scripts/" not in publish
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
+    assert "mode: collect" in collect
+    assert "mode: publish" in publish
+    assert "workflow_run:" in publish
 
 
 def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):

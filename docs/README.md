@@ -38,26 +38,26 @@ Reponomics can write:
 - `docs/index.html`
 - `docs/assets/*`
 - `dist/dashboard-standalone.html` as a workflow artifact when Pages mode is
-  public
+  plain
 
 ## Modes
 
 `readme-dashboard`:
 
 - `disabled`: README does not publish metrics
-- `metrics_summary`: README shows summary metrics and SVG charts
+- `enabled`: README shows rich static metrics and SVG charts
 
 `pages-dashboard`:
 
 - `encrypted`: dashboard data is encrypted and unlocked in the browser with
   your dashboard key
-- `public`: dashboard data is written in plaintext
+- `plain`: dashboard data is written unencrypted
 - `disabled`: dashboard page is a placeholder
 
 `artifact-security-mode`:
 
-- `auto`: private default; encrypts public-repo artifacts unless Pages is
-  intentionally public
+- `auto`: conservative default; encrypts public-repo artifacts unless the user
+  intentionally chooses a fully open/plain profile
 - `encrypted`: always encrypt retained artifact data
 - `plain`: upload normalized CSV files directly
 

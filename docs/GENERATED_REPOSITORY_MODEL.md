@@ -62,10 +62,11 @@ workflows that call a versioned upstream runtime action:
 - uses: reponomics/reponomics-action@v1
   with:
     mode: collect
-    readme-dashboard: metrics_summary
+    traffic-token: ${{ secrets.TRAFFIC_TOKEN }}
+    github-token: ${{ github.token }}
+    readme-dashboard: enabled
     pages-dashboard: encrypted
   env:
-    TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
     TRAFFIC_DASHBOARD_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
 ```
 
@@ -77,15 +78,15 @@ The action should support at least these modes:
 
 | Mode | Purpose | Primary writes |
 |------|---------|----------------|
-| `collect` | Restore prior data, collect GitHub traffic, merge, render, encrypt/upload artifacts, and optionally commit outputs. | `README.md`, `docs/index.html`, `docs/assets/`, `traffic-data` artifact |
+| `collect` | Restore prior data, collect GitHub traffic, merge, and encrypt/upload retained artifacts. | `traffic-data` artifact |
+| `publish` | Restore retained data and render selected README/Pages outputs without collecting traffic. | `README.md`, `docs/index.html`, `docs/assets/` |
 | `rotate-key` | Restore/decrypt with `TRAFFIC_DASHBOARD_SECRET`, re-render/re-encrypt with `TRAFFIC_DASHBOARD_NEXT_SECRET`, upload the rotated artifact, and summarize the manual promotion step. | rotated dashboard outputs, rotated `traffic-data` artifact |
-| `setup` or `bootstrap` | Optional helper mode for first-run initialization if the separate setup workflow stays thin. | enabled workflow/configured outputs, first rendered outputs |
 
 The template should still provide friendly workflows for setup, scheduled
-collection, and key rotation because a Marketplace action cannot define the
-repository's event schedule, workflow-dispatch inputs, or permissions by
-itself. Those workflows should remain small and explicit, delegating behavior
-to the runtime action.
+collection, publish-after-collect, manual republish, and key rotation because a
+Marketplace action cannot define the repository's event schedule,
+workflow-dispatch inputs, or permissions by itself. Those workflows should
+remain small and explicit, delegating behavior to the runtime action.
 
 The runtime action is also the UI update channel. Improvements to the dashboard,
 README snapshot, schema migrations, artifact encryption, and GitHub API handling

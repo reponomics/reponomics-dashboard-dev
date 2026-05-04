@@ -500,8 +500,8 @@ Intended responsibilities:
 - Enable collection by renaming or creating `collect.yml`.
 - Enable publication by renaming or creating `publish.yml` only when README or
   Pages publication is selected.
-- Persist selected mode values into the collection workflow or another
-  explicit config surface.
+- Persist selected collection values into `collect.yml` and selected
+  publication values into `publish.yml`.
 - Commit setup/configuration changes.
 
 Non-responsibilities:
@@ -554,9 +554,7 @@ Responsibilities:
 - Refuse incomplete key rotation.
 - Check out the caller repository.
 - Call `reponomics-action` with `mode: collect`.
-- Call `reponomics-action` with `mode: publish` after successful collection
-  only when publication is enabled.
-- Pass selected modes and required secrets.
+- Pass selected artifact mode and required secrets.
 
 Non-responsibilities:
 
@@ -567,16 +565,19 @@ Non-responsibilities:
 
 Purpose:
 
-- Manually render selected output surfaces from retained data without
-  collecting new traffic.
+- Render selected output surfaces from retained data without collecting new
+  traffic.
 
 Responsibilities:
 
+- Trigger on `workflow_run` after the collect workflow completes successfully.
+- Support manual `workflow_dispatch` republish from retained artifacts.
 - Check out the caller repository.
 - Restore retained artifact state through `reponomics-action`.
 - Call `reponomics-action` with `mode: publish`.
 - Pass selected README/Pages modes and required dashboard secret.
 - Optionally commit selected outputs.
+- Stay independently disable-able from the GitHub Actions UI.
 
 Non-responsibilities:
 

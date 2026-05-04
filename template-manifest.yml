@@ -7,6 +7,7 @@ description: >
 
 include:
   - .github/workflows/collect.yml.disabled
+  - .github/workflows/publish.yml.disabled
   - .github/workflows/rotate-key.yml
   - .github/workflows/setup.yml
   - .gitignore
@@ -40,4 +41,3 @@ forbidden:
   - tests
   - vendor
   - venv
-

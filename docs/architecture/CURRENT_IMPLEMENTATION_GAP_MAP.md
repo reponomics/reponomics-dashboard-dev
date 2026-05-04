@@ -11,18 +11,14 @@ file is intentionally implementation-specific.
 `reponomics-action`:
 
 - has an initial composite action on `main`
-- supports `mode: collect` and `mode: rotate-key`
-- does not yet support the intended `publish` mode
+- supports `mode: collect`, `mode: publish`, and `mode: rotate-key` locally
 - contains copied Python runtime scripts
 - has local fixture tests
-- currently uses `github-token` as an overloaded input for traffic API and
-  artifact/repository operations
-- currently uses `pages-dashboard: public` in implementation rather than the
-  intended `plain` terminology
-- currently uses `readme-dashboard: metrics_summary` terminology rather than
-  the intended richer `enabled` README dashboard terminology
-- does not yet expose the intended `allow-weak-dashboard-secret` entropy-gate
-  override
+- has split `traffic-token` and `github-token` inputs locally
+- uses `pages-dashboard: plain` while accepting `public` as a deprecated alias
+- uses `readme-dashboard: enabled` while accepting `metrics_summary` as a
+  deprecated alias
+- exposes `allow-weak-dashboard-secret`
 
 `reponomics-dashboard-dev`:
 
@@ -55,7 +51,8 @@ Intended contract:
 
 Current state:
 
-- `github-token` is overloaded.
+- local action changes split the inputs, but live staging has not validated the
+  boundary yet
 
 Risk:
 
@@ -63,11 +60,7 @@ Risk:
 
 Likely fix:
 
-- split action inputs before broad testing:
-  - `traffic-token`
-  - `github-token`
-- keep environment fallbacks for `TRAFFIC_TOKEN`, `GITHUB_TOKEN`, and `GH_TOKEN`
-  with clear precedence.
+- validate the split in a generated staging repository
 
 ### Dashboard Disclosure Naming
 
@@ -78,7 +71,8 @@ Intended contract:
 
 Current state:
 
-- implementation uses `pages-dashboard: public`
+- local action and template changes use `pages-dashboard: plain`; `public`
+  remains only as a deprecated pre-release alias in the action
 
 Risk:
 
@@ -86,9 +80,8 @@ Risk:
 
 Likely fix:
 
-- migrate input value from `public` to `plain`
-- support `public` as a deprecated alias only if needed during pre-release
-  testing
+- validate generated workflows and docs no longer present `public` as the user
+  input for unencrypted output
 
 ### Setup Workflow Scope
 
@@ -102,7 +95,8 @@ Intended contract:
 
 Current state:
 
-- setup calls the action in collect mode for the first run
+- local generated-template changes make setup configure workflows without
+  collecting or publishing
 
 Risk:
 
@@ -112,9 +106,7 @@ Risk:
 
 Likely fix:
 
-- remove first collection from setup
-- add clearer validation and warning summary output
-- ask the user to run the collection workflow manually for the first run
+- validate setup behavior in a generated staging repository
 
 ### Dashboard Secret Entropy Override
 
@@ -127,7 +119,7 @@ Intended contract:
 
 Current state:
 
-- no explicit weak-secret override exists
+- local action and setup workflow changes include the override
 
 Risk:
 
@@ -136,11 +128,7 @@ Risk:
 
 Likely fix:
 
-- add `allow-weak-dashboard-secret`, default `false`
-- warn during setup that the override flag and workflow warnings may be visible
-  to anyone with repository read access
-- avoid writing entropy estimates or weak-secret labels into generated README,
-  Pages, or retained artifact outputs
+- validate the default failure path and explicit override path in staging
 
 ### Publish Mode
 
@@ -152,7 +140,9 @@ Intended contract:
 
 Current state:
 
-- collect also renders and publishes selected outputs
+- local action changes split collect and publish
+- local template changes make `publish.yml` a separate workflow triggered by
+  successful collect completion and manual dispatch
 
 Risk:
 
@@ -162,9 +152,8 @@ Risk:
 
 Likely fix:
 
-- add `mode: publish` before public release
-- update template workflows to run `collect`, then `publish` only when
-  publication is selected
+- validate artifact handoff from collect to workflow-run-triggered publish in
+  staging
 
 ### Existing User Update Path
 
@@ -211,14 +200,12 @@ Likely fix:
 
 ## Suggested Next Work Order
 
-1. Align action contract terminology and token inputs.
-2. Make setup validation non-publishing and keep runtime gates inside collect,
-   publish, and rotate-key.
-3. Add action `publish` mode and split collect from rendering.
-4. Update generated template workflows for setup, collect, publish, and rotate.
-5. Regenerate and publish `reponomics-dashboard`.
-6. Create a private staging repository from the template.
-7. Validate setup, collect, artifact restore, publish/disclosure behavior, and
+1. Commit and push the local `reponomics-action` contract changes.
+2. Commit and push the local `reponomics-dashboard-dev` workflow/template
+   changes.
+3. Regenerate and publish `reponomics-dashboard`.
+4. Create a private staging repository from the template.
+5. Validate setup, collect, artifact restore, publish/disclosure behavior, and
    rotate-key.
-8. Decide the `reponomics-dashboard-demo` model from staging evidence.
-9. Create/populate the umbrella `reponomics` product repo before public launch.
+6. Decide the `reponomics-dashboard-demo` model from staging evidence.
+7. Create/populate the umbrella `reponomics` product repo before public launch.

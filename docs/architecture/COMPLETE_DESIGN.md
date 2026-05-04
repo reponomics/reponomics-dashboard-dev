@@ -281,8 +281,8 @@ Responsibilities:
 - explain the effective privacy boundary in the workflow summary
 - persist selected modes into config/workflow variables
 - enable collection only after validation passes
-- optionally enable publication after collection, depending on the selected
-  profile
+- enable the separate publish workflow only when the selected profile publishes
+  README or Pages output
 - commit setup changes
 - write a clear workflow summary with the next manual step and expected
   schedule
@@ -306,7 +306,6 @@ Responsibilities:
 
 - scheduled and manual traffic collection
 - call `reponomics-action` with `mode: collect`
-- when publication is enabled, call `mode: publish` after successful collection
 - refuse to run during incomplete key rotation
 
 Store-only users should keep publication disabled. Their workflow should still
@@ -316,13 +315,16 @@ collect retained artifacts without committing README or Pages metrics.
 
 Responsibilities:
 
-- manual republish from retained artifacts
+- run on `workflow_run` after successful completion of the collect workflow
+- support manual `workflow_dispatch` republish from retained artifacts
 - allow users to change presentation settings and regenerate outputs without
   collecting new traffic
 - support publication-only validation during staging
 
 The generated template may ship this as `publish.yml.disabled` and let setup
 enable it only when README or Pages publication is selected.
+Keeping publication in its own workflow lets a repository owner disable
+publication directly from the GitHub Actions UI without disabling collection.
 
 ### `rotate-key.yml`
 
