@@ -1,24 +1,36 @@
 name: Set up Reponomics dashboard
 
 on:
+  # Manual trigger
   workflow_dispatch:
     inputs:
+      # Do you want a dashboard with SVG charts, tables,
+      # Mermaid diagrams, etc. embedded in your README?
       readme_dashboard:
         description: "README dashboard"
         type: choice
         required: true
         default: disabled
         options:
-          - disabled
-          - enabled
+          - disabled  # No
+          - enabled   # Yes
       pages_dashboard:
+        # Do you want a dynamic HTML dashboard hosted directly on the repo's
+        # GitHub Pages site?
         description: "GitHub Pages HTML dashboard"
         type: choice
         required: true
-        default: encrypted
+        default: encrypted-and-published
         options:
-          - encrypted
-          - plain
+          # Yes, and it should be encrypted so that only people with a password can access it
+          - encrypted-and-published
+          # Yes, and it does not need to be encrypted, I don't mind if anyone looks at it
+          - plaintext-and-published
+          # Yes, encrypt it but don't publish it to GitHub Pages
+          - encrypted-but-NOT-published
+          # Yes, and just commit it to the repo, don't encrypt it or publish it to Pages
+          - plaintext-but-NOT-published
+          # No, don't bother with the HTML dashboard at all, I don't need it
           - disabled
       allow_weak_dashboard_secret:
         description: "Allow a weak dashboard secret for encrypted modes"
@@ -40,6 +52,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.TRAFFIC_TOKEN || github.token }}
 
       - name: Resolve setup modes
         env:
@@ -50,14 +64,56 @@ jobs:
         run: |
           set -euo pipefail
 
-          artifact_mode="plain"
-          if [ "$REPOSITORY_PRIVATE" = "false" ] && [ "$PAGES_INPUT" != "plain" ]; then
-            artifact_mode="encrypted"
-          fi
+          case "$PAGES_INPUT" in
+            encrypted-and-published)
+              pages_mode="encrypted"
+              pages_publication="enabled"
+              artifact_mode="encrypted"
+              ;;
+            plaintext-and-published)
+              pages_mode="plain"
+              pages_publication="enabled"
+              artifact_mode="plain"
+              ;;
+            encrypted-but-NOT-published)
+              pages_mode="encrypted"
+              pages_publication="disabled"
+              artifact_mode="encrypted"
+              ;;
+            plaintext-but-NOT-published)
+              pages_mode="plain"
+              pages_publication="disabled"
+              artifact_mode="plain"
+              ;;
+            disabled)
+              pages_mode="disabled"
+              pages_publication="disabled"
+              if [ "$REPOSITORY_PRIVATE" = "false" ]; then
+                artifact_mode="encrypted"
+              else
+                artifact_mode="plain"
+              fi
+              ;;
+            encrypted)
+              pages_mode="encrypted"
+              pages_publication="enabled"
+              artifact_mode="encrypted"
+              ;;
+            plain)
+              pages_mode="plain"
+              pages_publication="enabled"
+              artifact_mode="plain"
+              ;;
+            *)
+              echo "Unsupported pages_dashboard input: $PAGES_INPUT" >&2
+              exit 1
+              ;;
+          esac
 
           {
             echo "README_DASHBOARD=$README_INPUT"
-            echo "PAGES_DASHBOARD=$PAGES_INPUT"
+            echo "PAGES_DASHBOARD=$pages_mode"
+            echo "PAGES_PUBLICATION=$pages_publication"
             echo "ARTIFACT_SECURITY_MODE=$artifact_mode"
             echo "ALLOW_WEAK_DASHBOARD_SECRET=$ALLOW_WEAK_INPUT"
           } >> "$GITHUB_ENV"
@@ -196,6 +252,85 @@ jobs:
                   )
               workflow.write_text(text, encoding="utf-8")
           PY
+
+      - name: Configure GitHub Pages publication
+        env:
+          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          pages_endpoint="repos/$GITHUB_REPOSITORY/pages"
+          pages_branch="main"
+          pages_path="/docs"
+
+          if [ "$PAGES_PUBLICATION" = "enabled" ]; then
+            if GH_TOKEN="$TRAFFIC_TOKEN" gh api "$pages_endpoint" >/dev/null 2>&1; then
+              if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api \
+                -X PUT \
+                "$pages_endpoint" \
+                -f "source[branch]=$pages_branch" \
+                -f "source[path]=$pages_path" \
+                >/dev/null; then
+                {
+                  echo "## Setup stopped"
+                  echo
+                  echo "Could not configure GitHub Pages for \`$pages_branch:$pages_path\`."
+                  echo "\`TRAFFIC_TOKEN\` must be able to manage GitHub Pages settings."
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+            elif ! GH_TOKEN="$TRAFFIC_TOKEN" gh api \
+              -X POST \
+              "$pages_endpoint" \
+              -f "source[branch]=$pages_branch" \
+              -f "source[path]=$pages_path" \
+              >/dev/null; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "Could not enable GitHub Pages for \`$pages_branch:$pages_path\`."
+                echo "\`TRAFFIC_TOKEN\` must be able to manage GitHub Pages settings."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            {
+              echo "## GitHub Pages configured"
+              echo
+              echo "GitHub Pages will publish from \`$pages_branch:$pages_path\`."
+            } >> "$GITHUB_STEP_SUMMARY"
+          else
+            current_source="$(
+              GH_TOKEN="$TRAFFIC_TOKEN" gh api "$pages_endpoint" \
+                --jq 'if .source then "\(.source.branch) \(.source.path)" else "" end' \
+                2>/dev/null || true
+            )"
+
+            if [ "$current_source" = "$pages_branch $pages_path" ]; then
+              if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api -X DELETE "$pages_endpoint" >/dev/null; then
+                {
+                  echo "## Setup stopped"
+                  echo
+                  echo "Could not unpublish the existing GitHub Pages site."
+                  echo "\`TRAFFIC_TOKEN\` must be able to manage GitHub Pages settings."
+                } >> "$GITHUB_STEP_SUMMARY"
+                exit 1
+              fi
+
+              {
+                echo "## GitHub Pages unpublished"
+                echo
+                echo "The existing \`$pages_branch:$pages_path\` Pages site was disabled."
+              } >> "$GITHUB_STEP_SUMMARY"
+            elif [ -n "$current_source" ]; then
+              {
+                echo "## GitHub Pages left unchanged"
+                echo
+                echo "A Pages site already exists, but it is not configured for \`$pages_branch:$pages_path\`."
+                echo "Setup did not alter that separate Pages configuration."
+              } >> "$GITHUB_STEP_SUMMARY"
+            fi
+          fi
 
       - name: Commit setup changes
         run: |

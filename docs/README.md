@@ -75,8 +75,9 @@ so rotation cannot be left half-finished unnoticed.
 
 ## GitHub Pages
 
-To host `docs/index.html`, set **Settings -> Pages -> Source** to **Deploy
-from a branch**, choose branch `main`, folder `/docs`, then save.
+Hosted Pages setup modes configure GitHub Pages to publish from `main:/docs`.
+If you later change the setting manually, use **Settings -> Pages -> Source**
+with **Deploy from a branch**, branch `main`, and folder `/docs`.
 
 GitHub Pages visibility depends on your GitHub plan and repository settings.
 Encrypted dashboard mode protects the dashboard data payload, but it does not

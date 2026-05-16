@@ -1,10 +1,10 @@
 """Tests for generated Reponomics dashboard repository outputs."""
 
+import re
+import sys
 from pathlib import Path
 
 import pytest
-
-import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
@@ -76,6 +76,29 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "mode: collect" in collect
     assert "mode: publish" in publish
     assert "workflow_run:" in publish
+
+
+def test_setup_workflow_resolves_pages_dashboard_profiles():
+    setup = Path(".github/workflows/setup.yml").read_text(encoding="utf-8")
+
+    expected_profiles = {
+        "encrypted-and-published": ("encrypted", "enabled", "encrypted"),
+        "plaintext-and-published": ("plain", "enabled", "plain"),
+        "encrypted-but-NOT-published": ("encrypted", "disabled", "encrypted"),
+        "plaintext-but-NOT-published": ("plain", "disabled", "plain"),
+    }
+    for profile, (pages_mode, pages_publication, artifact_mode) in expected_profiles.items():
+        assert re.search(
+            rf'{profile}\)\n'
+            rf'\s+pages_mode="{pages_mode}"\n'
+            rf'\s+pages_publication="{pages_publication}"\n'
+            rf'\s+artifact_mode="{artifact_mode}"',
+            setup,
+        )
+
+    assert 'echo "PAGES_DASHBOARD=$pages_mode"' in setup
+    assert 'echo "PAGES_PUBLICATION=$pages_publication"' in setup
+    assert "Configure GitHub Pages publication" in setup
 
 
 def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
