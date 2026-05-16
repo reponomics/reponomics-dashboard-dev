@@ -14,11 +14,27 @@ rotation behavior.
 Your repository owns:
 
 - `config.yaml`
+- any settings you copy into `config.yaml` from `docs/config.example.yaml`
 - repository secrets
 - workflow schedule and permissions
 - retained `traffic-data` artifacts
 - committed outputs such as `README.md`, `docs/index.html`, and `docs/assets/`
 - the pinned action version
+
+## Configuration
+
+`config.yaml` is the active configuration for this repository. It is
+user-owned: normal collection and publication runs read it, but should not
+silently rewrite it.
+
+`docs/config.example.yaml` is a reference file showing the current supported
+configuration shape. When Reponomics adds compatible optional settings, the
+example can be updated and release notes can point to the relevant snippet. You
+only need to copy settings into `config.yaml` when you want to override the
+runtime default.
+
+Missing optional keys use runtime defaults. Explicit keys in `config.yaml` are
+treated as your choices.
 
 ## Storage
 

@@ -16,6 +16,7 @@ include:
   - config.yaml
   - docs/README.md
   - docs/SECURE_DASHBOARD_KEY.md
+  - docs/config.example.yaml
   - docs/index.html
 
 forbidden:

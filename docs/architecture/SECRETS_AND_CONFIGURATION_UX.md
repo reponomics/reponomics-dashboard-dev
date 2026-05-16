@@ -5,6 +5,30 @@ Version: 1.0 intended design
 The setup experience should help users choose a privacy model and generate a
 strong dashboard secret without requiring terminal fluency.
 
+## Configuration Ownership
+
+Reponomics should treat configuration files as having different owners:
+
+- `config.yaml` is user-owned active configuration.
+- `docs/config.example.yaml` is product-owned reference documentation.
+
+Normal collection and publication runs should not silently rewrite
+`config.yaml`. Compatible action releases may add new optional settings, but a
+missing optional key should be resolved through runtime defaults rather than
+mechanical file mutation.
+
+When a new configurable feature ships, Reponomics should:
+
+- document the new key in `docs/config.example.yaml`
+- describe the default in release notes and update notices
+- render or log a focused snippet when useful
+- preserve explicit values already present in `config.yaml`
+
+This lets users upgrade the action for bug fixes while choosing whether to
+enable, disable, or pin new optional data families. Sensitive features should
+not rely on missing-key defaults for consent; they should require explicit
+configuration and compatible privacy modes.
+
 ## Dashboard Secret Recommendations
 
 `TRAFFIC_DASHBOARD_SECRET` should be:

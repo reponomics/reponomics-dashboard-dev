@@ -13,6 +13,10 @@ that architecture.
 - [Versioning And Updates](VERSIONING_AND_UPDATES.md)
 - [Current Implementation Gap Map](CURRENT_IMPLEMENTATION_GAP_MAP.md)
 
+Planning notes:
+
+- [Audience Insights Privacy Planning Note](AUDIENCE_INSIGHTS_PRIVACY_PLANNING_NOTE.md)
+
 `COMPLETE_DESIGN.md` is the canonical resolved design. The repository-specific
 documents expand individual parts of that contract.
 
