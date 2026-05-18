@@ -33,10 +33,12 @@ on:
           # No, don't bother with the HTML dashboard at all, I don't need it
           - disabled
       allow_weak_dashboard_secret:
+        # Encrypt the dashboard even if the password I set does not have
+        # high entropy and the dashboard can be easily decrypted
         description: "Allow a weak dashboard secret for encrypted modes"
         type: boolean
         required: true
-        default: false
+        default: false     # No, fail the workflow if the password is not complex enough
 
 permissions:
   contents: write

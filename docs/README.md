@@ -1,5 +1,7 @@
 # Reponomics Dashboard Documentation
 
+Welcome to your personal GitHub BI dashboard.
+
 Reponomics is a GitHub-native traffic dashboard. It collects views, clones, top
 referrers, popular paths, and aggregate repository counters, then renders
 static outputs in this repository.
@@ -95,6 +97,9 @@ Hosted Pages setup modes configure GitHub Pages to publish from `main:/docs`.
 If you later change the setting manually, use **Settings -> Pages -> Source**
 with **Deploy from a branch**, branch `main`, and folder `/docs`.
 
-GitHub Pages visibility depends on your GitHub plan and repository settings.
-Encrypted dashboard mode protects the dashboard data payload, but it does not
-make a compromised hosting surface trustworthy.
+> [!ALERT]
+> Unless you have a GitHub Enterprise account, then
+> whether your repository is public or private, **your GitHub Pages site will
+> be published to the open internet.**
+
+Furthermore, unless you configure a custom domain, its URL will be entirely predictable. The only way to guarantee some mmeasure of privacy is by encrypting the public page with a `TRAFFIC_DASHBOARD_SECRET`. When you do this, anyone who visits the page will be unable to view the actual data/dashboard unless they have that secret.
