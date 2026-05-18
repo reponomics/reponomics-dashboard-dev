@@ -9,6 +9,7 @@ that architecture.
 - [Three-Repository Contract](THREE_REPO_CONTRACT.md)
 - [Repository Specs](REPOSITORY_SPECS.md)
 - [Privacy And Configuration Matrix](PRIVACY_CONFIGURATION_MATRIX.md)
+- [Encrypted Payload Size And Side Channels](ENCRYPTED_PAYLOAD_SIZE_AND_SIDE_CHANNELS.md)
 - [Secrets And Configuration UX](SECRETS_AND_CONFIGURATION_UX.md)
 - [Versioning And Updates](VERSIONING_AND_UPDATES.md)
 - [Current Implementation Gap Map](CURRENT_IMPLEMENTATION_GAP_MAP.md)
