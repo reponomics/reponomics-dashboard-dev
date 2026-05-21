@@ -3,8 +3,8 @@
 Welcome to your personal GitHub BI dashboard.
 
 Reponomics is a GitHub-native traffic dashboard. It collects views, clones, top
-referrers, popular paths, and aggregate repository counters, then renders
-static outputs in this repository.
+referrers, popular paths, and aggregate repository counters, then renders and
+publishes static dashboard output during the `publish` workflow.
 
 ## Repository Model
 
@@ -20,7 +20,8 @@ Your repository owns:
 - repository secrets
 - workflow schedule and permissions
 - retained `traffic-data` artifacts
-- committed outputs such as `README.md`, `docs/index.html`, and `docs/assets/`
+- dashboard shell files such as the placeholder `docs/index.html`
+- committed README output when README publishing is enabled
 - the pinned action version
 
 ## Configuration
@@ -46,15 +47,16 @@ In plain mode, the artifact contains normalized CSV files. In encrypted mode,
 the artifact contains `traffic-data.enc`, encrypted with
 `TRAFFIC_DASHBOARD_SECRET`.
 
-Git history is used only for published outputs, not as the analytics database.
+Git history is used for repository configuration, workflow shells, and dashboard
+shell files, not as the analytics database. Retained traffic data is not
+committed to the repository.
 
 ## Outputs
 
-Reponomics can write:
+During `publish`, Reponomics can render:
 
 - `README.md`
-- `docs/index.html`
-- `docs/assets/*`
+- a hosted Pages dashboard artifact
 - `dist/dashboard-standalone.html` as a workflow artifact when Pages mode is
   plain
 
@@ -93,9 +95,10 @@ so rotation cannot be left half-finished unnoticed.
 
 ## GitHub Pages
 
-Hosted Pages setup modes configure GitHub Pages to publish from `main:/docs`.
-If you later change the setting manually, use **Settings -> Pages -> Source**
-with **Deploy from a branch**, branch `main`, and folder `/docs`.
+Hosted Pages setup modes configure GitHub Pages to publish from the Reponomics
+publish workflow. That workflow renders the dashboard shell and uploads it as a
+GitHub Pages artifact; retained traffic data remains in the `traffic-data`
+Actions artifact.
 
 > [!ALERT]
 > Unless you have a GitHub Enterprise account, then

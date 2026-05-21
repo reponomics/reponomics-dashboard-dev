@@ -262,21 +262,18 @@ jobs:
           set -euo pipefail
 
           pages_endpoint="repos/$GITHUB_REPOSITORY/pages"
-          pages_branch="main"
-          pages_path="/docs"
 
           if [ "$PAGES_PUBLICATION" = "enabled" ]; then
             if GH_TOKEN="$TRAFFIC_TOKEN" gh api "$pages_endpoint" >/dev/null 2>&1; then
               if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api \
                 -X PUT \
                 "$pages_endpoint" \
-                -f "source[branch]=$pages_branch" \
-                -f "source[path]=$pages_path" \
+                -f "build_type=workflow" \
                 >/dev/null; then
                 {
                   echo "## Setup stopped"
                   echo
-                  echo "Could not configure GitHub Pages for \`$pages_branch:$pages_path\`."
+                  echo "Could not configure GitHub Pages for workflow deployment."
                   echo "\`TRAFFIC_TOKEN\` must be able to manage GitHub Pages settings."
                 } >> "$GITHUB_STEP_SUMMARY"
                 exit 1
@@ -284,13 +281,12 @@ jobs:
             elif ! GH_TOKEN="$TRAFFIC_TOKEN" gh api \
               -X POST \
               "$pages_endpoint" \
-              -f "source[branch]=$pages_branch" \
-              -f "source[path]=$pages_path" \
+              -f "build_type=workflow" \
               >/dev/null; then
               {
                 echo "## Setup stopped"
                 echo
-                echo "Could not enable GitHub Pages for \`$pages_branch:$pages_path\`."
+                echo "Could not enable GitHub Pages for workflow deployment."
                 echo "\`TRAFFIC_TOKEN\` must be able to manage GitHub Pages settings."
               } >> "$GITHUB_STEP_SUMMARY"
               exit 1
@@ -299,16 +295,16 @@ jobs:
             {
               echo "## GitHub Pages configured"
               echo
-              echo "GitHub Pages will publish from \`$pages_branch:$pages_path\`."
+              echo "GitHub Pages will publish from the Reponomics publish workflow."
             } >> "$GITHUB_STEP_SUMMARY"
           else
-            current_source="$(
+            current_build_type="$(
               GH_TOKEN="$TRAFFIC_TOKEN" gh api "$pages_endpoint" \
-                --jq 'if .source then "\(.source.branch) \(.source.path)" else "" end' \
+                --jq '.build_type // ""' \
                 2>/dev/null || true
             )"
 
-            if [ "$current_source" = "$pages_branch $pages_path" ]; then
+            if [ "$current_build_type" = "workflow" ]; then
               if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api -X DELETE "$pages_endpoint" >/dev/null; then
                 {
                   echo "## Setup stopped"
@@ -322,13 +318,13 @@ jobs:
               {
                 echo "## GitHub Pages unpublished"
                 echo
-                echo "The existing \`$pages_branch:$pages_path\` Pages site was disabled."
+                echo "The existing workflow-deployed Pages site was disabled."
               } >> "$GITHUB_STEP_SUMMARY"
-            elif [ -n "$current_source" ]; then
+            elif [ -n "$current_build_type" ]; then
               {
                 echo "## GitHub Pages left unchanged"
                 echo
-                echo "A Pages site already exists, but it is not configured for \`$pages_branch:$pages_path\`."
+                echo "A Pages site already exists, but it is not configured for workflow deployment."
                 echo "Setup did not alter that separate Pages configuration."
               } >> "$GITHUB_STEP_SUMMARY"
             fi

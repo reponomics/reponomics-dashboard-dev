@@ -12,6 +12,8 @@ on:
 permissions:
   contents: write
   actions: read
+  pages: write
+  id-token: write
 
 env:
   RETENTION_DAYS: "90"

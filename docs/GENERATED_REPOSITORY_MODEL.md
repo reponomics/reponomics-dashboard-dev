@@ -79,7 +79,7 @@ The action should support at least these modes:
 | Mode | Purpose | Primary writes |
 |------|---------|----------------|
 | `collect` | Restore prior data, collect GitHub traffic, merge, and encrypt/upload retained artifacts. | `traffic-data` artifact |
-| `publish` | Restore retained data and render selected README/Pages outputs without collecting traffic. | `README.md`, `docs/index.html`, `docs/assets/` |
+| `publish` | Restore retained data and render selected README/Pages outputs without collecting traffic. | `README.md`, hosted Pages artifact |
 | `rotate-key` | Restore/decrypt with `TRAFFIC_DASHBOARD_SECRET`, re-render/re-encrypt with `TRAFFIC_DASHBOARD_NEXT_SECRET`, upload the rotated artifact, and summarize the manual promotion step. | rotated dashboard outputs, rotated `traffic-data` artifact |
 
 The template should still provide friendly workflows for setup, scheduled

@@ -18,7 +18,7 @@ There's a reason why repo Traffic data is only visible to users with push access
 
 The Reponomics Dashboard template repo solves this problem for you - public website, private data. When you create a repo based off of this template, you start by setting up a private key. There's a number of ways you can create a key, or a password - the only important thing is to make sure that it's _really, really long_. Once you create your key, you store it somewhere accessible, like your password manager, or your Keychain, and then you save it to the repository as a repo secret. Now you're ready to get going - that's all the setup you need.
 
-Once you've set up your repo secret, you're ready to start collecting Traffic data from any repository where you have access to it, and it will _never be stored anywhere in plain text_. Twice a day, a workflow will go around to whatever repositories you've configured it to collect from, it will query for that data, write it all down to a CSV file, _encrypt the CSV file_ using your very, very long password, and then upload it as a workflow artifact. The plain text data never lands in your repo's source code. Then, assuming you want that nice HTML dashboard, it will generate the entire dashboard in an encrypted form, and _that's_ what GitHub Pages will serve. Your private dashboard is open to the public - that's true. But it's only served in an encrypted form. Then when you visit the dashboard, if you know the repository secret, you enter that into the password field, and the dashboard is decrypted using strictly client-side decryption.
+Once you've set up your repo secret, you're ready to start collecting Traffic data from any repository where you have access to it, and it will _never be stored anywhere in plain text_. Twice a day, a workflow will go around to whatever repositories you've configured it to collect from, it will query for that data, write it all down to a CSV file, _encrypt the CSV file_ using your very, very long password, and then upload it as a workflow artifact. The plain text data never lands in your repo's source code. Then, assuming you want that nice HTML dashboard, the publish workflow renders the dashboard shell, encrypts the dashboard data into that shell, and deploys it to GitHub Pages. Your private dashboard is open to the public - that's true. But it's only served in an encrypted form. Then when you visit the dashboard, if you know the repository secret, you enter that into the password field, and the dashboard is decrypted using strictly client-side decryption.
 
 ### It Couldn't Be Any Easier
 
@@ -41,7 +41,7 @@ Choose your privacy model:
 
 3. In order to _encrypt_ the data, you'll need an encryption key - see [here](TBD) for information on how to generate that key. ***If you really want moderately strong privacy, it has to be a very long key.*** It's really important to understand that before you start down the wrong path. For information about why, read more about it [here](TBD). This repo does _not_ provide enterprise-level privacy suitable for critically sensitive information. And what it does provide is _entirely_ dependent on having a very strong password. But either way, you decide whatever privacy model suits your needs. If you're not really sure, and this is all sounds a bit confusing, consider following these instructions for maximum privacy.
 
-4. Store the encryption secret in the repository as `TRAFFIC_DASHBOARD_SECRET`. This will be used during the collection workflow to decrypt the stored data, write the newly collected data to it, and then immediately encrypt it before it's uploaded as an artifact. Additionally, the static HTML page will be encrypted and stored in your repo to be served by GitHub Pages.
+4. Store the encryption secret in the repository as `TRAFFIC_DASHBOARD_SECRET`. This will be used during the collection workflow to decrypt the stored data, write the newly collected data to it, and then immediately encrypt it before it's uploaded as an artifact. Additionally, the publish workflow uses it to render and deploy an encrypted dashboard shell to GitHub Pages.
 
 5. head over to the Actions tab, and run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 </details>
@@ -66,7 +66,7 @@ The setup workflow asks for:
 
 The private default for public repositories is encrypted Pages plus encrypted
 Actions artifacts. Choose plaintext output only if you are comfortable exposing
-the dashboard data in committed HTML.
+the dashboard data in the deployed dashboard.
 
 ## Token
 
@@ -116,7 +116,7 @@ is selected, `.github/workflows/publish.yml`. It does not collect or publish
 traffic data immediately. Collection runs twice daily on `main`; publish runs
 after successful collection and can also be run manually.
 
-For hosted Pages modes, setup configures GitHub Pages to publish from
-`main:/docs`.
+For hosted Pages modes, setup configures GitHub Pages to publish from the
+Reponomics publish workflow.
 
 More details are in [docs/README.md](docs/README.md).

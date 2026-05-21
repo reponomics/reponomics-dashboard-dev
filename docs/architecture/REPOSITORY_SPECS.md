@@ -163,9 +163,8 @@ Workflows:
 Outputs:
 
 - retained `traffic-data` artifact
-- `README.md`
-- `docs/index.html`
-- `docs/assets/*`
+- `README.md`, when README publishing is enabled
+- hosted Pages dashboard artifact, when Pages publishing is enabled
 - optional standalone dashboard artifact
 
 ## `reponomics-action`

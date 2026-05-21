@@ -291,8 +291,6 @@ plain dashboard output. Use `plain` to mean unencrypted output, not "public."
 Path inputs:
 
 - `config-path`, default `config.yaml`
-- `data-dir`, default `data`
-- `dashboard-path`, default `docs/index.html`
 - `readme-path`, default `README.md`
 
 Commit input:
@@ -453,8 +451,7 @@ Reads:
 Writes:
 
 - `README.md`, if README publication is enabled
-- `docs/index.html`, if Pages publication is enabled
-- `docs/assets/*`, when README metrics are enabled
+- hosted Pages dashboard artifact, if Pages publication is enabled
 - optional standalone dashboard artifact when Pages mode is plain
 - optional commit to the caller repository
 
