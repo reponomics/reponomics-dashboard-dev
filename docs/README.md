@@ -60,6 +60,17 @@ During `publish`, Reponomics can render:
 - `dist/dashboard-standalone.html` as a workflow artifact when Pages mode is
   plain
 
+## Offline Viewing
+
+The generated dashboard is not committed to this repository. This keeps retained traffic data out of git history, but it also means you download dashboard output from the relevant `publish` workflow artifact rather than from the repository tree.
+
+After a successful **Publish Reponomics dashboard** run, open the workflow run's **Summary** page and download the artifact before it expires:
+
+- For plain dashboard output, download `dashboard-standalone` and open `dashboard-standalone.html`.
+- For encrypted dashboard output, download the GitHub Pages artifact, extract it, and open `index.html`. Use the same dashboard key that unlocks the hosted Pages dashboard.
+
+Artifact availability follows the workflow's retention setting.
+
 ## Modes
 
 `readme-dashboard`:

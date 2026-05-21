@@ -119,4 +119,10 @@ after successful collection and can also be run manually.
 For hosted Pages modes, setup configures GitHub Pages to publish from the
 Reponomics publish workflow.
 
+To view a dashboard offline, open a successful **Publish Reponomics dashboard**
+workflow run and download the dashboard artifact before it expires. Plain
+dashboard output provides a `dashboard-standalone` artifact with a single HTML
+file. Encrypted dashboard output can be downloaded from the GitHub Pages
+artifact and opened with the same dashboard key used for the hosted site.
+
 More details are in [docs/README.md](docs/README.md).
