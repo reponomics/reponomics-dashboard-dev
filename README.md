@@ -35,9 +35,10 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 
-Setup enables the collection workflow and, if selected, the publish workflow.
-It does not collect traffic immediately. Collection runs twice daily on `main`;
-publication runs after successful collection and can also be run manually.
+Setup enables the collection workflow and leaves publish disabled unless
+`publish_dashboard` is enabled during setup. It does not collect traffic
+immediately. Collection runs twice daily on `main`; publication runs after
+successful collection and can also be run manually.
 
 ## Configuration
 
