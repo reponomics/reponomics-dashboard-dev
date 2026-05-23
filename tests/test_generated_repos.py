@@ -49,6 +49,7 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "vendor",
         "docs/GENERATED_REPOSITORY_MODEL.md",
         "docs/REPOSITORY_POLICY.md",
+        "docs/archive",
         "docs/adr",
     ]
     for relative_path in forbidden:
@@ -66,10 +67,11 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
 
-    assert "uses: reponomics/reponomics-action@main" in collect
-    assert "uses: reponomics/reponomics-action@main" in publish
-    assert "uses: reponomics/reponomics-action@main" not in setup
-    assert "uses: reponomics/reponomics-action@main" in rotate
+    action_ref = "uses: reponomics/reponomics-dashboard-action@v0.8.0"
+    assert action_ref in collect
+    assert action_ref in publish
+    assert action_ref not in setup
+    assert action_ref in rotate
     assert "python scripts/" not in collect
     assert "python scripts/" not in publish
     assert "python scripts/" not in setup
@@ -79,26 +81,20 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "workflow_run:" in publish
 
 
-def test_setup_workflow_resolves_pages_dashboard_profiles():
+def test_setup_workflow_resolves_privacy_modes():
     setup = Path(".github/workflows/setup.yml").read_text(encoding="utf-8")
 
-    expected_profiles = {
-        "encrypted-and-published": ("encrypted", "enabled", "encrypted"),
-        "plaintext-and-published": ("plain", "enabled", "plain"),
-        "encrypted-but-NOT-published": ("encrypted", "disabled", "encrypted"),
-        "plaintext-but-NOT-published": ("plain", "disabled", "plain"),
-    }
-    for profile, (pages_mode, pages_publication, artifact_mode) in expected_profiles.items():
-        assert re.search(
-            rf'{profile}\)\n'
-            rf'\s+pages_mode="{pages_mode}"\n'
-            rf'\s+pages_publication="{pages_publication}"\n'
-            rf'\s+artifact_mode="{artifact_mode}"',
-            setup,
-        )
+    for mode in ("strong", "casual", "plain"):
+        assert re.search(rf"^\s+- {mode}$", setup, flags=re.MULTILINE)
 
-    assert 'echo "PAGES_DASHBOARD=$pages_mode"' in setup
+    assert 'echo "PRIVACY_MODE=$privacy_mode"' in setup
     assert 'echo "PAGES_PUBLICATION=$pages_publication"' in setup
+    assert 'echo "COMMIT_OUTPUTS=$COMMIT_README_INPUT"' in setup
+    assert "privacy_mode=plain" in setup
+    assert "is only supported for private repositories." in setup
+    assert "privacy_mode=strong" in setup
+    assert "privacy_mode=casual" in setup
+    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" in setup
     assert "Configure GitHub Pages publication" in setup
 
 

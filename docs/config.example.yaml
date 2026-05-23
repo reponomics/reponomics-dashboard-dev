@@ -35,27 +35,6 @@ include_new: false
 # them.
 include_private: true
 
-# Data families --------------------------------------------------------------
-#
-# Missing keys use runtime defaults. Explicit keys in config.yaml are treated as
-# user choices and should not be rewritten by normal collect/publish runs.
-
-data_families:
-  # Required v1 traffic history.
-  traffic: true
-
-  # Rolling top referrer snapshots.
-  referrers: true
-
-  # Rolling popular path snapshots.
-  paths: true
-
-  # Aggregate repository growth counters such as stars, subscribers/watchers,
-  # and forks. This is repo-level data, not individual account tracking.
-  repo_growth: true
-
-  # Future private-audience analytics mode. Disabled by default and expected to
-  # require encrypted artifacts plus encrypted or local-only rendering if ever
-  # implemented.
-  audience_insights: false
-
+# No data-family switches are currently supported. The v0.8 runtime always
+# collects the v1 traffic, referrer, path, and repository growth datasets for
+# the repositories selected above.

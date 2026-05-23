@@ -18,11 +18,9 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  README_DASHBOARD: "disabled"
-  PAGES_DASHBOARD: "encrypted"
-  ARTIFACT_SECURITY_MODE: "auto"
+  PRIVACY_MODE: "strong"
   RETENTION_DAYS: "90"
-  ALLOW_WEAK_DASHBOARD_SECRET: "false"
+  COMMIT_OUTPUTS: "false"
 
 jobs:
   publish:
@@ -36,13 +34,11 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Publish dashboard outputs
-        uses: reponomics/reponomics-action@main
+        uses: reponomics/reponomics-dashboard-action@v0.8.0
         with:
           mode: publish
           github-token: ${{ github.token }}
           dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
-          allow-weak-dashboard-secret: ${{ env.ALLOW_WEAK_DASHBOARD_SECRET }}
-          readme-dashboard: ${{ env.README_DASHBOARD }}
-          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
-          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
+          commit-outputs: ${{ env.COMMIT_OUTPUTS }}

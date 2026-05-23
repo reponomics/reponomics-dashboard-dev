@@ -33,6 +33,7 @@ forbidden:
   - docs/LAUNCH_CHECKLIST.md
   - docs/REPOSITORY_POLICY.md
   - docs/adr
+  - docs/archive
   - docs/privacy-model-explainer.html
   - maintainer.mk
   - requirements.txt

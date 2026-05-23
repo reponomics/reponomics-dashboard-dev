@@ -1,15 +1,28 @@
 # Secure Dashboard Key Generation
 
-Encrypted dashboard mode uses `TRAFFIC_DASHBOARD_SECRET` to encrypt dashboard
-data and, when needed, the retained Actions artifact. Anyone with this key can
-decrypt the dashboard. GitHub will not show the secret value again after you
-save it, so store it somewhere private.
+`privacy-mode=strong` and `privacy-mode=casual` use
+`TRAFFIC_DASHBOARD_SECRET` to encrypt retained artifacts and hosted dashboard
+data. Anyone with this key can decrypt the dashboard and CSV export. GitHub
+will not show the secret value again after you save it, so store it somewhere
+private.
 
-Do not choose a memorable password. Generate a random dashboard key.
+Do not choose a memorable password for `strong`. Generate a random dashboard
+key.
 
-## Recommended: Password Manager
+## Recommended: Command Line
 
-Use your password manager to generate a random password of at least 48
+Use a shell-safe 256-bit hex key:
+
+```sh
+openssl rand -hex 32
+```
+
+Save the generated value in a password manager, then add it as the repository
+secret named `TRAFFIC_DASHBOARD_SECRET`.
+
+## Password Manager
+
+Use your password manager to generate a random password of at least 64
 characters. Store it as `Reponomics dashboard key`, then paste it into the
 repository secret named `TRAFFIC_DASHBOARD_SECRET`.
 
@@ -19,36 +32,35 @@ Use this only on a new blank tab. Do not paste code into the browser console on
 an untrusted website.
 
 ```js
-(() => {
-  const bytes = crypto.getRandomValues(new Uint8Array(32));
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-})()
+Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) =>
+  byte.toString(16).padStart(2, "0")
+).join("")
 ```
 
 Copy the generated value, store it somewhere private, and save it as
 `TRAFFIC_DASHBOARD_SECRET`.
 
-## Command Line
+## Strong Versus Casual
 
-```sh
-openssl rand -base64 32
-```
+`strong` requires a generated, high-entropy secret. Setup rejects short secrets
+for this mode.
 
-```sh
-node -e "console.log(require('crypto').randomBytes(32).toString('base64url'))"
-```
+`casual` accepts any non-empty secret and still encrypts artifacts and hosted
+dashboard output, but weak or shared secrets can be brute-forced offline from
+the encrypted payload. Use it only when the goal is preventing accidental
+viewing, crawling, or casual discovery.
+
+`plain` does not use a dashboard secret. It stores retained CSV artifacts
+without encryption and is only supported in private repositories.
 
 ## Rotation
 
 1. Generate and save a new key.
 2. Add it as `TRAFFIC_DASHBOARD_NEXT_SECRET`.
 3. Run **Actions -> Rotate Reponomics dashboard key -> Run workflow**.
-4. Replace `TRAFFIC_DASHBOARD_SECRET` with the new key.
-5. Delete `TRAFFIC_DASHBOARD_NEXT_SECRET`.
+4. Confirm the dashboard opens with the new key.
+5. Replace `TRAFFIC_DASHBOARD_SECRET` with the new key.
+6. Delete `TRAFFIC_DASHBOARD_NEXT_SECRET`.
 
 If the old `TRAFFIC_DASHBOARD_SECRET` was deleted or overwritten before
 rotation, the previous encrypted artifact cannot be recovered.
-

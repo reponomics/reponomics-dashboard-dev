@@ -58,27 +58,20 @@ jobs:
               return match.group(1) if match else default
 
           values = {
-              "ARTIFACT_SECURITY_MODE": env_value("ARTIFACT_SECURITY_MODE", "auto"),
+              "PRIVACY_MODE": env_value("PRIVACY_MODE", "strong"),
               "RETENTION_DAYS": env_value("RETENTION_DAYS", "90"),
-              "ALLOW_WEAK_DASHBOARD_SECRET": env_value("ALLOW_WEAK_DASHBOARD_SECRET", "false"),
           }
 
           publish_workflow = Path(".github/workflows/publish.yml")
           if publish_workflow.exists():
               publish_text = publish_workflow.read_text(encoding="utf-8")
-              values["README_DASHBOARD"] = re.search(
-                  r'^  README_DASHBOARD: "([^"]*)"$',
-                  publish_text,
-                  flags=re.MULTILINE,
-              ).group(1)
-              values["PAGES_DASHBOARD"] = re.search(
-                  r'^  PAGES_DASHBOARD: "([^"]*)"$',
+              values["COMMIT_OUTPUTS"] = re.search(
+                  r'^  COMMIT_OUTPUTS: "([^"]*)"$',
                   publish_text,
                   flags=re.MULTILINE,
               ).group(1)
           else:
-              values["README_DASHBOARD"] = "disabled"
-              values["PAGES_DASHBOARD"] = "disabled"
+              values["COMMIT_OUTPUTS"] = "false"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
               for key, value in values.items():
@@ -86,14 +79,12 @@ jobs:
           PY
 
       - name: Rotate dashboard key
-        uses: reponomics/reponomics-action@main
+        uses: reponomics/reponomics-dashboard-action@v0.8.0
         with:
           mode: rotate-key
           github-token: ${{ github.token }}
           dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
           dashboard-next-secret: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
-          allow-weak-dashboard-secret: ${{ env.ALLOW_WEAK_DASHBOARD_SECRET }}
-          readme-dashboard: ${{ env.README_DASHBOARD }}
-          pages-dashboard: ${{ env.PAGES_DASHBOARD }}
-          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
+          commit-outputs: ${{ env.COMMIT_OUTPUTS }}

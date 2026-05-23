@@ -26,7 +26,6 @@ include_others: true
 
 # Allow repositories created after the initial automatic-selection baseline to
 # enter the automatic pool.
-# WARNING: This will evict 
 include_new: false
 
 # Allow private repositories in the automatic pool when TRAFFIC_TOKEN can see

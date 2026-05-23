@@ -1,96 +1,89 @@
 # Reponomics Dashboard Documentation
 
-Welcome to your personal GitHub BI dashboard.
+Reponomics is a GitHub-native traffic dashboard. It collects views, clones,
+top referrers, popular paths, and repository growth counters, then renders
+static dashboard output during the `publish` workflow.
 
-Reponomics is a GitHub-native traffic dashboard. It collects views, clones, top
-referrers, popular paths, and aggregate repository counters, then renders and
-publishes static dashboard output during the `publish` workflow.
+This generated repository is intentionally thin. The workflows call
+`reponomics/reponomics-dashboard-action@v0.8.0`, which owns collection,
+artifact restore/upload, schema migration, encryption, README rendering,
+dashboard rendering, CSV export packaging, and dashboard key rotation.
 
 ## Repository Model
-
-This template repository is intentionally thin. The workflows call
-`reponomics/reponomics-action@main`, which owns collection, artifact handling,
-schema migration, encryption, README rendering, dashboard rendering, and key
-rotation behavior.
 
 Your repository owns:
 
 - `config.yaml`
-- any settings you copy into `config.yaml` from `docs/config.example.yaml`
 - repository secrets
 - workflow schedule and permissions
-- retained `traffic-data` artifacts
-- dashboard shell files such as the placeholder `docs/index.html`
-- committed README output when README publishing is enabled
 - the pinned action version
+- retained `traffic-data` workflow artifacts
+- optional committed README output when `commit-outputs` is enabled
+
+Your repository does not store retained traffic data in git. The dashboard HTML
+is rendered during `publish` and, for encrypted hosted dashboards, deployed as
+a GitHub Pages artifact.
 
 ## Configuration
 
 `config.yaml` is the active configuration for this repository. It is
-user-owned: normal collection and publication runs read it, but should not
-silently rewrite it.
+user-owned: collection and publication runs read it, but do not silently rewrite
+it.
 
-`docs/config.example.yaml` is a reference file showing the current supported
-configuration shape. When Reponomics adds compatible optional settings, the
-example can be updated and release notes can point to the relevant snippet. You
-only need to copy settings into `config.yaml` when you want to override the
-runtime default.
+`docs/config.example.yaml` shows the supported configuration shape. Missing
+optional keys use runtime defaults; explicit keys in `config.yaml` are treated
+as your choices.
 
-Missing optional keys use runtime defaults. Explicit keys in `config.yaml` are
-treated as your choices.
+## Privacy Modes
+
+`privacy-mode` is the disclosure control passed to the action.
+
+| Mode | Retained artifact | Hosted dashboard | Secret requirement | Intended use |
+| --- | --- | --- | --- | --- |
+| `strong` | encrypted `traffic-data.enc` | encrypted Pages artifact | generated high-entropy `TRAFFIC_DASHBOARD_SECRET` | default for public or sensitive dashboards |
+| `casual` | encrypted `traffic-data.enc` | encrypted Pages artifact | any non-empty `TRAFFIC_DASHBOARD_SECRET` | low-sensitivity sharing where accidental discovery is the concern |
+| `plain` | plaintext retained CSV files | disabled | none | private repositories that use GitHub repo/artifact access as the boundary |
+
+`plain` is rejected in public repositories. Public repositories can use
+`strong` or `casual`, but README metrics are not committed there; public README
+output is limited to a non-metric status block.
 
 ## Storage
 
 The canonical data store is the `traffic-data` GitHub Actions artifact.
 
-In plain mode, the artifact contains normalized CSV files. In encrypted mode,
-the artifact contains `traffic-data.enc`, encrypted with
-`TRAFFIC_DASHBOARD_SECRET`.
+- `collect` restores the prior artifact, collects current GitHub data, merges
+  and trims retained CSV history, then uploads a new `traffic-data` artifact.
+- `publish` restores the retained artifact, renders README/dashboard output,
+  and deploys an encrypted Pages artifact for `strong` and `casual`.
+- `rotate-key` restores encrypted retained state, decrypts with
+  `TRAFFIC_DASHBOARD_SECRET`, re-encrypts with
+  `TRAFFIC_DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 
-Git history is used for repository configuration, workflow shells, and dashboard
-shell files, not as the analytics database. Retained traffic data is not
-committed to the repository.
+Git history is used for configuration, workflow shells, and optional README
+output. It is not the analytics database.
 
-## Outputs
+## CSV Export
 
-During `publish`, Reponomics can render:
+Encrypted hosted dashboards include an `Export CSV` control after unlock. The
+browser downloads an encrypted export asset, decrypts it locally with the
+dashboard key, verifies ciphertext and plaintext SHA-256 digests, and downloads
+a canonical ZIP of retained CSV files. Plaintext CSV is not uploaded back to
+GitHub during export.
 
-- `README.md`
-- a hosted Pages dashboard artifact
-- `dist/dashboard-standalone.html` as a workflow artifact when Pages mode is
-  plain
+For `plain`, download the `traffic-data` workflow artifact directly.
 
 ## Offline Viewing
 
-The generated dashboard is not committed to this repository. This keeps retained traffic data out of git history, but it also means you download dashboard output from the relevant `publish` workflow artifact rather than from the repository tree.
+The generated dashboard is not committed to this repository. To view an
+encrypted dashboard offline, open a successful **Publish Reponomics dashboard**
+workflow run and download the GitHub Pages artifact before it expires. Extract
+the artifact and open `index.html` with the same dashboard key that unlocks the
+hosted Pages dashboard.
 
-After a successful **Publish Reponomics dashboard** run, open the workflow run's **Summary** page and download the artifact before it expires:
-
-- For plain dashboard output, download `dashboard-standalone` and open `dashboard-standalone.html`.
-- For encrypted dashboard output, download the GitHub Pages artifact, extract it, and open `index.html`. Use the same dashboard key that unlocks the hosted Pages dashboard.
-
-Artifact availability follows the workflow's retention setting.
-
-## Modes
-
-`readme-dashboard`:
-
-- `disabled`: README does not publish metrics
-- `enabled`: README shows rich static metrics and SVG charts
-
-`pages-dashboard`:
-
-- `encrypted`: dashboard data is encrypted and unlocked in the browser with
-  your dashboard key
-- `plain`: dashboard data is written unencrypted
-- `disabled`: dashboard page is a placeholder
-
-`artifact-security-mode`:
-
-- `auto`: conservative default; encrypts public-repo artifacts unless the user
-  intentionally chooses a fully open/plain profile
-- `encrypted`: always encrypt retained artifact data
-- `plain`: upload normalized CSV files directly
+Some browsers block local `file://` fetches used by CSV export. If export fails
+offline, serve the extracted artifact directory over local HTTP or use the
+hosted Pages dashboard.
 
 ## Key Rotation
 
@@ -106,14 +99,13 @@ so rotation cannot be left half-finished unnoticed.
 
 ## GitHub Pages
 
-Hosted Pages setup modes configure GitHub Pages to publish from the Reponomics
-publish workflow. That workflow renders the dashboard shell and uploads it as a
+Hosted Pages setup configures GitHub Pages to publish from the Reponomics
+publish workflow. The workflow renders the dashboard shell and uploads it as a
 GitHub Pages artifact; retained traffic data remains in the `traffic-data`
 Actions artifact.
 
-> [!ALERT]
-> Unless you have a GitHub Enterprise account, then
-> whether your repository is public or private, **your GitHub Pages site will
-> be published to the open internet.**
-
-Furthermore, unless you configure a custom domain, its URL will be entirely predictable. The only way to guarantee some mmeasure of privacy is by encrypting the public page with a `TRAFFIC_DASHBOARD_SECRET`. When you do this, anyone who visits the page will be unable to view the actual data/dashboard unless they have that secret.
+> [!WARNING]
+> Unless your GitHub plan provides Pages access controls, a GitHub Pages site
+> is reachable on the internet even when the repository is private. Use
+> `privacy-mode=strong` when the hosted dashboard must not disclose metrics to
+> people without the dashboard key.

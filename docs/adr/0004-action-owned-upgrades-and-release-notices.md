@@ -196,3 +196,14 @@ This ADR does not require:
 - backfilling historical values for metrics GitHub only exposes as current
   counters
 
+## Implementation Status, 2026-05-23
+
+The runtime action repository is now `reponomics-dashboard-action`; older
+`reponomics-action` references above are historical.
+
+The current release-notice metadata parser supports `title`, `summary`,
+`min_runtime_version`, `max_runtime_version`, `action_refs`, and
+`action_repository`. When present, `action_repository` must be
+`reponomics/reponomics-dashboard-action`. The dashboard template should rely on
+the action for compatible runtime migrations and release notices rather than
+shipping renderer or migration logic in the generated repository.

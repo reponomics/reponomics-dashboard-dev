@@ -15,9 +15,8 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  ARTIFACT_SECURITY_MODE: "auto"
+  PRIVACY_MODE: "strong"
   RETENTION_DAYS: "90"
-  ALLOW_WEAK_DASHBOARD_SECRET: "false"
 
 jobs:
   collect:
@@ -46,12 +45,11 @@ jobs:
           fi
 
       - name: Collect retained traffic data
-        uses: reponomics/reponomics-action@main
+        uses: reponomics/reponomics-dashboard-action@v0.8.0
         with:
           mode: collect
           traffic-token: ${{ secrets.TRAFFIC_TOKEN }}
           github-token: ${{ github.token }}
           dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
-          allow-weak-dashboard-secret: ${{ env.ALLOW_WEAK_DASHBOARD_SECRET }}
-          artifact-security-mode: ${{ env.ARTIFACT_SECURITY_MODE }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}

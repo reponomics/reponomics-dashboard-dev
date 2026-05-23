@@ -176,3 +176,20 @@ This ADR also does not require a separate demo repository forever. If the demo
 remains small, it can start as a generated repository owned by the same release
 workflow and later move to a dedicated organization or custom domain without
 changing the core source-to-template publication model.
+
+## Implementation Status, 2026-05-23
+
+The generated-template model remains accepted. The runtime action repository is
+now named `reponomics-dashboard-action`; older `reponomics-action` references
+above are historical.
+
+Current hardening is focused on the action/template pair:
+
+- `reponomics-dashboard-dev` owns the generated-template source and docs.
+- `reponomics-dashboard` remains the generated template target.
+- `reponomics-dashboard-action` owns runtime behavior and is currently pinned
+  by the template at `reponomics/reponomics-dashboard-action@v0.8.0`.
+
+The separate generated demo repository remains deferred until a staging
+consumer validates setup, collection, encrypted publish, CSV export, and key
+rotation against the released action.

@@ -105,3 +105,18 @@ For this repo, the dashboard key must come from a GitHub Actions secret named
 `TRAFFIC_DASHBOARD_SECRET`. The user must also store the key outside GitHub,
 usually in a password manager. The important invariant is that the key never
 ships in a public output or workflow log.
+
+## Implementation Status, 2026-05-23
+
+The accepted encrypted Pages concept is implemented through the
+`privacy-mode` action input in `reponomics-dashboard-action`.
+
+- `privacy-mode=strong` is the current high-entropy encrypted mode.
+- `privacy-mode=casual` is the current weak-secret encrypted mode.
+- `privacy-mode=plain` is private-repository-only plaintext artifact storage
+  and does not publish a hosted Pages dashboard.
+
+The older `DASHBOARD_ACCESS_MODE` vocabulary in this ADR is historical. Hosted
+dashboard HTML is now rendered during `publish` and deployed through GitHub
+Pages artifacts instead of being committed to the repository. Encrypted
+dashboards also include browser-local CSV export after unlock.
