@@ -3,6 +3,7 @@
 PYTEST := $(PYTHON) -m pytest
 DEV_REQUIREMENTS := requirements-dev.txt
 TEMPLATE_REMOTE ?= reponomics-dashboard
+TEMPLATE_PUBLISH_MESSAGE ?= chore: publish generated template
 
 install-dev: install ## Install maintainer/test dependencies
 	$(PIP) install -r $(DEV_REQUIREMENTS)
@@ -16,10 +17,10 @@ verify-template: install ## Verify dist/template/ against the template manifest
 release-dry-run: build-template ## Build generated template artifact locally
 
 publish-template-dry-run: build-template ## Show the generated template publish target without pushing
-	$(PYTHON) scripts/publish_generated_repo.py --output dist/template --remote $(TEMPLATE_REMOTE) --branch main --expected-repo reponomics/reponomics-dashboard --message "chore: publish generated template"
+	$(PYTHON) scripts/publish_generated_repo.py --output dist/template --remote $(TEMPLATE_REMOTE) --branch main --expected-repo reponomics/reponomics-dashboard --message "$(TEMPLATE_PUBLISH_MESSAGE)"
 
 publish-template: build-template ## Publish dist/template/ to the template repository main branch
-	$(PYTHON) scripts/publish_generated_repo.py --output dist/template --remote $(TEMPLATE_REMOTE) --branch main --expected-repo reponomics/reponomics-dashboard --message "chore: publish generated template" --push
+	$(PYTHON) scripts/publish_generated_repo.py --output dist/template --remote $(TEMPLATE_REMOTE) --branch main --expected-repo reponomics/reponomics-dashboard --message "$(TEMPLATE_PUBLISH_MESSAGE)" --push
 
 enforce-repo-policy-dry-run: install ## Show GitHub repository settings changes without applying them
 	$(PYTHON) scripts/enforce_repository_policy.py --dry-run

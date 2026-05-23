@@ -1,0 +1,81 @@
+name: Publish Template Repository
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: template-release-${{ github.event.release.tag_name || github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish-template:
+    name: Publish generated template
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+    env:
+      TEMPLATE_REMOTE: reponomics-dashboard
+      TEMPLATE_EXPECTED_REPO: reponomics/reponomics-dashboard
+    steps:
+      - name: Create release app token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Checkout release source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          ref: ${{ github.event_name == 'release' && github.event.release.tag_name || 'main' }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Configure template remote
+        env:
+          RELEASE_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          git remote add "${TEMPLATE_REMOTE}" "https://x-access-token:${RELEASE_TOKEN}@github.com/${TEMPLATE_EXPECTED_REPO}.git"
+
+      - name: Build generated template
+        run: |
+          set -euo pipefail
+          make build-template
+
+      - name: Detect template changes
+        id: diff
+        run: |
+          set -euo pipefail
+          git fetch "${TEMPLATE_REMOTE}" "refs/heads/main"
+          compare_dir="$(mktemp -d)"
+          git archive --format=tar FETCH_HEAD | tar -xf - -C "${compare_dir}"
+          if diff -qr dist/template "${compare_dir}" >/dev/null 2>&1; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Generated template matches ${TEMPLATE_EXPECTED_REPO}@main; skipping publish."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Generated template differs from ${TEMPLATE_EXPECTED_REPO}@main; publishing."
+          fi
+
+      - name: Publish generated template repository
+        if: ${{ steps.diff.outputs.changed == 'true' }}
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name || 'manual' }}
+        run: |
+          set -euo pipefail
+          venv/bin/python scripts/publish_generated_repo.py \
+            --output dist/template \
+            --remote "${TEMPLATE_REMOTE}" \
+            --branch main \
+            --expected-repo "${TEMPLATE_EXPECTED_REPO}" \
+            --message "chore: publish generated template ${RELEASE_TAG}" \
+            --push
