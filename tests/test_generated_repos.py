@@ -25,9 +25,9 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         ".github/workflows/rotate-key.yml",
         "README.md",
         "config.yaml",
+        "config.example.yaml",
         "docs/README.md",
         "docs/SECURE_DASHBOARD_KEY.md",
-        "docs/config.example.yaml",
         "docs/index.html",
     ]
     for relative_path in required:

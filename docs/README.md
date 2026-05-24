@@ -30,7 +30,7 @@ a GitHub Pages artifact.
 user-owned: collection and publication runs read it, but do not silently rewrite
 it.
 
-`docs/config.example.yaml` shows the supported configuration shape. Missing
+`config.example.yaml` shows the supported configuration shape. Missing
 optional keys use runtime defaults; explicit keys in `config.yaml` are treated
 as your choices.
 
