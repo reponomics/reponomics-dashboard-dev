@@ -9,9 +9,9 @@ Active architecture docs:
 - [Versioning And Updates](VERSIONING_AND_UPDATES.md)
 - [Encrypted Payload Size And Side Channels](ENCRYPTED_PAYLOAD_SIZE_AND_SIDE_CHANNELS.md)
 
-Historical pre-0.8 design drafts and speculative planning notes have been moved
-to `docs/archive/architecture/`. Those archived files are retained for context
-but are not current implementation guidance.
+Historical pre-0.8 design drafts and speculative planning notes were moved to
+the maintainer-only internal archive. They are retained for context but are not
+current implementation guidance.
 
 ADRs remain append-only historical records. When an ADR uses older names or
 mode vocabulary, read its latest implementation-status note before treating it
