@@ -16,6 +16,9 @@ in GitHub Actions and delegate runtime behavior to
 If a repository uses self-hosted runners, runner images should provide Python
 `3.11+` and GitHub CLI (`gh`) for setup workflow automation.
 
+Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and
+`3.12`.
+
 ## Repository Model
 
 Your repository owns:
