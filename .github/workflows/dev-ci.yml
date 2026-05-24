@@ -30,10 +30,5 @@ jobs:
       - name: Install maintainer dependencies
         run: pip install -r requirements-dev.txt
 
-      - name: Verify workflow classification
-        run: python scripts/verify_workflow_classification.py
-
-      - name: Run test suite
-        env:
-          PYTHONPATH: scripts
-        run: python -m pytest tests/ -v
+      - name: Run maintainer verification suite
+        run: make verify
