@@ -9,6 +9,9 @@ This generated repository is intentionally thin. The workflows call
 artifact restore/upload, schema migration, encryption, README rendering,
 dashboard rendering, CSV export packaging, and dashboard key rotation.
 
+Maintainer tooling in `reponomics-dashboard-dev` targets Python `3.11+`, and
+maintainer CI runs on Python `3.11`.
+
 ## Repository Model
 
 Your repository owns:

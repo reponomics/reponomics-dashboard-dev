@@ -88,3 +88,8 @@ if export fails offline, serve the extracted artifact directory over local HTTP
 or use the hosted Pages dashboard.
 
 More details are in [docs/README.md](docs/README.md).
+
+## Maintainer Runtime
+
+For maintainers working in `reponomics-dashboard-dev`, local tooling supports
+Python `3.11+` and CI runs with Python `3.11`.
