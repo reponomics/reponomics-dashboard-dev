@@ -1,10 +1,11 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help install install-dev build-template verify-template verify-workflow-classification release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy test verify
+.PHONY: help clean install install-dev build-template verify-template verify-workflow-classification release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy test verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
 PIP := $(VENV)/bin/pip
+PYTHON_MIN := 3.11
 REQUIREMENTS := requirements.txt
 DEV_REQUIREMENTS := requirements-dev.txt
 PYTEST := $(PYTHON) -m pytest
@@ -14,9 +15,15 @@ TEMPLATE_PUBLISH_MESSAGE ?= chore: publish generated template
 help: ## Show available commands
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+clean: ## Remove generated build and cache artifacts (keeps venv)
+	rm -rf dist output .pytest_cache .mypy_cache __pycache__ .traffic-artifact
+	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
+	find . -type f -name "*.log" -delete
+
 install: $(VENV)/bin/activate ## Create the venv and install maintainer dependencies
 
 $(VENV)/bin/activate: $(REQUIREMENTS)
+	python3 -c "import sys; min_version=(3, 11); assert sys.version_info >= min_version, f'Python {min_version[0]}.{min_version[1]}+ is required (found {sys.version.split()[0]})'"
 	python3 -m venv $(VENV)
 	$(PIP) install -r $(REQUIREMENTS)
 	touch $(VENV)/bin/activate

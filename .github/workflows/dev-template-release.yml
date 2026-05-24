@@ -11,6 +11,9 @@ concurrency:
   group: template-release-${{ github.event.release.tag_name || github.ref }}
   cancel-in-progress: false
 
+env:
+  PYTHON_VERSION: "3.11"
+
 jobs:
   publish-template:
     name: Publish generated template
@@ -43,7 +46,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Configure template remote
         env:

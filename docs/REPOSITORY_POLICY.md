@@ -14,6 +14,8 @@ Human development happens in `reponomics-dashboard-dev`. This repository owns:
 - publish tooling for `reponomics-dashboard`
 - maintainer docs and ADRs
 
+Maintainer automation targets Python `3.11` as the baseline runtime.
+
 ## Generated Template
 
 `reponomics-dashboard` is the shipped template artifact. It should be generated
