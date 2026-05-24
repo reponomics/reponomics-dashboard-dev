@@ -20,7 +20,7 @@ include:
   - docs/index.html
 
 forbidden:
-  - .github/workflows/maintainer-ci.yml
+  - .github/workflows/dev-*.yml
   - AGENTS.md
   - SPEC.md
   - __INTERNAL__

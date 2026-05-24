@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import build_template
 import publish_generated_repo
+import verify_workflow_classification
 
 
 def test_template_manifest_includes_thin_template_surface(tmp_path):
@@ -96,6 +97,10 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "privacy_mode=casual" in setup
     assert "TRAFFIC_DASHBOARD_NEXT_SECRET" in setup
     assert "Configure GitHub Pages publication" in setup
+
+
+def test_workflow_classification_contract():
+    verify_workflow_classification.verify()
 
 
 def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):

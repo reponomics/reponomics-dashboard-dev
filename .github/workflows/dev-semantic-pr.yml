@@ -1,4 +1,4 @@
-name: Semantic PR
+name: DEV / Semantic PR
 
 on:
   pull_request_target:

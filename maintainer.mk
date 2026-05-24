@@ -1,4 +1,4 @@
-.PHONY: install-dev build-template verify-template release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy test verify
+.PHONY: install-dev build-template verify-template verify-workflow-classification release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy test verify
 
 PYTEST := $(PYTHON) -m pytest
 DEV_REQUIREMENTS := requirements-dev.txt
@@ -13,6 +13,9 @@ build-template: install ## Build the clean generated template tree in dist/templ
 
 verify-template: install ## Verify dist/template/ against the template manifest
 	$(PYTHON) scripts/build_template.py --verify-only
+
+verify-workflow-classification: install ## Verify maintainer vs template workflow boundaries
+	$(PYTHON) scripts/verify_workflow_classification.py
 
 release-dry-run: build-template ## Build generated template artifact locally
 
@@ -31,4 +34,4 @@ enforce-repo-policy: install ## Enforce GitHub repository feature, workflow, and
 test: install-dev ## Run the Python test suite (maintainer path)
 	$(PYTEST) tests/ -v
 
-verify: test release-dry-run ## Run tests and generated-output checks
+verify: test verify-workflow-classification release-dry-run ## Run tests and generated-output checks

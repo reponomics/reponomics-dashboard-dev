@@ -1,4 +1,4 @@
-name: Publish Template Repository
+name: DEV / Publish Template Repository
 
 on:
   release:
@@ -52,28 +52,17 @@ jobs:
           set -euo pipefail
           git remote add "${TEMPLATE_REMOTE}" "https://x-access-token:${RELEASE_TOKEN}@github.com/${TEMPLATE_EXPECTED_REPO}.git"
 
+      - name: Verify workflow classification
+        run: |
+          set -euo pipefail
+          make verify-workflow-classification
+
       - name: Build generated template
         run: |
           set -euo pipefail
           make build-template
 
-      - name: Detect template changes
-        id: diff
-        run: |
-          set -euo pipefail
-          git fetch "${TEMPLATE_REMOTE}" "refs/heads/main"
-          compare_dir="$(mktemp -d)"
-          git archive --format=tar FETCH_HEAD | tar -xf - -C "${compare_dir}"
-          if diff -qr dist/template "${compare_dir}" >/dev/null 2>&1; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "Generated template matches ${TEMPLATE_EXPECTED_REPO}@main; skipping publish."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-            echo "Generated template differs from ${TEMPLATE_EXPECTED_REPO}@main; publishing."
-          fi
-
       - name: Publish generated template repository
-        if: ${{ steps.diff.outputs.changed == 'true' }}
         env:
           RELEASE_TAG: ${{ github.event.release.tag_name || 'manual' }}
         run: |

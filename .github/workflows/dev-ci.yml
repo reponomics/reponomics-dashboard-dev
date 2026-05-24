@@ -1,14 +1,12 @@
-name: Maintainer CI
+name: DEV / CI
 
 on:
   push:
     branches:
       - main
-      - template-dev
   pull_request:
     branches:
       - main
-      - template-dev
 
 permissions:
   contents: read
@@ -28,6 +26,9 @@ jobs:
 
       - name: Install maintainer dependencies
         run: pip install -r requirements-dev.txt
+
+      - name: Verify workflow classification
+        run: python scripts/verify_workflow_classification.py
 
       - name: Run test suite
         env:
