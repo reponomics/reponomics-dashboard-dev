@@ -52,7 +52,7 @@ POLICIES = {
         ),
     ),
     "action": RepoPolicy(
-        repo="reponomics-action",
+        repo="reponomics-dashboard-action",
         has_pull_requests=True,
         allow_squash_merge=True,
         delete_branch_on_merge=True,
