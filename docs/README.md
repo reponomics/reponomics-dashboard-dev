@@ -9,8 +9,12 @@ This generated repository is intentionally thin. The workflows call
 artifact restore/upload, schema migration, encryption, README rendering,
 dashboard rendering, CSV export packaging, and dashboard key rotation.
 
-Maintainer tooling in `reponomics-dashboard-dev` targets Python `3.11+`, and
-maintainer CI runs on Python `3.11`.
+Template repositories do not require local Python for normal use. Workflows run
+in GitHub Actions and delegate runtime behavior to
+`reponomics/reponomics-dashboard-action`.
+
+If a repository uses self-hosted runners, runner images should provide Python
+`3.11+` and GitHub CLI (`gh`) for setup workflow automation.
 
 ## Repository Model
 

@@ -89,7 +89,15 @@ or use the hosted Pages dashboard.
 
 More details are in [docs/README.md](docs/README.md).
 
-## Maintainer Runtime
+## Runtime Requirements
+
+Template repositories do not require local Python for normal use. Collection,
+publish, setup, and rotation run in GitHub Actions.
+
+If you run workflows on self-hosted runners, provide:
+
+- Python `3.11+`
+- GitHub CLI (`gh`) for setup workflow repository-configuration calls
 
 For maintainers working in `reponomics-dashboard-dev`, local tooling supports
-Python `3.11+` and CI runs with Python `3.11`.
+Python `3.11+` and maintainer CI runs with Python `3.11`.
