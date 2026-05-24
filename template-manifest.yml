@@ -22,7 +22,6 @@ include:
 forbidden:
   - .github/workflows/dev-*.yml
   - AGENTS.md
-  - SPEC.md
   - __INTERNAL__
   - Makefile
   - data
