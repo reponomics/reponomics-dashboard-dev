@@ -12,7 +12,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  quality:
     strategy:
       fail-fast: false
       matrix:
@@ -31,5 +31,24 @@ jobs:
       - name: Install maintainer dependencies
         run: pip install -r requirements-dev.txt
 
-      - name: Run maintainer verification suite
-        run: make verify
+      - name: Run maintainer quality gates
+        run: make lint typecheck coverage verify-workflow-classification release-dry-run
+
+  template-smoke:
+    needs: quality
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install maintainer dependencies
+        run: pip install -r requirements-dev.txt
+
+      - name: Run template smoke checks
+        run: make template-smoke

@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help clean install install-dev lint typecheck build-template verify-template verify-workflow-classification release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy test verify
+.PHONY: help clean install install-dev lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
@@ -12,6 +12,8 @@ DEV_STAMP := $(VENV)/.dev-installed
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
 MYPY := $(PYTHON) -m mypy
+COVERAGE_MIN ?= 55
+COVERAGE_TARGETS := --cov=build_template --cov=publish_generated_repo --cov=verify_workflow_classification
 TEMPLATE_REMOTE ?= reponomics-dashboard
 TEMPLATE_PUBLISH_MESSAGE ?= chore: publish generated template
 
@@ -20,6 +22,7 @@ help: ## Show available commands
 
 clean: ## Remove generated build and cache artifacts (keeps venv)
 	rm -rf dist output .pytest_cache .mypy_cache __pycache__ .traffic-artifact
+	rm -f .coverage .coverage.*
 	rm -f $(DEV_STAMP)
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +
 	find . -type f -name "*.log" -delete
@@ -70,4 +73,10 @@ enforce-repo-policy: install ## Enforce GitHub repository feature, workflow, and
 test: install-dev ## Run the Python test suite (maintainer path)
 	$(PYTEST) tests/ -v
 
-verify: lint typecheck test verify-workflow-classification release-dry-run ## Run lint, type checks, tests, and generated-output checks
+coverage: install-dev ## Run tests with coverage gate for maintainer scripts
+	$(PYTEST) tests/ -v $(COVERAGE_TARGETS) --cov-report=term-missing --cov-fail-under=$(COVERAGE_MIN)
+
+template-smoke: build-template ## Smoke-test ephemeral template publish and generated workflows
+	$(PYTHON) scripts/smoke_template_release.py --output dist/template
+
+verify: lint typecheck coverage verify-workflow-classification release-dry-run template-smoke ## Run lint, type checks, coverage, and generated-output checks

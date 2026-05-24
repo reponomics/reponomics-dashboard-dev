@@ -8,3 +8,5 @@ data/
 dist/
 .traffic-artifact/
 *.log
+.coverage
+.coverage.*
