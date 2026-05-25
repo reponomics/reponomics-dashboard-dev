@@ -20,6 +20,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
 
     required = [
         ".github/workflows/collect.yml.disabled",
+        ".github/workflows/incident-sentinel.yml.disabled",
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
@@ -63,6 +64,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
 
     workflows = output / ".github" / "workflows"
     collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
+    sentinel = (workflows / "incident-sentinel.yml.disabled").read_text(encoding="utf-8")
     publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
@@ -73,6 +75,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert action_ref not in setup
     assert action_ref in rotate
     assert "python scripts/" not in collect
+    assert "python scripts/" not in sentinel
     assert "python scripts/" not in publish
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
@@ -95,6 +98,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "privacy_mode=strong" in setup
     assert "privacy_mode=casual" in setup
     assert "TRAFFIC_DASHBOARD_NEXT_SECRET" in setup
+    assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
     assert "Configure GitHub Pages publication" in setup
 
 

@@ -179,6 +179,7 @@ jobs:
           }
 
           enable_workflow ".github/workflows/collect.yml"
+          enable_workflow ".github/workflows/incident-sentinel.yml"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
             enable_workflow ".github/workflows/publish.yml"
