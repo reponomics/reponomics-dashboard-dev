@@ -3,6 +3,7 @@
 - Status: Proposed
 - Date: 2026-05-25
 - Complements: [ADR 0001](0001-encrypted-pages-mode.md), [ADR 0006](0006-template-repository-testing-strategy.md)
+- Related action ADR: [ADR 005](https://github.com/reponomics/reponomics-dashboard-action/blob/main/docs/adr/005-incident-reset-rekey-and-history-purge.md)
 
 ## Context
 
