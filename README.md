@@ -35,9 +35,10 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 
-Setup enables the collection workflow and, if selected, the publish workflow.
-It does not collect traffic immediately. Collection runs twice daily on `main`;
-publication runs after successful collection and can also be run manually.
+Setup enables the collection workflow and leaves publish disabled unless
+`publish_dashboard` is enabled during setup. It does not collect traffic
+immediately. Collection runs twice daily on `main`; publication runs after
+successful collection and can also be run manually.
 
 ## Configuration
 
@@ -87,3 +88,16 @@ if export fails offline, serve the extracted artifact directory over local HTTP
 or use the hosted Pages dashboard.
 
 More details are in [docs/README.md](docs/README.md).
+
+## Runtime Requirements
+
+Template repositories do not require local Python for normal use. Collection,
+publish, setup, and rotation run in GitHub Actions.
+
+If you run workflows on self-hosted runners, provide:
+
+- Python `3.11+`
+- GitHub CLI (`gh`) for setup workflow repository-configuration calls
+
+For maintainers working in `reponomics-dashboard-dev`, local tooling supports
+Python `3.11+` and maintainer CI validates Python `3.11` and `3.12`.

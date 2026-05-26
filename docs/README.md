@@ -9,6 +9,16 @@ This generated repository is intentionally thin. The workflows call
 artifact restore/upload, schema migration, encryption, README rendering,
 dashboard rendering, CSV export packaging, and dashboard key rotation.
 
+Template repositories do not require local Python for normal use. Workflows run
+in GitHub Actions and delegate runtime behavior to
+`reponomics/reponomics-dashboard-action`.
+
+If a repository uses self-hosted runners, runner images should provide Python
+`3.11+` and GitHub CLI (`gh`) for setup workflow automation.
+
+Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and
+`3.12`.
+
 ## Repository Model
 
 Your repository owns:
@@ -30,7 +40,7 @@ a GitHub Pages artifact.
 user-owned: collection and publication runs read it, but do not silently rewrite
 it.
 
-`docs/config.example.yaml` shows the supported configuration shape. Missing
+`config.example.yaml` shows the supported configuration shape. Missing
 optional keys use runtime defaults; explicit keys in `config.yaml` are treated
 as your choices.
 

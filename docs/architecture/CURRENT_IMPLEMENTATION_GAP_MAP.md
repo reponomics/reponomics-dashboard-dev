@@ -45,7 +45,6 @@ The generated template should contain only:
 - `README.md`
 - `config.yaml`
 - user-facing docs
-- placeholder `docs/index.html`
 - basic repository metadata
 
 The generated template should not contain maintainer scripts, tests, ADRs,

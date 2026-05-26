@@ -7,6 +7,7 @@ description: >
 
 include:
   - .github/workflows/collect.yml.disabled
+  - .github/workflows/incident-sentinel.yml.disabled
   - .github/workflows/publish.yml.disabled
   - .github/workflows/rotate-key.yml
   - .github/workflows/setup.yml
@@ -14,15 +15,13 @@ include:
   - LICENSE
   - README.md
   - config.yaml
+  - config.example.yaml
   - docs/README.md
   - docs/SECURE_DASHBOARD_KEY.md
-  - docs/config.example.yaml
-  - docs/index.html
 
 forbidden:
-  - .github/workflows/maintainer-ci.yml
+  - .github/workflows/dev-*.yml
   - AGENTS.md
-  - SPEC.md
   - __INTERNAL__
   - Makefile
   - data

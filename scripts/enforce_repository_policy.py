@@ -41,8 +41,16 @@ POLICIES = {
         has_pull_requests=True,
         allow_squash_merge=True,
         delete_branch_on_merge=True,
-        workflows_enable=("Maintainer CI",),
-        workflows_disable=("Set up traffic dashboard", "Rotate dashboard key"),
+        workflows_enable=(
+            "DEV / CI",
+            "DEV / Semantic PR",
+            "DEV / Release Please",
+            "DEV / Publish Template Repository",
+        ),
+        workflows_disable=(
+            "Set up Reponomics dashboard",
+            "Rotate Reponomics dashboard key",
+        ),
         vulnerability_alerts=True,
         dependabot_security_updates=None,
         notes=(
@@ -52,7 +60,7 @@ POLICIES = {
         ),
     ),
     "action": RepoPolicy(
-        repo="reponomics-action",
+        repo="reponomics-dashboard-action",
         has_pull_requests=True,
         allow_squash_merge=True,
         delete_branch_on_merge=True,
@@ -71,9 +79,12 @@ POLICIES = {
         allow_squash_merge=True,
         delete_branch_on_merge=True,
         workflows_disable=(
-            "Maintainer CI",
-            "Set up traffic dashboard",
-            "Rotate dashboard key",
+            "DEV / CI",
+            "DEV / Semantic PR",
+            "DEV / Release Please",
+            "DEV / Publish Template Repository",
+            "Set up Reponomics dashboard",
+            "Rotate Reponomics dashboard key",
         ),
         vulnerability_alerts=True,
         dependabot_security_updates=None,
@@ -88,8 +99,8 @@ POLICIES = {
         allow_squash_merge=True,
         workflows_disable=(
             "Collect GitHub Traffic",
-            "Set up traffic dashboard",
-            "Rotate dashboard key",
+            "Set up Reponomics dashboard",
+            "Rotate Reponomics dashboard key",
         ),
         vulnerability_alerts=False,
         dependabot_security_updates=False,
@@ -166,6 +177,8 @@ def list_workflows(policy: RepoPolicy) -> dict[str, str]:
         "--json",
         "name,state",
     ])
+    if not workflows:
+        return {}
     return {workflow["name"]: workflow["state"] for workflow in workflows}
 
 

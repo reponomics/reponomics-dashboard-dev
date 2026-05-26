@@ -17,10 +17,10 @@ on:
           # Plain retained CSV artifacts; private repositories only, no hosted Pages dashboard.
           - plain
       publish_dashboard:
-        description: "Run publish workflow after collection"
+        description: "Enable publish workflow after collection"
         type: boolean
         required: true
-        default: true
+        default: false
       commit_readme:
         description: "Commit generated README output"
         type: boolean
@@ -179,6 +179,7 @@ jobs:
           }
 
           enable_workflow ".github/workflows/collect.yml"
+          enable_workflow ".github/workflows/incident-sentinel.yml"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
             enable_workflow ".github/workflows/publish.yml"

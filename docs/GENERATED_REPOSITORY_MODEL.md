@@ -31,7 +31,6 @@ The generated template intentionally includes only:
 - `README.md`
 - `config.yaml`
 - user-facing docs under `docs/`
-- placeholder `docs/index.html`
 - repository metadata such as `.gitignore` and `LICENSE`
 
 It intentionally excludes maintainer scripts, tests, ADRs, archived planning
