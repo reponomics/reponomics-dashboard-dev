@@ -1,3 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.1.0...v0.2.0) (2026-05-26)
+
+
+### Features
+
+* pre-public hardening ([b1fb74b](https://github.com/reponomics/reponomics-dashboard-dev/commit/b1fb74b98ad20264edc4b1bccedeceee9f0aacef))
+* scaffold Reponomics dashboard dev repo ([67c494e](https://github.com/reponomics/reponomics-dashboard-dev/commit/67c494e12fcbe6856f867700722c09fac1d474b4))
+* split generated collect and publish workflows ([10a96b4](https://github.com/reponomics/reponomics-dashboard-dev/commit/10a96b40d2837f600cba828b37697b410a774b95))
+
+
+### Bug Fixes
+
+* align template with pages artifact publishing ([cf46aa0](https://github.com/reponomics/reponomics-dashboard-dev/commit/cf46aa02ee78e761884ed3e71467d18db7e40209))
+
+## Changelog
+
 All notable changes to this project will be documented in this file.
