@@ -36,7 +36,7 @@ a GitHub Pages artifact.
 
 `TRAFFIC_TOKEN` is only for reading repository traffic data. Create it as a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. The setup workflow uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes, so the traffic token does not need repository, Pages, or Administration write permissions.
 
-Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit; use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
+This template currently supports one collection credential. Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
 
 ## Configuration
 
