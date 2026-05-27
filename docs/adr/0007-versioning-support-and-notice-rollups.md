@@ -143,8 +143,7 @@ reality:
 - allow classic PAT (`repo` scope) as an operational fallback for broad
   multi-repository tracking where fine-grained constraints introduce excessive
   friction
-- keep Pages and Administration write permissions out of the traffic token;
-  hosted dashboard repositories should use manual Pages source selection instead
+- keep Pages and Administration write permissions out of the traffic token; hosted dashboard repositories should use manual Pages source selection instead
 - do not prescribe a single fixed expiration policy in-repo; defer to user/org
   governance and risk posture
 
