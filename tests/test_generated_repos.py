@@ -91,15 +91,36 @@ def test_setup_workflow_resolves_privacy_modes():
         assert re.search(rf"^\s+- {mode}$", setup, flags=re.MULTILINE)
 
     assert 'echo "PRIVACY_MODE=$privacy_mode"' in setup
-    assert 'echo "PAGES_PUBLICATION=$pages_publication"' in setup
     assert 'echo "COMMIT_OUTPUTS=$COMMIT_README_INPUT"' in setup
+    assert 'RETENTION_DAYS: "90"' in setup
+    assert "retention_days:" not in setup
+    assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup
     assert "privacy_mode=plain" in setup
     assert "is only supported for private repositories." in setup
     assert "privacy_mode=strong" in setup
     assert "privacy_mode=casual" in setup
-    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" in setup
+    assert re.search(r"^permissions:\n  contents: read$", setup, flags=re.MULTILINE)
+    assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
+    assert "actions: write" not in setup
+    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" not in setup
     assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
-    assert "Configure GitHub Pages publication" in setup
+    assert "token: ${{ secrets.TRAFFIC_TOKEN" not in setup
+    assert "personal-access-tokens/new" in setup
+    assert "administration=read" in setup
+    assert "target_name=$GITHUB_REPOSITORY_OWNER" in setup
+    assert "All repositories" in setup
+    assert "Only selected repositories" in setup
+    assert "keep \\`config.yaml\\` within" in setup
+    assert "Casual privacy mode selected" not in setup
+    casual_length_check = (
+        '${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$PRIVACY_MODE" = "casual"'
+    )
+    assert casual_length_check not in setup
+    assert "Manual GitHub Pages step" in setup
+    assert "Settings -> Pages" in setup
+    assert "skip them" in setup
+    assert "repos/$GITHUB_REPOSITORY/pages" not in setup
+    assert "PAGES_PUBLICATION" not in setup
 
 
 def test_workflow_classification_contract():

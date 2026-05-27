@@ -122,7 +122,7 @@ Current and likely near-term surfaces:
 | traffic views/clones/referrers/paths | repository traffic endpoints | `Administration` (repo) read | major |
 | stars/forks/watchers/subscribers counters | repository metadata (`GET /repos/{owner}/{repo}`) | `Metadata` (repo) read | major if new required permission |
 | release notice checks | releases endpoints | public: unauthenticated allowed; private: `Contents` (repo) read | major if new required permission for private flows |
-| setup-time Pages configuration | pages endpoints | `Pages` write + `Administration` write | major if moved into mandatory runtime path |
+| manual Pages source selection | repository settings UI | no PAT permission required | major if replaced by required token-based automation |
 | optional issue/PR advisory automation | issues / pull requests endpoints | additional write permissions | keep optional; major if required |
 | optional commit status signaling | commit statuses endpoints | `Commit statuses` write | keep optional; major if required |
 
@@ -143,6 +143,8 @@ reality:
 - allow classic PAT (`repo` scope) as an operational fallback for broad
   multi-repository tracking where fine-grained constraints introduce excessive
   friction
+- keep Pages and Administration write permissions out of the traffic token;
+  hosted dashboard repositories should use manual Pages source selection instead
 - do not prescribe a single fixed expiration policy in-repo; defer to user/org
   governance and risk posture
 
