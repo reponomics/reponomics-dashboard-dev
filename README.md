@@ -25,9 +25,12 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    repositories** for broad automatic discovery, or **Only selected
    repositories** if you want to limit collection to specific repositories. If
    you choose selected repositories, keep `config.yaml` within that token's
-   repository access. Do not grant Pages or Administration write permissions to
-   this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to
-   commit workflow enablement changes in this repository.
+   repository access. If this dashboard must track repositories under multiple
+   GitHub users or organizations, read
+   [Token Scope And Repository Owners](#token-scope-and-repository-owners)
+   before choosing a token. Do not grant Pages or Administration write
+   permissions to this token for dashboard setup. Setup uses the workflow
+   `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
 3. Choose a privacy mode:
    - `strong`: encrypted retained artifacts and encrypted hosted dashboard;
      requires a generated high-entropy `TRAFFIC_DASHBOARD_SECRET`.
@@ -74,11 +77,22 @@ include_private: true
 If `include_only` is non-empty, Reponomics tracks exactly those repositories
 and ignores the automatic pool.
 
+### Token Scope And Repository Owners
+
+Repository entries use full `owner/repo` names because a dashboard can be
+configured against repositories owned by users or organizations. The token you
+choose still controls which owners can actually be collected.
+
 Fine-grained personal access tokens are scoped to one GitHub resource owner. If
-one dashboard needs to track repositories under multiple users or organizations,
-the fine-grained token flow is not the right fit; use a classic PAT with `repo`
-scope where the relevant organizations allow it. Classic PATs are broader and
-can access repositories your GitHub account can access.
+your dashboard only tracks repositories under one user or one organization, a
+fine-grained token with repository `Administration: read` is the preferred path.
+
+If one dashboard needs to track repositories under multiple users or
+organizations, the fine-grained token flow is not the right fit for the current
+single-token setup. Use a classic PAT with `repo` scope where the relevant
+organizations allow it. Classic PATs are broader and can access repositories
+your GitHub account can access, so use this fallback only when the dashboard
+really needs to span owners.
 
 ## Storage And Output
 

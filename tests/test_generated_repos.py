@@ -130,9 +130,13 @@ def test_docs_explain_multi_owner_token_fallback():
     readme = Path("README.md").read_text(encoding="utf-8")
     docs = Path("docs/README.md").read_text(encoding="utf-8")
 
+    assert "Token Scope And Repository Owners" in readme
+    assert "before choosing a token" in readme
+    assert "Repository entries use full `owner/repo` names" in readme
+
     for text in (readme, docs):
         assert "Fine-grained personal access tokens are scoped to one GitHub resource owner" in text
-        assert "multiple users or organizations" in text
+        assert re.search(r"multiple users or\s+organizations", text)
         assert "classic PAT" in text
         assert re.search(r"`repo`\s+scope", text)
 
