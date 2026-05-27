@@ -126,6 +126,17 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "PAGES_PUBLICATION" not in setup
 
 
+def test_docs_explain_multi_owner_token_fallback():
+    readme = Path("README.md").read_text(encoding="utf-8")
+    docs = Path("docs/README.md").read_text(encoding="utf-8")
+
+    for text in (readme, docs):
+        assert "Fine-grained personal access tokens are scoped to one GitHub resource owner" in text
+        assert "multiple users or organizations" in text
+        assert "classic PAT" in text
+        assert re.search(r"`repo`\s+scope", text)
+
+
 def test_workflow_classification_contract():
     verify_workflow_classification.verify()
 

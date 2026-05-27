@@ -45,6 +45,12 @@ uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes,
 so the traffic token does not need repository, Pages, or Administration write
 permissions.
 
+Fine-grained personal access tokens are scoped to one GitHub resource owner. If
+one dashboard needs to track repositories under multiple users or organizations,
+the fine-grained token flow is not the right fit; use a classic PAT with `repo`
+scope where the relevant organizations allow it. Classic PATs are broader and
+can access repositories your GitHub account can access.
+
 ## Configuration
 
 `config.yaml` is the active configuration for this repository. It is

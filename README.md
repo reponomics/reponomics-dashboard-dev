@@ -74,6 +74,12 @@ include_private: true
 If `include_only` is non-empty, Reponomics tracks exactly those repositories
 and ignores the automatic pool.
 
+Fine-grained personal access tokens are scoped to one GitHub resource owner. If
+one dashboard needs to track repositories under multiple users or organizations,
+the fine-grained token flow is not the right fit; use a classic PAT with `repo`
+scope where the relevant organizations allow it. Classic PATs are broader and
+can access repositories your GitHub account can access.
+
 ## Storage And Output
 
 The canonical store is the `traffic-data` Actions artifact.
