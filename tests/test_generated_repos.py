@@ -92,14 +92,16 @@ def test_setup_workflow_resolves_privacy_modes():
 
     assert "generate_html_dashboard:" in setup
     assert 'description: "Generate HTML dashboard after collection"' in setup
-    assert "commit_readme_snapshot:" in setup
-    assert 'description: "Commit generated README snapshot after collection"' in setup
+    assert "generate_readme:" in setup
+    assert 'description: "Generate README after collection"' in setup
     assert "publish_dashboard:" not in setup
     assert "commit_readme:" not in setup
+    assert "commit_readme_snapshot:" not in setup
     assert "PUBLISH_TO_PAGES" not in setup
     assert "PUBLISH_README" not in setup
+    assert "COMMIT_README_SNAPSHOT" not in setup
     assert 'echo "PRIVACY_MODE=$privacy_mode"' in setup
-    assert 'echo "COMMIT_OUTPUTS=$COMMIT_README_SNAPSHOT"' in setup
+    assert 'echo "COMMIT_OUTPUTS=$GENERATE_README"' in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup

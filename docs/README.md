@@ -28,7 +28,7 @@ Your repository owns:
 - workflow schedule and permissions
 - the pinned action version
 - retained `traffic-data` workflow artifacts
-- optional committed README output when `commit-outputs` is enabled
+- optional committed README output when `generate_readme` is enabled during setup
 
 Your repository does not store retained traffic data in git. The dashboard HTML
 is rendered during `publish` and, for encrypted hosted dashboards, deployed as

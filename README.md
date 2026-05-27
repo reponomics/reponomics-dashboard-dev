@@ -49,9 +49,11 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    Reponomics publish workflow already deploys the Pages artifact.
 
 Setup enables the collection workflow and leaves HTML dashboard generation
-disabled unless `generate_html_dashboard` is enabled during setup. It does not
-collect traffic immediately. Collection runs twice daily on `main`; dashboard
-generation runs after successful collection and can also be run manually.
+disabled unless `generate_html_dashboard` is enabled during setup. README
+dashboard generation is disabled unless `generate_readme` is enabled during
+setup. Setup does not collect traffic immediately. Collection runs twice daily
+on `main`; dashboard generation runs after successful collection and can also
+be run manually.
 
 ## Configuration
 
@@ -103,7 +105,7 @@ The canonical store is the `traffic-data` Actions artifact.
   public repositories.
 - The dashboard HTML is generated during `publish` and deployed through GitHub
   Pages Actions artifacts.
-- README output is committed only when setup enables `commit-outputs`.
+- README output is committed only when setup enables `generate_readme`.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same
 dashboard key stored in `TRAFFIC_DASHBOARD_SECRET`. After unlock, the dashboard

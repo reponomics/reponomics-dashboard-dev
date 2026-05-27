@@ -21,8 +21,8 @@ on:
         type: boolean
         required: true
         default: false
-      commit_readme_snapshot:
-        description: "Commit generated README snapshot after collection"
+      generate_readme:
+        description: "Generate README after collection"
         type: boolean
         required: true
         default: false
@@ -47,7 +47,7 @@ jobs:
         env:
           PRIVACY_MODE: ${{ inputs.privacy_mode }}
           GENERATE_HTML_DASHBOARD: ${{ inputs.generate_html_dashboard }}
-          COMMIT_README_SNAPSHOT: ${{ inputs.commit_readme_snapshot }}
+          GENERATE_README: ${{ inputs.generate_readme }}
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
@@ -80,7 +80,7 @@ jobs:
           {
             echo "PRIVACY_MODE=$privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
-            echo "COMMIT_OUTPUTS=$COMMIT_README_SNAPSHOT"
+            echo "COMMIT_OUTPUTS=$GENERATE_README"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets
@@ -218,7 +218,7 @@ jobs:
             echo "- Incident sentinel workflow: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
-            echo "- README commits: \`$COMMIT_OUTPUTS\`"
+            echo "- README generation: \`$COMMIT_OUTPUTS\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
           } >> "$GITHUB_STEP_SUMMARY"
 
