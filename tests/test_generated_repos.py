@@ -90,16 +90,66 @@ def test_setup_workflow_resolves_privacy_modes():
     for mode in ("strong", "casual", "plain"):
         assert re.search(rf"^\s+- {mode}$", setup, flags=re.MULTILINE)
 
-    assert 'echo "PRIVACY_MODE=$privacy_mode"' in setup
-    assert 'echo "PAGES_PUBLICATION=$pages_publication"' in setup
-    assert 'echo "COMMIT_OUTPUTS=$COMMIT_README_INPUT"' in setup
+    assert "generate_html_dashboard:" in setup
+    assert 'description: "Generate HTML dashboard after collection"' in setup
+    assert "generate_readme:" in setup
+    assert 'description: "Generate README after collection"' in setup
+    assert "publish_dashboard:" not in setup
+    assert "commit_readme:" not in setup
+    assert "commit_readme_snapshot:" not in setup
+    assert "PUBLISH_TO_PAGES" not in setup
+    assert "PUBLISH_README" not in setup
+    assert "COMMIT_README_SNAPSHOT" not in setup
+    assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
+    assert 'echo "COMMIT_OUTPUTS=$GENERATE_README"' in setup
+    assert 'RETENTION_DAYS: "90"' in setup
+    assert "retention_days:" not in setup
+    assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup
     assert "privacy_mode=plain" in setup
     assert "is only supported for private repositories." in setup
     assert "privacy_mode=strong" in setup
     assert "privacy_mode=casual" in setup
-    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" in setup
+    assert re.search(r"^permissions:\n  contents: read$", setup, flags=re.MULTILINE)
+    assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
+    assert "actions: write" not in setup
+    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" not in setup
     assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
-    assert "Configure GitHub Pages publication" in setup
+    assert "token: ${{ secrets.TRAFFIC_TOKEN" not in setup
+    assert "personal-access-tokens/new" in setup
+    assert "administration=read" in setup
+    assert "target_name=$GITHUB_REPOSITORY_OWNER" in setup
+    assert "All repositories" in setup
+    assert "Only selected repositories" in setup
+    assert "keep \\`config.yaml\\` within" in setup
+    assert "docs/SECURE_DASHBOARD_KEY.md" in setup
+    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "not strong enough for \\`privacy_mode=strong\\`" in setup
+    assert "Casual privacy mode selected" not in setup
+    casual_length_check = (
+        '${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$PRIVACY_MODE" = "casual"'
+    )
+    assert casual_length_check not in setup
+    assert "Manual GitHub Pages step" in setup
+    assert "Settings -> Pages" in setup
+    assert "skip them" in setup
+    assert "repos/$GITHUB_REPOSITORY/pages" not in setup
+    assert "PAGES_PUBLICATION" not in setup
+
+
+def test_docs_explain_multi_owner_token_fallback():
+    readme = Path("README.md").read_text(encoding="utf-8")
+    docs = Path("docs/README.md").read_text(encoding="utf-8")
+
+    assert "Token Scope And Repository Owners" in readme
+    assert "before choosing a token" in readme
+    assert "Repository entries use full `owner/repo` names" in readme
+
+    for text in (readme, docs):
+        assert "supports one collection credential" in text
+        assert "Fine-grained personal access tokens are scoped to one GitHub resource owner" in text
+        assert re.search(r"multiple users or\s+organizations", text)
+        assert "classic PAT" in text
+        assert re.search(r"`repo`\s+scope", text)
 
 
 def test_workflow_classification_contract():

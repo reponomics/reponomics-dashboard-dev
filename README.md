@@ -18,10 +18,7 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
 ## Setup
 
 1. Create a repository from this template.
-2. Add a repository secret named `TRAFFIC_TOKEN`.
-   A classic token with `repo` scope is the most reliable choice for private
-   repositories and hosted GitHub Pages setup. Public-only collection can use a
-   narrower token if it can read the target repositories' traffic APIs.
+2. Create a token and add it as a repository secret named `TRAFFIC_TOKEN`. [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
 3. Choose a privacy mode:
    - `strong`: encrypted retained artifacts and encrypted hosted dashboard;
      requires a generated high-entropy `TRAFFIC_DASHBOARD_SECRET`.
@@ -34,11 +31,9 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    value somewhere private. See
    [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
+6. For a hosted encrypted dashboard, open this repository's **Settings -> Pages** page and set **Build and deployment -> Source** to **GitHub Actions**. If GitHub suggests workflow templates, skip them; the Reponomics publish workflow already deploys the Pages artifact.
 
-Setup enables the collection workflow and leaves publish disabled unless
-`publish_dashboard` is enabled during setup. It does not collect traffic
-immediately. Collection runs twice daily on `main`; publication runs after
-successful collection and can also be run manually.
+Setup enables the collection workflow and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. README dashboard generation is disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
 
 ## Configuration
 
@@ -64,6 +59,14 @@ include_private: true
 If `include_only` is non-empty, Reponomics tracks exactly those repositories
 and ignores the automatic pool.
 
+### Token Scope And Repository Owners
+
+Repository entries use full `owner/repo` names because a dashboard can be configured against repositories owned by users or organizations. The token you choose still controls which owners can actually be collected.
+
+Fine-grained personal access tokens are scoped to one GitHub resource owner. If your dashboard only tracks repositories under one user or one organization, a fine-grained token with repository `Administration: read` is the preferred path.
+
+This template currently supports one collection credential. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access, so use this fallback only when the dashboard really needs to span owners.
+
 ## Storage And Output
 
 The canonical store is the `traffic-data` Actions artifact.
@@ -73,7 +76,7 @@ The canonical store is the `traffic-data` Actions artifact.
   public repositories.
 - The dashboard HTML is generated during `publish` and deployed through GitHub
   Pages Actions artifacts.
-- README output is committed only when setup enables `commit-outputs`.
+- README output is committed only when setup enables `generate_readme`.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same
 dashboard key stored in `TRAFFIC_DASHBOARD_SECRET`. After unlock, the dashboard
@@ -97,7 +100,7 @@ publish, setup, and rotation run in GitHub Actions.
 If you run workflows on self-hosted runners, provide:
 
 - Python `3.11+`
-- GitHub CLI (`gh`) for setup workflow repository-configuration calls
+- GitHub CLI (`gh`) for setup token validation
 
 For maintainers working in `reponomics-dashboard-dev`, local tooling supports
 Python `3.11+` and maintainer CI validates Python `3.11` and `3.12`.

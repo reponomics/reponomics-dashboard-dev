@@ -14,7 +14,7 @@ in GitHub Actions and delegate runtime behavior to
 `reponomics/reponomics-dashboard-action`.
 
 If a repository uses self-hosted runners, runner images should provide Python
-`3.11+` and GitHub CLI (`gh`) for setup workflow automation.
+`3.11+` and GitHub CLI (`gh`) for setup token validation.
 
 Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and
 `3.12`.
@@ -28,11 +28,15 @@ Your repository owns:
 - workflow schedule and permissions
 - the pinned action version
 - retained `traffic-data` workflow artifacts
-- optional committed README output when `commit-outputs` is enabled
+- optional committed README output when `generate_readme` is enabled during setup
 
 Your repository does not store retained traffic data in git. The dashboard HTML
 is rendered during `publish` and, for encrypted hosted dashboards, deployed as
 a GitHub Pages artifact.
+
+`TRAFFIC_TOKEN` is only for reading repository traffic data. Create it as a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. The setup workflow uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes, so the traffic token does not need repository, Pages, or Administration write permissions.
+
+This template currently supports one collection credential. Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
 
 ## Configuration
 
@@ -73,6 +77,8 @@ The canonical data store is the `traffic-data` GitHub Actions artifact.
 Git history is used for configuration, workflow shells, and optional README
 output. It is not the analytics database.
 
+The template keeps GitHub Actions artifact retention at the default 90 days, which works across public repositories and default GitHub Actions settings.
+
 ## CSV Export
 
 Encrypted hosted dashboards include an `Export CSV` control after unlock. The
@@ -109,10 +115,7 @@ so rotation cannot be left half-finished unnoticed.
 
 ## GitHub Pages
 
-Hosted Pages setup configures GitHub Pages to publish from the Reponomics
-publish workflow. The workflow renders the dashboard shell and uploads it as a
-GitHub Pages artifact; retained traffic data remains in the `traffic-data`
-Actions artifact.
+For a hosted encrypted dashboard, manually configure this repository's **Settings -> Pages** page so **Build and deployment -> Source** is **GitHub Actions**. The Reponomics publish workflow renders the dashboard shell and uploads it as a GitHub Pages artifact; retained traffic data remains in the `traffic-data` Actions artifact. The action verifies the existing Pages setting during deployment, but it does not enable Pages or change the publishing source. If GitHub suggests workflow templates while you are changing the setting, skip them.
 
 > [!WARNING]
 > Unless your GitHub plan provides Pages access controls, a GitHub Pages site
