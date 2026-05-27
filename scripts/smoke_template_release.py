@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import shutil
 import subprocess
+import sys
 import tempfile
 import uuid
 from pathlib import Path
@@ -18,13 +19,21 @@ class SmokeTestError(RuntimeError):
 
 
 def _run(args: list[str], cwd: Path | None = None) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
+    result = subprocess.run(
         args,
         cwd=cwd or ROOT,
-        check=True,
         text=True,
         capture_output=True,
     )
+    if result.returncode != 0:
+        command = " ".join(args)
+        print(f"Command failed: {command}", file=sys.stderr)
+        if result.stdout:
+            print(result.stdout, file=sys.stderr, end="" if result.stdout.endswith("\n") else "\n")
+        if result.stderr:
+            print(result.stderr, file=sys.stderr, end="" if result.stderr.endswith("\n") else "\n")
+        result.check_returncode()
+    return result
 
 
 def _create_ephemeral_remote() -> tuple[str, Path]:
