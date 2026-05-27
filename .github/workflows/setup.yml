@@ -54,7 +54,7 @@ jobs:
 
           case "$PRIVACY_MODE" in
             strong|casual|plain)
-              privacy_mode="$PRIVACY_MODE"
+              resolved_privacy_mode="$PRIVACY_MODE"
               ;;
             *)
               echo "Unsupported privacy_mode input: $PRIVACY_MODE" >&2
@@ -62,7 +62,7 @@ jobs:
               ;;
           esac
 
-          if [ "$privacy_mode" = "plain" ] && [ "$REPOSITORY_PRIVATE" = "false" ]; then
+          if [ "$resolved_privacy_mode" = "plain" ] && [ "$REPOSITORY_PRIVATE" = "false" ]; then
             {
               echo "## Setup stopped"
               echo
@@ -78,7 +78,7 @@ jobs:
           fi
 
           {
-            echo "PRIVACY_MODE=$privacy_mode"
+            echo "PRIVACY_MODE=$resolved_privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
             echo "COMMIT_OUTPUTS=$GENERATE_README"
           } >> "$GITHUB_ENV"

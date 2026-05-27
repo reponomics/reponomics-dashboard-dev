@@ -100,7 +100,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "PUBLISH_TO_PAGES" not in setup
     assert "PUBLISH_README" not in setup
     assert "COMMIT_README_SNAPSHOT" not in setup
-    assert 'echo "PRIVACY_MODE=$privacy_mode"' in setup
+    assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
     assert 'echo "COMMIT_OUTPUTS=$GENERATE_README"' in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
