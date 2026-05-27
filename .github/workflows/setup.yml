@@ -16,13 +16,13 @@ on:
           - casual
           # Plain retained CSV artifacts; private repositories only, no hosted Pages dashboard.
           - plain
-      publish_dashboard:
-        description: "Enable publish workflow after collection"
+      generate_html_dashboard:
+        description: "Generate HTML dashboard after collection"
         type: boolean
         required: true
         default: false
-      commit_readme:
-        description: "Commit generated README output"
+      commit_readme_snapshot:
+        description: "Commit generated README snapshot after collection"
         type: boolean
         required: true
         default: false
@@ -45,19 +45,19 @@ jobs:
 
       - name: Resolve setup modes
         env:
-          PRIVACY_INPUT: ${{ inputs.privacy_mode }}
-          PUBLISH_INPUT: ${{ inputs.publish_dashboard }}
-          COMMIT_README_INPUT: ${{ inputs.commit_readme }}
+          PRIVACY_MODE: ${{ inputs.privacy_mode }}
+          GENERATE_HTML_DASHBOARD: ${{ inputs.generate_html_dashboard }}
+          COMMIT_README_SNAPSHOT: ${{ inputs.commit_readme_snapshot }}
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
 
-          case "$PRIVACY_INPUT" in
+          case "$PRIVACY_MODE" in
             strong|casual|plain)
-              privacy_mode="$PRIVACY_INPUT"
+              privacy_mode="$PRIVACY_MODE"
               ;;
             *)
-              echo "Unsupported privacy_mode input: $PRIVACY_INPUT" >&2
+              echo "Unsupported privacy_mode input: $PRIVACY_MODE" >&2
               exit 1
               ;;
           esac
@@ -73,14 +73,14 @@ jobs:
           fi
 
           publish_workflow="disabled"
-          if [ "$PUBLISH_INPUT" = "true" ]; then
+          if [ "$GENERATE_HTML_DASHBOARD" = "true" ]; then
             publish_workflow="enabled"
           fi
 
           {
             echo "PRIVACY_MODE=$privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
-            echo "COMMIT_OUTPUTS=$COMMIT_README_INPUT"
+            echo "COMMIT_OUTPUTS=$COMMIT_README_SNAPSHOT"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets

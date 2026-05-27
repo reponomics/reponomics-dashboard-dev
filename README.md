@@ -48,10 +48,10 @@ uses: reponomics/reponomics-dashboard-action@v0.8.0
    **GitHub Actions**. If GitHub suggests workflow templates, skip them; the
    Reponomics publish workflow already deploys the Pages artifact.
 
-Setup enables the collection workflow and leaves publish disabled unless
-`publish_dashboard` is enabled during setup. It does not collect traffic
-immediately. Collection runs twice daily on `main`; publication runs after
-successful collection and can also be run manually.
+Setup enables the collection workflow and leaves HTML dashboard generation
+disabled unless `generate_html_dashboard` is enabled during setup. It does not
+collect traffic immediately. Collection runs twice daily on `main`; dashboard
+generation runs after successful collection and can also be run manually.
 
 ## Configuration
 
