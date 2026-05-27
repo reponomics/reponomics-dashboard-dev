@@ -1,6 +1,6 @@
 # Dashboard Template Hardening Checklist
 
-Status: action `v0.8.0` published; dashboard-dev template hardening in
+Status: action `v0.12.1` published; dashboard-dev template hardening in
 progress.
 
 ## Current Contract
@@ -19,7 +19,7 @@ progress.
 
 ## Dashboard-Dev Hardening
 
-- [x] Align generated workflow stubs with action `v0.8.0`.
+- [x] Align generated workflow stubs with action `v0.12.1`.
 - [x] Replace obsolete README/Pages/artifact mode docs with `privacy-mode`
   docs.
 - [x] Remove unsupported `data_families` config examples.
@@ -33,11 +33,11 @@ progress.
 
 - [ ] Run setup with `privacy-mode=strong`.
 - [ ] Confirm setup enables `collect.yml` and `publish.yml`.
-- [ ] Confirm collection creates/updates the `traffic-data` artifact.
+- [ ] Confirm collection creates/updates the `dashboard-data` artifact.
 - [ ] Confirm publish deploys an encrypted Pages artifact.
-- [ ] Unlock the hosted dashboard with `TRAFFIC_DASHBOARD_SECRET`.
+- [ ] Unlock the hosted dashboard with `DASHBOARD_SECRET_DO_NOT_REPLACE`.
 - [ ] Export CSV from the browser and verify the downloaded ZIP.
-- [ ] Rotate to `TRAFFIC_DASHBOARD_NEXT_SECRET` and confirm old data survives.
+- [ ] Rotate to `DASHBOARD_NEXT_SECRET` and confirm old data survives.
 - [ ] Run a private-repository `plain` smoke test if that mode remains in the
   release surface.
 

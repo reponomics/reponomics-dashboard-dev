@@ -23,7 +23,7 @@ This request came with a deliberately narrow threat model:
 - people with the dashboard key are allowed to see the metrics
 - the adversary can access the public repository, public Pages URL, or public
   workflow artifacts
-- the adversary does not have `TRAFFIC_DASHBOARD_SECRET`
+- the adversary does not have `DASHBOARD_SECRET_DO_NOT_REPLACE`
 - the goal is to deter casual or low-skill snooping, not to provide
   enterprise-grade access control
 
@@ -32,7 +32,7 @@ This request came with a deliberately narrow threat model:
 Add an opt-in encrypted Pages mode controlled by:
 
 - `DASHBOARD_ACCESS_MODE=encrypted`
-- `TRAFFIC_DASHBOARD_SECRET=<generated dashboard key>`
+- `DASHBOARD_SECRET_DO_NOT_REPLACE=<generated dashboard key>`
 
 When enabled:
 
@@ -92,7 +92,7 @@ It is **not** intended to protect against:
   itself becomes the leak.
 - Dashboard key strength matters because the encrypted page and encrypted
   artifact can be downloaded and attacked offline.
-- Rotating the key requires updating `TRAFFIC_DASHBOARD_SECRET` and rerunning
+- Rotating the key requires updating `DASHBOARD_SECRET_DO_NOT_REPLACE` and rerunning
   setup.
 - The standalone artifact remains the preferred option when the user wants no
   public URL at all.
@@ -102,7 +102,7 @@ It is **not** intended to protect against:
 ## Notes On Secret Storage
 
 For this repo, the dashboard key must come from a GitHub Actions secret named
-`TRAFFIC_DASHBOARD_SECRET`. The user must also store the key outside GitHub,
+`DASHBOARD_SECRET_DO_NOT_REPLACE`. The user must also store the key outside GitHub,
 usually in a password manager. The important invariant is that the key never
 ships in a public output or workflow log.
 

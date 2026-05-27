@@ -2,7 +2,7 @@ name: Publish Reponomics dashboard
 
 on:
   workflow_run:
-    workflows: ["Collect Reponomics traffic"]
+    workflows: ["Collect Reponomics Data"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -34,11 +34,11 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Publish dashboard outputs
-        uses: reponomics/reponomics-dashboard-action@v0.8.0
+        uses: reponomics/reponomics-dashboard-action@v0.12.1
         with:
           mode: publish
           github-token: ${{ github.token }}
-          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
           commit-outputs: ${{ env.COMMIT_OUTPUTS }}

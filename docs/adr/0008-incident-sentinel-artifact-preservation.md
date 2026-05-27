@@ -7,7 +7,7 @@
 
 ## Context
 
-The canonical analytics state for generated dashboard repositories is the `traffic-data` GitHub Actions artifact, not git history. Collection is additive over time, but the current `collect` run must succeed often enough to restore the previous artifact and upload a fresh one before retention expiry.
+The canonical analytics state for generated dashboard repositories is the `dashboard-data` GitHub Actions artifact, not git history. Collection is additive over time, but the current `collect` run must succeed often enough to restore the previous artifact and upload a fresh one before retention expiry.
 
 A realistic outage class is repeated collection failure caused by token expiry, permission drift, or transient platform/API issues. If failures continue longer than artifact retention, the canonical retained history can expire even though repository workflows still exist.
 
@@ -23,11 +23,11 @@ The setup workflow enables this sentinel workflow alongside `collect` so generat
 
 Sentinel behavior:
 
-- Trigger on `workflow_run` completion for `Collect Reponomics traffic` on `main` when the upstream run conclusion is `failure`.
+- Trigger on `workflow_run` completion for `Collect Reponomics Data` on `main` when the upstream run conclusion is `failure`.
 - Allow manual `workflow_dispatch` for operator-initiated preservation checks.
-- Resolve candidate source artifacts by first checking the triggering run for `traffic-data`, then falling back to repository-level `traffic-data` artifacts.
+- Resolve candidate source artifacts by first checking the triggering run for `dashboard-data`, then falling back to repository-level `dashboard-data` artifacts.
 - Filter to non-expired artifacts and prefer the newest candidate on `main`.
-- Download the selected artifact archive and re-upload it as `traffic-data` with `retention-days: 90` and `overwrite: true`.
+- Download the selected artifact archive and re-upload it as `dashboard-data` with `retention-days: 90` and `overwrite: true`.
 - Exit cleanly with an explicit summary note when no unexpired source artifact is available.
 
 Permission model:
@@ -43,7 +43,7 @@ The sentinel is intentionally a separate workflow (not folded into collect/publi
 - The safeguard is format-agnostic: encrypted and plain artifacts are preserved byte-for-byte without decrypt/re-encrypt steps.
 - Operators still lose history if all source artifacts are already expired before sentinel runs.
 - Sentinel does not remediate compromised-history incidents; `incident-reset` remains required for secret exposure scenarios.
-- Repeated upstream failures can produce additional maintenance runs, but each run is bounded and idempotent around the latest `traffic-data` artifact name.
+- Repeated upstream failures can produce additional maintenance runs, but each run is bounded and idempotent around the latest `dashboard-data` artifact name.
 
 ## Alternatives Considered
 

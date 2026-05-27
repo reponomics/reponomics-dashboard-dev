@@ -12,22 +12,22 @@ migration, encryption, dashboard rendering, CSV export, and key rotation are
 owned by the versioned action:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.8.0
+uses: reponomics/reponomics-dashboard-action@v0.12.1
 ```
 
 ## Setup
 
 1. Create a repository from this template.
-2. Create a token and add it as a repository secret named `TRAFFIC_TOKEN`. [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
+2. Create a token and add it as a repository secret named `COLLECTION_TOKEN`. [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
 3. Choose a privacy mode:
    - `strong`: encrypted retained artifacts and encrypted hosted dashboard;
-     requires a generated high-entropy `TRAFFIC_DASHBOARD_SECRET`.
+     requires a generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE`.
    - `casual`: encrypted retained artifacts and encrypted hosted dashboard;
-     accepts any non-empty `TRAFFIC_DASHBOARD_SECRET`, but is not intended to
+     accepts any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`, but is not intended to
      resist targeted offline guessing.
    - `plain`: plaintext retained CSV artifacts; private repositories only and
      no hosted Pages dashboard.
-4. For `strong` or `casual`, add `TRAFFIC_DASHBOARD_SECRET` and store the same
+4. For `strong` or `casual`, add `DASHBOARD_SECRET_DO_NOT_REPLACE` and store the same
    value somewhere private. See
    [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
@@ -69,9 +69,9 @@ This template currently supports one collection credential. If one dashboard nee
 
 ## Storage And Output
 
-The canonical store is the `traffic-data` Actions artifact.
+The canonical store is the `dashboard-data` Actions artifact.
 
-- `strong` and `casual` store encrypted retained data as `traffic-data.enc`.
+- `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly in the artifact and is rejected in
   public repositories.
 - The dashboard HTML is generated during `publish` and deployed through GitHub
@@ -79,7 +79,7 @@ The canonical store is the `traffic-data` Actions artifact.
 - README output is committed only when setup enables `generate_readme`.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same
-dashboard key stored in `TRAFFIC_DASHBOARD_SECRET`. After unlock, the dashboard
+dashboard key stored in `DASHBOARD_SECRET_DO_NOT_REPLACE`. After unlock, the dashboard
 can export a canonical CSV ZIP in the browser. The export path downloads an
 encrypted asset, decrypts it locally, verifies SHA-256 digests, and does not
 upload plaintext CSV back to GitHub.

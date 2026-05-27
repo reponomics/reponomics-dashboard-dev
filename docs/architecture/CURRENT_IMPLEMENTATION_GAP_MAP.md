@@ -1,6 +1,6 @@
 # Reponomics Current Implementation Gap Map
 
-Status: snapshot for dashboard-dev hardening after action `v0.8.0`.
+Status: snapshot for dashboard-dev hardening after action `v0.12.1`.
 
 This file tracks the difference between the current implementation and the
 remaining work needed to harden the generated dashboard template.
@@ -8,7 +8,7 @@ remaining work needed to harden the generated dashboard template.
 ## Authoritative Runtime
 
 `reponomics-dashboard-action` is currently authoritative for runtime behavior.
-The template should delegate to `reponomics/reponomics-dashboard-action@v0.8.0`
+The template should delegate to `reponomics/reponomics-dashboard-action@v0.12.1`
 until a newer accepted release is chosen.
 
 Implemented runtime contract:
@@ -30,7 +30,7 @@ and tests. It should not vendor runtime scripts from the action repo.
 
 Completed in this hardening pass:
 
-- generated workflow stubs align to the `v0.8.0` action input contract
+- generated workflow stubs align to the `v0.12.1` action input contract
 - user-facing docs use the implemented `privacy-mode` model
 - unsupported config examples are removed
 - stale pre-0.8 architecture drafts are archived
@@ -57,7 +57,7 @@ archived docs, runtime implementation files, or generated local outputs.
 - Exercise browser CSV export from the staging hosted dashboard.
 - Exercise key rotation against retained encrypted state.
 - Decide whether generated workflows should pin exact release tags such as
-  `v0.8.0`, a moving pre-v1 tag, or a future stable `v1` ref.
+  `v0.12.1`, a moving pre-v1 tag, or a future stable `v1` ref.
 - Publish the generated template to `reponomics-dashboard` after staging
   validation.
 

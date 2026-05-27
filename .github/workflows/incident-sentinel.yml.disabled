@@ -2,7 +2,7 @@ name: Preserve Reponomics traffic artifact on outage
 
 on:
   workflow_run:
-    workflows: ["Collect Reponomics traffic"]
+    workflows: ["Collect Reponomics Data"]
     types: [completed]
     branches: [main]
   workflow_dispatch:
@@ -58,7 +58,7 @@ jobs:
 
           if source_run_id:
               payload = fetch_json(
-                  f"{api_base}/actions/runs/{source_run_id}/artifacts?name=traffic-data&per_page=100"
+                  f"{api_base}/actions/runs/{source_run_id}/artifacts?name=dashboard-data&per_page=100"
               )
               candidates.extend(payload.get("artifacts", []))
 
@@ -66,7 +66,7 @@ jobs:
               page = 1
               while True:
                   payload = fetch_json(
-                      f"{api_base}/actions/artifacts?name=traffic-data&per_page=100&page={page}"
+                      f"{api_base}/actions/artifacts?name=dashboard-data&per_page=100&page={page}"
                   )
                   rows = payload.get("artifacts", [])
                   if not rows:
@@ -97,9 +97,9 @@ jobs:
                   with open(summary_path, "a", encoding="utf-8") as handle:
                       handle.write(
                           "## Outage sentinel\n\n"
-                          "No unexpired `traffic-data` artifact was found to preserve.\n"
+                          "No unexpired `dashboard-data` artifact was found to preserve.\n"
                       )
-              print("No unexpired traffic-data artifact available for preservation.")
+              print("No unexpired dashboard-data artifact available for preservation.")
               sys.exit(0)
 
           chosen = eligible[0]
@@ -145,7 +145,7 @@ jobs:
 
           token = os.environ["GITHUB_TOKEN"]
           url = os.environ["DOWNLOAD_URL"]
-          destination = Path(".sentinel") / "traffic-data.zip"
+          destination = Path(".sentinel") / "dashboard-data.zip"
           request = urllib.request.Request(
               url,
               headers={
@@ -164,16 +164,16 @@ jobs:
         if: ${{ steps.source.outputs.found == 'true' }}
         run: |
           set -euo pipefail
-          mkdir -p .sentinel/traffic-data
-          unzip -o .sentinel/traffic-data.zip -d .sentinel/traffic-data >/dev/null
-          ls -la .sentinel/traffic-data
+          mkdir -p .sentinel/dashboard-data
+          unzip -o .sentinel/dashboard-data.zip -d .sentinel/dashboard-data >/dev/null
+          ls -la .sentinel/dashboard-data
 
       - name: Upload preserved traffic artifact
         if: ${{ steps.source.outputs.found == 'true' }}
         uses: actions/upload-artifact@v4
         with:
-          name: traffic-data
-          path: .sentinel/traffic-data
+          name: dashboard-data
+          path: .sentinel/dashboard-data
           retention-days: ${{ env.OUTAGE_RETENTION_DAYS }}
           overwrite: true
 
@@ -183,6 +183,6 @@ jobs:
           {
             echo "## Outage sentinel"
             echo
-            echo "Preserved \`traffic-data\` from run \`${{ steps.source.outputs.run_id }}\`."
+            echo "Preserved \`dashboard-data\` from run \`${{ steps.source.outputs.run_id }}\`."
             echo "New retention: \`${{ env.OUTAGE_RETENTION_DAYS }}\` day(s)."
           } >> "$GITHUB_STEP_SUMMARY"

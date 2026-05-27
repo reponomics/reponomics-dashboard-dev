@@ -56,7 +56,7 @@ plus a versioned runtime action:
    - generated consumer repository created from the current template output
    - seeded with deterministic mock data
    - configured with demo-only repository secrets, including
-     `TRAFFIC_DASHBOARD_SECRET`
+     `DASHBOARD_SECRET_DO_NOT_REPLACE`
    - renders encrypted Pages output to demonstrate the unlock flow and artifact
      privacy model as users will experience it
 
@@ -98,7 +98,7 @@ The dev repository owns release automation with these deterministic outputs:
    template tree.
 6. Seed mock canonical CSV data in the demo repository.
 7. Render the demo repository in encrypted Pages mode using the pinned runtime
-   action and the demo repo's own `TRAFFIC_DASHBOARD_SECRET`.
+   action and the demo repo's own `DASHBOARD_SECRET_DO_NOT_REPLACE`.
 8. Commit provenance metadata recording:
    - dev source commit
    - runtime action version
@@ -188,7 +188,7 @@ Current hardening is focused on the action/template pair:
 - `reponomics-dashboard-dev` owns the generated-template source and docs.
 - `reponomics-dashboard` remains the generated template target.
 - `reponomics-dashboard-action` owns runtime behavior and is currently pinned
-  by the template at `reponomics/reponomics-dashboard-action@v0.8.0`.
+  by the template at `reponomics/reponomics-dashboard-action@v0.12.1`.
 
 The separate generated demo repository remains deferred until a staging
 consumer validates setup, collection, encrypted publish, CSV export, and key

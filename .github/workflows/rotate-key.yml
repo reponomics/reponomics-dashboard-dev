@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       confirm_rotation:
-        description: "I created TRAFFIC_DASHBOARD_NEXT_SECRET and saved the new key"
+        description: "I created DASHBOARD_NEXT_SECRET, saved the new key, and did not replace DASHBOARD_SECRET_DO_NOT_REPLACE"
         type: boolean
         required: true
         default: false
@@ -79,12 +79,12 @@ jobs:
           PY
 
       - name: Rotate dashboard key
-        uses: reponomics/reponomics-dashboard-action@v0.8.0
+        uses: reponomics/reponomics-dashboard-action@v0.12.1
         with:
           mode: rotate-key
           github-token: ${{ github.token }}
-          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
-          dashboard-next-secret: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          dashboard-next-secret: ${{ secrets.DASHBOARD_NEXT_SECRET }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
           commit-outputs: ${{ env.COMMIT_OUTPUTS }}

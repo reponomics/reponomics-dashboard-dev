@@ -40,7 +40,7 @@ internals into every user repository.
 
 Retained traffic data belongs in GitHub Actions artifacts:
 
-- encrypted `traffic-data.enc` for `strong` and `casual`
+- encrypted `dashboard-data.enc` for `strong` and `casual`
 - plaintext retained CSV files for private-repository `plain`
 
 Retained traffic data must not be committed to the generated repository.
