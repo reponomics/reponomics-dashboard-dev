@@ -111,6 +111,9 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "All repositories" in setup
     assert "Only selected repositories" in setup
     assert "keep \\`config.yaml\\` within" in setup
+    assert "docs/SECURE_DASHBOARD_KEY.md" in setup
+    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (
         '${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$PRIVACY_MODE" = "casual"'

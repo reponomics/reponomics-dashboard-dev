@@ -91,6 +91,8 @@ jobs:
           set -euo pipefail
 
           token_url="https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
+          key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/SECURE_DASHBOARD_KEY.md"
+          privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md"
 
           if [ -z "${TRAFFIC_TOKEN:-}" ]; then
             {
@@ -129,7 +131,7 @@ jobs:
                 echo
                 echo "\`privacy_mode=$PRIVACY_MODE\` needs a repository secret named \`TRAFFIC_DASHBOARD_SECRET\`."
                 echo
-                echo "See \`docs/SECURE_DASHBOARD_KEY.md\` for key generation options."
+                echo "See [Secure Dashboard Key]($key_doc_url) for key generation options."
               } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
@@ -138,11 +140,11 @@ jobs:
               {
                 echo "## Setup stopped"
                 echo
-                echo "\`TRAFFIC_DASHBOARD_SECRET\` is too short for \`privacy_mode=strong\`."
-                echo "Use a generated key of at least 40 characters."
+                echo "\`TRAFFIC_DASHBOARD_SECRET\` is not strong enough for \`privacy_mode=strong\`."
+                echo "Please generate a strong password following one of the methods described [here]($key_doc_url)."
                 echo
                 echo "Use \`privacy_mode=casual\` only if you explicitly accept"
-                echo "the weak-secret and offline brute-force risk."
+                echo "the risk of a targeted brute-force attack. See [here]($privacy_matrix_url) for more detail."
               } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
