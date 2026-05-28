@@ -21,6 +21,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     required = [
         ".github/workflows/collect.yml.disabled",
         ".github/workflows/incident-sentinel.yml.disabled",
+        ".github/workflows/keepalive.yml.disabled",
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
@@ -66,6 +67,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     workflows = output / ".github" / "workflows"
     collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
     sentinel = (workflows / "incident-sentinel.yml.disabled").read_text(encoding="utf-8")
+    keepalive = (workflows / "keepalive.yml.disabled").read_text(encoding="utf-8")
     publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
@@ -77,12 +79,16 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert action_ref in rotate
     assert "python scripts/" not in collect
     assert "python scripts/" not in sentinel
+    assert "python scripts/" not in keepalive
     assert "python scripts/" not in publish
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
     assert "mode: collect" in collect
     assert "mode: publish" in publish
     assert "workflow_run:" in publish
+    assert "COLLECTION_TOKEN" not in keepalive
+    assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
+    assert "60 days without repository activity" in keepalive
 
 
 def test_setup_workflow_resolves_privacy_modes():
@@ -119,6 +125,9 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "actions: write" not in setup
     assert "DASHBOARD_NEXT_SECRET" not in setup
     assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
+    assert 'enable_workflow ".github/workflows/keepalive.yml"' in setup
+    assert "Scheduled workflow keepalive" in setup
+    assert "60 days without repository activity" in setup
     assert "token: ${{ secrets.COLLECTION_TOKEN" not in setup
     assert "personal-access-tokens/new" in setup
     assert "name=COLLECTION_TOKEN" in setup

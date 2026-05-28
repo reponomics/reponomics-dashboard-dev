@@ -56,10 +56,15 @@ The canonical data store is the `dashboard-data` GitHub Actions artifact.
 - `collect` restores the prior artifact, collects current GitHub data, merges and trims retained CSV history, then uploads a new `dashboard-data` artifact.
 - `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
+- `keepalive` runs monthly, updates `.reponomics/keepalive.md`, and tries to create a persistent data safety reminder issue so scheduled collection is less likely to be silently disabled.
 
 Git history is used for configuration, workflow shells, the static setup README, and optional private-repository metric README output. It is not the analytics database.
 
 The template keeps GitHub Actions artifact retention at the default 90 days, which works across public repositories and default GitHub Actions settings.
+
+## Scheduled Workflow Liveness
+
+GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. The generated repository enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria, and GitHub can still change platform behavior. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires, then re-enable workflows from the Actions tab.
 
 ## CSV Export
 

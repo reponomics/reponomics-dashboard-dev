@@ -20,7 +20,7 @@ uses: reponomics/reponomics-dashboard-action@v0.12.1
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 6. For a hosted encrypted dashboard, open this repository's **Settings -> Pages** page and set **Build and deployment -> Source** to **GitHub Actions**. If GitHub suggests workflow templates, skip them; the Reponomics publish workflow already deploys the Pages artifact.
 
-Setup enables the collection workflow, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
+Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
 
 ## Configuration
 
@@ -67,6 +67,10 @@ For encrypted dashboards, unlock the hosted Pages dashboard with the same dashbo
 To view a dashboard offline, open a successful **Publish Reponomics dashboard** workflow run and download the GitHub Pages artifact before it expires. Extract the artifact and open `index.html`. Some browsers block local `file://` fetches; if export fails offline, serve the extracted artifact directory over local HTTP or use the hosted Pages dashboard.
 
 More details are in [docs/README.md](docs/README.md).
+
+## Scheduled Workflow Liveness
+
+GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. Setup enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires and re-enable workflows from the Actions tab.
 
 ## Runtime Requirements
 

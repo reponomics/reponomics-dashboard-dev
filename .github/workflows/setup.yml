@@ -178,6 +178,7 @@ jobs:
 
           enable_workflow ".github/workflows/collect.yml"
           enable_workflow ".github/workflows/incident-sentinel.yml"
+          enable_workflow ".github/workflows/keepalive.yml"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
             enable_workflow ".github/workflows/publish.yml"
@@ -242,10 +243,27 @@ jobs:
             echo
             echo "- Collection workflow: enabled"
             echo "- Incident sentinel workflow: enabled"
+            echo "- Scheduled workflow keepalive: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
             echo "- README generation: \`$GENERATE_README\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          {
+            echo
+            echo "## Scheduled workflow keepalive"
+            echo
+            echo "GitHub documents automatic scheduled-workflow disablement"
+            echo "after 60 days without repository activity for inactive public repositories,"
+            echo "but inactive scheduled workflows"
+            echo "are an operational risk for any dashboard repository. Reponomics"
+            echo "enables a monthly keepalive workflow that updates"
+            echo "\`.reponomics/keepalive.md\` and tries to create a persistent"
+            echo "data safety reminder issue. This is a best-effort safeguard;"
+            echo "if scheduled workflows stop unexpectedly, download the latest"
+            echo "\`dashboard-data\` artifact before it expires, then re-enable"
+            echo "the workflows from the Actions tab."
           } >> "$GITHUB_STEP_SUMMARY"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ] && [ "$PRIVACY_MODE" != "plain" ]; then

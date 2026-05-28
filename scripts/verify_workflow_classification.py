@@ -16,6 +16,7 @@ MANIFEST_PATH = ROOT / "template-manifest.yml"
 TEMPLATE_WORKFLOWS = {
     "collect.yml.disabled",
     "incident-sentinel.yml.disabled",
+    "keepalive.yml.disabled",
     "publish.yml.disabled",
     "rotate-key.yml",
     "setup.yml",

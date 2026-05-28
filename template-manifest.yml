@@ -8,6 +8,7 @@ description: >
 include:
   - .github/workflows/collect.yml.disabled
   - .github/workflows/incident-sentinel.yml.disabled
+  - .github/workflows/keepalive.yml.disabled
   - .github/workflows/publish.yml.disabled
   - .github/workflows/rotate-key.yml
   - .github/workflows/setup.yml
