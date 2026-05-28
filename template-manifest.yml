@@ -6,12 +6,18 @@ description: >
   material.
 
 include:
-  - .github/workflows/collect.yml.disabled
-  - .github/workflows/incident-sentinel.yml.disabled
-  - .github/workflows/keepalive.yml.disabled
-  - .github/workflows/publish.yml.disabled
-  - .github/workflows/rotate-key.yml
-  - .github/workflows/setup.yml
+  - source: template/.github/workflows/collect.yml
+    target: .github/workflows/collect.yml.disabled
+  - source: template/.github/workflows/incident-sentinel.yml
+    target: .github/workflows/incident-sentinel.yml.disabled
+  - source: template/.github/workflows/keepalive.yml
+    target: .github/workflows/keepalive.yml.disabled
+  - source: template/.github/workflows/publish.yml
+    target: .github/workflows/publish.yml.disabled
+  - source: template/.github/workflows/rotate-key.yml
+    target: .github/workflows/rotate-key.yml
+  - source: template/.github/workflows/setup.yml
+    target: .github/workflows/setup.yml
   - .gitignore
   - LICENSE
   - README.md
@@ -40,6 +46,7 @@ forbidden:
   - requirements.txt
   - requirements-dev.txt
   - scripts
+  - template
   - template-manifest.yml
   - tests
   - vendor

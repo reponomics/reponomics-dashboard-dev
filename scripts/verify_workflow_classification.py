@@ -11,15 +11,16 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
+TEMPLATE_WORKFLOW_DIR = ROOT / "template" / ".github" / "workflows"
 MANIFEST_PATH = ROOT / "template-manifest.yml"
 
-TEMPLATE_WORKFLOWS = {
-    "collect.yml.disabled",
-    "incident-sentinel.yml.disabled",
-    "keepalive.yml.disabled",
-    "publish.yml.disabled",
-    "rotate-key.yml",
-    "setup.yml",
+TEMPLATE_WORKFLOW_OUTPUTS = {
+    "template/.github/workflows/collect.yml": ".github/workflows/collect.yml.disabled",
+    "template/.github/workflows/incident-sentinel.yml": ".github/workflows/incident-sentinel.yml.disabled",
+    "template/.github/workflows/keepalive.yml": ".github/workflows/keepalive.yml.disabled",
+    "template/.github/workflows/publish.yml": ".github/workflows/publish.yml.disabled",
+    "template/.github/workflows/rotate-key.yml": ".github/workflows/rotate-key.yml",
+    "template/.github/workflows/setup.yml": ".github/workflows/setup.yml",
 }
 DEV_WORKFLOW_PREFIX = "dev-"
 DEV_WORKFLOW_GLOB = ".github/workflows/dev-*.yml"
@@ -43,35 +44,69 @@ def _iter_workflow_files() -> list[str]:
     return sorted(path.name for path in WORKFLOW_DIR.iterdir() if path.is_file())
 
 
+def _iter_template_workflow_files() -> list[str]:
+    if not TEMPLATE_WORKFLOW_DIR.exists():
+        raise WorkflowClassificationError(
+            f"Missing template workflow directory: {TEMPLATE_WORKFLOW_DIR}"
+        )
+    return sorted(
+        f"template/.github/workflows/{path.name}"
+        for path in TEMPLATE_WORKFLOW_DIR.iterdir()
+        if path.is_file()
+    )
+
+
 def _verify_workflow_filenames(workflow_files: list[str]) -> None:
     violations: list[str] = []
     for name in workflow_files:
-        if name in TEMPLATE_WORKFLOWS:
-            continue
         if name.startswith(DEV_WORKFLOW_PREFIX) and name.endswith(".yml"):
             continue
         violations.append(name)
     if violations:
         listed = "\n".join(f"  - {name}" for name in violations)
         raise WorkflowClassificationError(
-            "Unclassified workflow files detected. Use template canonical names "
-            f"or `{DEV_WORKFLOW_PREFIX}*.yml` for maintainer workflows:\n{listed}"
+            "Unclassified workflow files detected. Template workflows belong "
+            f"under `template/.github/workflows`; maintainer workflows must use "
+            f"the `{DEV_WORKFLOW_PREFIX}*.yml` filename prefix:\n{listed}"
+        )
+
+
+def _verify_template_workflow_sources(template_workflow_files: list[str]) -> None:
+    expected = sorted(TEMPLATE_WORKFLOW_OUTPUTS)
+    if template_workflow_files != expected:
+        expected_text = "\n".join(f"  - {entry}" for entry in expected)
+        actual_text = "\n".join(f"  - {entry}" for entry in template_workflow_files)
+        raise WorkflowClassificationError(
+            "Template workflow source set must match the canonical workflow "
+            f"surface exactly.\nExpected:\n{expected_text}\nActual:\n{actual_text}"
         )
 
 
 def _verify_manifest_includes(manifest: dict[str, Any]) -> None:
     include = manifest.get("include", [])
-    workflow_entries = sorted(
-        entry
-        for entry in include
-        if isinstance(entry, str) and entry.startswith(".github/workflows/")
-    )
-    expected_entries = sorted(
-        f".github/workflows/{name}" for name in TEMPLATE_WORKFLOWS
-    )
-    if workflow_entries != expected_entries:
-        expected = "\n".join(f"  - {entry}" for entry in expected_entries)
-        actual = "\n".join(f"  - {entry}" for entry in workflow_entries)
+    workflow_entries: dict[str, str] = {}
+    for entry in include:
+        if isinstance(entry, dict):
+            source = entry.get("source")
+            target = entry.get("target")
+            if (
+                isinstance(source, str)
+                and isinstance(target, str)
+                and target.startswith(".github/workflows/")
+            ):
+                workflow_entries[source] = target
+        elif isinstance(entry, str) and entry.startswith(".github/workflows/"):
+            workflow_entries[entry] = entry
+
+    if workflow_entries != TEMPLATE_WORKFLOW_OUTPUTS:
+        expected = "\n".join(
+            f"  - {source} -> {target}"
+            for source, target in sorted(TEMPLATE_WORKFLOW_OUTPUTS.items())
+        )
+        actual = "\n".join(
+            f"  - {source} -> {target}"
+            for source, target in sorted(workflow_entries.items())
+        )
         raise WorkflowClassificationError(
             "Template manifest workflow include set must match template workflow "
             f"surface exactly.\nExpected:\n{expected}\nActual:\n{actual}"
@@ -84,17 +119,24 @@ def _verify_manifest_forbidden(manifest: dict[str, Any]) -> None:
         raise WorkflowClassificationError(
             f"template-manifest forbidden list must include `{DEV_WORKFLOW_GLOB}`"
         )
+    if "template" not in forbidden:
+        raise WorkflowClassificationError(
+            "template-manifest forbidden list must include `template`"
+        )
 
 
 def verify() -> None:
     workflow_files = _iter_workflow_files()
+    template_workflow_files = _iter_template_workflow_files()
     manifest = _load_manifest()
     _verify_workflow_filenames(workflow_files)
+    _verify_template_workflow_sources(template_workflow_files)
     _verify_manifest_includes(manifest)
     _verify_manifest_forbidden(manifest)
     print(
         f"Verified workflow classification "
-        f"({len(workflow_files)} workflow files, {len(TEMPLATE_WORKFLOWS)} template files)"
+        f"({len(workflow_files)} maintainer workflow files, "
+        f"{len(template_workflow_files)} template workflow source files)"
     )
 
 

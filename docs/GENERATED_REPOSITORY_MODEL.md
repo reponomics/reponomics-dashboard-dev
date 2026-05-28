@@ -36,9 +36,7 @@ The generated template intentionally includes only:
 It intentionally excludes maintainer scripts, tests, ADRs, archived planning
 docs, `dist/`, virtual environments, and runtime implementation files.
 
-`template-manifest.yml` is the source-to-template contract. Changes to the
-generated surface should be made by updating the manifest and tests, then
-building the generated output.
+Template workflow sources live under `template/.github/workflows` so this repository's live `.github/workflows` directory contains only maintainer workflows. `template-manifest.yml` is the source-to-template contract; it maps those source workflows into the generated workflow filenames copied to `reponomics-dashboard`. Changes to the generated surface should be made by updating the manifest and tests, then building the generated output.
 
 ## Runtime Contract
 
