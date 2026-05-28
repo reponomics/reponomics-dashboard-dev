@@ -65,13 +65,13 @@ jobs:
           publish_workflow = Path(".github/workflows/publish.yml")
           if publish_workflow.exists():
               publish_text = publish_workflow.read_text(encoding="utf-8")
-              values["COMMIT_OUTPUTS"] = re.search(
-                  r'^  COMMIT_OUTPUTS: "([^"]*)"$',
+              values["GENERATE_README"] = re.search(
+                  r'^  GENERATE_README: "([^"]*)"$',
                   publish_text,
                   flags=re.MULTILINE,
               ).group(1)
           else:
-              values["COMMIT_OUTPUTS"] = "false"
+              values["GENERATE_README"] = "false"
 
           with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
               for key, value in values.items():
@@ -87,4 +87,4 @@ jobs:
           dashboard-next-secret: ${{ secrets.DASHBOARD_NEXT_SECRET }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
-          commit-outputs: ${{ env.COMMIT_OUTPUTS }}
+          generate-readme: ${{ env.GENERATE_README }}

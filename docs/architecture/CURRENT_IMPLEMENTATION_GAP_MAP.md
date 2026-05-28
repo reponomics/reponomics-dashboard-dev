@@ -19,7 +19,7 @@ Implemented runtime contract:
   Pages dashboard during `publish`
 - `plain`: private-repository-only retained CSV artifact, no hosted Pages
   dashboard
-- `commit-outputs`: commits README output only
+- `generate-readme`: commits README output in private repositories only
 - browser-local CSV export from unlocked encrypted dashboards
 - canonical artifact payload includes `repo-metrics.csv`
 

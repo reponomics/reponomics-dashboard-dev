@@ -10,9 +10,9 @@ controls how retained artifacts and hosted dashboard output are stored.
 
 | Mode | Repository visibility | Retained artifact | Hosted Pages dashboard | README output | Secret policy |
 | --- | --- | --- | --- | --- | --- |
-| `strong` | public or private | encrypted `dashboard-data.enc` | encrypted during `publish` | private repos may commit metrics when `commit-outputs=true`; public repos get non-metric status | generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE` required |
+| `strong` | public or private | encrypted `dashboard-data.enc` | encrypted during `publish` | private repos may commit metrics when `generate-readme=true`; public repos do not commit README metrics | generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE` required |
 | `casual` | public or private | encrypted `dashboard-data.enc` | encrypted during `publish` | same as `strong` | any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`; weak-secret risk is accepted |
-| `plain` | private only | plaintext retained CSV files | disabled | private repos may commit metrics when `commit-outputs=true` | no dashboard secret |
+| `plain` | private only | plaintext retained CSV files | disabled | private repos may commit metrics when `generate-readme=true` | no dashboard secret |
 
 ## Strong
 

@@ -20,7 +20,7 @@ concurrency:
 env:
   PRIVACY_MODE: "strong"
   RETENTION_DAYS: "90"
-  COMMIT_OUTPUTS: "false"
+  GENERATE_README: "false"
 
 jobs:
   publish:
@@ -41,4 +41,4 @@ jobs:
           dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
-          commit-outputs: ${{ env.COMMIT_OUTPUTS }}
+          generate-readme: ${{ env.GENERATE_README }}

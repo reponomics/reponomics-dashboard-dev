@@ -58,7 +58,7 @@ The action input contract used by this template is:
 - `privacy-mode`: `strong`, `casual`, or `plain`
 - `config-path`
 - `retention-days`
-- `commit-outputs`
+- `generate-readme`
 
 The template does not vendor runtime scripts or renderer assets.
 
@@ -70,7 +70,7 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 - `plain` stores retained CSV files directly and is private-repository only.
 - Hosted dashboard HTML is rendered during `publish` and deployed as a GitHub
   Pages artifact for `strong` and `casual`.
-- README output is committed only when `commit-outputs` is true.
+- README output is committed only when `generate-readme` is true in a private repository.
 - CSV export is browser-local after encrypted dashboard unlock.
 
 No retained dashboard data CSV is committed to the generated repository.

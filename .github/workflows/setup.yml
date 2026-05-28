@@ -22,7 +22,7 @@ on:
         required: true
         default: false
       generate_readme:
-        description: "Generate README after collection"
+        description: "Generate README after collection (private repositories only)"
         type: boolean
         required: true
         default: false
@@ -72,6 +72,16 @@ jobs:
             exit 1
           fi
 
+          if [ "$GENERATE_README" = "true" ] && [ "$REPOSITORY_PRIVATE" = "false" ]; then
+            {
+              echo "## Setup stopped"
+              echo
+              echo "README dashboard generation is only supported for private repositories."
+              echo "Disable \`generate_readme\` for public repositories."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
           publish_workflow="disabled"
           if [ "$GENERATE_HTML_DASHBOARD" = "true" ]; then
             publish_workflow="enabled"
@@ -80,7 +90,7 @@ jobs:
           {
             echo "PRIVACY_MODE=$resolved_privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
-            echo "COMMIT_OUTPUTS=$GENERATE_README"
+            echo "GENERATE_README=$GENERATE_README"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets
@@ -189,7 +199,7 @@ jobs:
               Path(".github/workflows/publish.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
-                  "COMMIT_OUTPUTS": os.environ["COMMIT_OUTPUTS"],
+                  "GENERATE_README": os.environ["GENERATE_README"],
               },
           }
 
@@ -218,7 +228,7 @@ jobs:
             echo "- Incident sentinel workflow: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
-            echo "- README generation: \`$COMMIT_OUTPUTS\`"
+            echo "- README generation: \`$GENERATE_README\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
           } >> "$GITHUB_STEP_SUMMARY"
 

@@ -19,7 +19,7 @@ Your repository owns:
 - workflow schedule and permissions
 - the pinned action version
 - retained `dashboard-data` workflow artifacts
-- optional committed README output when `generate_readme` is enabled during setup
+- optional committed README output when `generate_readme` is enabled during setup in a private repository
 
 Your repository does not store any collected data in git. The dashboard HTML is rendered during `publish` and, for encrypted hosted dashboards, deployed as a GitHub Pages artifact.
 
@@ -43,7 +43,7 @@ This template currently supports one collection credential. Fine-grained persona
 | `casual` | encrypted `dashboard-data.enc` | encrypted Pages artifact | any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE` | low-sensitivity sharing where accidental discovery is the concern |
 | `plain` | plaintext retained CSV files | disabled | none | private repositories that use GitHub repo/artifact access as the boundary |
 
-`plain` is rejected in public repositories. Public repositories can use `strong` or `casual`, but README metrics are not committed there; public README output is limited to a non-metric status block.
+`plain` is rejected in public repositories. Public repositories can use `strong` or `casual`, but README dashboard generation is rejected there so repository metrics are not committed to public git history.
 
 > [!NOTE]
 > We chose the deliberately outlandish name `DASHBOARD_SECRET_DO_NOT_REPLACE` precisely because there is no other way in the Action > Secrets UI to convey the message to the user that if they want to rotate the key, they should not do so by simply replacing that value, which seems like a tempting mistake.
@@ -53,7 +53,7 @@ This template currently supports one collection credential. Fine-grained persona
 The canonical data store is the `dashboard-data` GitHub Actions artifact.
 
 - `collect` restores the prior artifact, collects current GitHub data, merges and trims retained CSV history, then uploads a new `dashboard-data` artifact.
-- `publish` restores the retained artifact, renders README/dashboard output, and deploys an encrypted Pages artifact for `strong` and `casual`.
+- `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 
 Git history is used for configuration, workflow shells, and optional README output. It is not the analytics database.

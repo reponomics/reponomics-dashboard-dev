@@ -11,7 +11,7 @@ progress.
 - [x] Retained traffic data is stored only in GitHub Actions artifacts.
 - [x] Dashboard HTML is rendered during `publish` and deployed as a Pages
   artifact for encrypted modes.
-- [x] README output is committed only when `commit-outputs` is true.
+- [x] README output is committed only when `generate-readme` is true in a private repository.
 - [x] Privacy modes are `strong`, `casual`, and `plain`.
 - [x] `plain` is private-repository only and does not publish a hosted Pages
   dashboard.
