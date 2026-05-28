@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help clean install install-dev lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
+.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
@@ -8,6 +8,10 @@ PIP := $(VENV)/bin/pip
 PYTHON_MIN := 3.11
 REQUIREMENTS := requirements.txt
 DEV_REQUIREMENTS := requirements-dev.txt
+REQUIREMENTS_LOCK := requirements.lock
+DEV_REQUIREMENTS_LOCK := requirements-dev.lock
+PIP_COMPILE := $(VENV)/bin/pip-compile
+PIP_COMPILE_FLAGS := --generate-hashes --allow-unsafe --strip-extras --resolver=backtracking --no-header --quiet
 DEV_STAMP := $(VENV)/.dev-installed
 PYTEST := $(PYTHON) -m pytest
 RUFF := $(PYTHON) -m ruff
@@ -29,17 +33,45 @@ clean: ## Remove generated build and cache artifacts (keeps venv)
 
 install: $(VENV)/bin/activate ## Create the venv and install maintainer dependencies
 
-$(VENV)/bin/activate: $(REQUIREMENTS)
+$(VENV)/bin/activate: $(REQUIREMENTS_LOCK)
 	python3 -c "import sys; min_version=(3, 11); assert sys.version_info >= min_version, f'Python {min_version[0]}.{min_version[1]}+ is required (found {sys.version.split()[0]})'"
 	python3 -m venv $(VENV)
-	$(PIP) install -r $(REQUIREMENTS)
+	$(PIP) install --require-hashes -r $(REQUIREMENTS_LOCK)
 	touch $(VENV)/bin/activate
 
 install-dev: $(DEV_STAMP) ## Install maintainer/test dependencies
 
-$(DEV_STAMP): $(VENV)/bin/activate $(REQUIREMENTS) $(DEV_REQUIREMENTS)
-	$(PIP) install -r $(DEV_REQUIREMENTS)
+$(DEV_STAMP): $(VENV)/bin/activate $(REQUIREMENTS) $(DEV_REQUIREMENTS) $(DEV_REQUIREMENTS_LOCK)
+	$(PIP) install --require-hashes -r $(DEV_REQUIREMENTS_LOCK)
 	touch $(DEV_STAMP)
+
+lock-requirements: install-dev ## Regenerate hash-pinned dependency locks
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file $(REQUIREMENTS_LOCK) $(REQUIREMENTS)
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file $(DEV_REQUIREMENTS_LOCK) $(DEV_REQUIREMENTS)
+
+validate-requirement-locks: install-dev ## Verify dependency locks are current and hash-installable
+	tmp_runtime_lock=$$(mktemp); \
+	tmp_dev_lock=$$(mktemp); \
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file "$$tmp_runtime_lock" $(REQUIREMENTS); \
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file "$$tmp_dev_lock" $(DEV_REQUIREMENTS); \
+	if ! cmp -s "$(REQUIREMENTS_LOCK)" "$$tmp_runtime_lock"; then \
+		echo "$(REQUIREMENTS_LOCK) is stale; run make lock-requirements"; \
+		diff -u "$(REQUIREMENTS_LOCK)" "$$tmp_runtime_lock" || true; \
+		rm -f "$$tmp_runtime_lock" "$$tmp_dev_lock"; \
+		exit 1; \
+	fi; \
+	if ! cmp -s "$(DEV_REQUIREMENTS_LOCK)" "$$tmp_dev_lock"; then \
+		echo "$(DEV_REQUIREMENTS_LOCK) is stale; run make lock-requirements"; \
+		diff -u "$(DEV_REQUIREMENTS_LOCK)" "$$tmp_dev_lock" || true; \
+		rm -f "$$tmp_runtime_lock" "$$tmp_dev_lock"; \
+		exit 1; \
+	fi; \
+	rm -f "$$tmp_runtime_lock" "$$tmp_dev_lock"
+	tmp_runtime_site=$$(mktemp -d); \
+	tmp_dev_site=$$(mktemp -d); \
+	$(PYTHON) -m pip install --require-hashes --target "$$tmp_runtime_site" -r $(REQUIREMENTS_LOCK); \
+	$(PYTHON) -m pip install --require-hashes --target "$$tmp_dev_site" -r $(DEV_REQUIREMENTS_LOCK); \
+	rm -rf "$$tmp_runtime_site" "$$tmp_dev_site"
 
 lint: install-dev ## Run static lint checks
 	$(RUFF) check scripts tests
@@ -79,4 +111,4 @@ coverage: install-dev ## Run tests with coverage gate for maintainer scripts
 template-smoke: build-template ## Smoke-test ephemeral template publish and generated workflows
 	$(PYTHON) scripts/smoke_template_release.py --output dist/template
 
-verify: lint typecheck coverage verify-workflow-classification release-dry-run template-smoke ## Run lint, type checks, coverage, and generated-output checks
+verify: validate-requirement-locks lint typecheck coverage verify-workflow-classification release-dry-run template-smoke ## Run lint, type checks, coverage, dependency-lock, and generated-output checks
