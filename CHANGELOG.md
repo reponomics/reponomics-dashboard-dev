@@ -12,7 +12,7 @@
 
 ### Bug Fixes
 
-* rename traffic-focused termology ([#5](https://github.com/reponomics/reponomics-dashboard-dev/issues/5)) ([7059d9f](https://github.com/reponomics/reponomics-dashboard-dev/commit/7059d9f60f274292d2ab558b5ad3f3cb91274dca))
+* rename traffic-focused terminology ([#5](https://github.com/reponomics/reponomics-dashboard-dev/issues/5)) ([7059d9f](https://github.com/reponomics/reponomics-dashboard-dev/commit/7059d9f60f274292d2ab558b5ad3f3cb91274dca))
 
 ## [0.2.1](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.2.0...v0.2.1) (2026-05-27)
 
@@ -34,7 +34,3 @@
 ### Bug Fixes
 
 * align template with pages artifact publishing ([cf46aa0](https://github.com/reponomics/reponomics-dashboard-dev/commit/cf46aa02ee78e761884ed3e71467d18db7e40209))
-
-## Changelog
-
-All notable changes to this project will be documented in this file.
