@@ -217,6 +217,22 @@ jobs:
               workflow.write_text(text, encoding="utf-8")
           PY
 
+      - name: Write setup README
+        run: |
+          set -euo pipefail
+
+          cat > README.md <<'MD'
+          # Reponomics Dashboard
+
+          This repository was generated from the [Reponomics Dashboard template repo](https://github.com/reponomics/reponomics-dashboard).
+
+          The Reponomics Dashboard provides users with a convenient, private, and cost-free way to store and aggregate key metrics about their GitHub repos. Because this data is private, we do not publish any metrics to the README for public repositories.
+
+          If you'd like to learn more about the Reponomics Dashboard and create one for yourself, check out our doc-site at [reponomics/reponomics](https://github.com/reponomics/reponomics), or view a demo dashboard [here](https://github.com/reponomics/reponomics-demo).
+
+          Thanks!
+          MD
+
       - name: Summarize setup
         run: |
           set -euo pipefail
@@ -254,6 +270,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A .github/workflows
+          git add -A .github/workflows README.md
           git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
           git push

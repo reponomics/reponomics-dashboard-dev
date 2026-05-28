@@ -94,7 +94,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "generate_html_dashboard:" in setup
     assert 'description: "Generate HTML dashboard after collection"' in setup
     assert "generate_readme:" in setup
-    assert 'description: "Generate README after collection"' in setup
+    assert 'description: "Generate README after collection (private repositories only)"' in setup
     assert "publish_dashboard:" not in setup
     assert "commit_readme:" not in setup
     assert "commit_readme_snapshot:" not in setup
@@ -102,7 +102,11 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "PUBLISH_README" not in setup
     assert "COMMIT_README_SNAPSHOT" not in setup
     assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
-    assert 'echo "COMMIT_OUTPUTS=$GENERATE_README"' in setup
+    assert 'echo "GENERATE_README=$GENERATE_README"' in setup
+    assert "README dashboard generation is only supported for private repositories." in setup
+    assert "cat > README.md <<'MD'" in setup
+    assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
+    assert "git add -A .github/workflows README.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup

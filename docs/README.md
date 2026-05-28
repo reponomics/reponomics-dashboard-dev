@@ -19,7 +19,8 @@ Your repository owns:
 - workflow schedule and permissions
 - the pinned action version
 - retained `dashboard-data` workflow artifacts
-- optional committed README output when `generate_readme` is enabled during setup in a private repository
+- static post-setup README output
+- optional committed metric README output when `generate_readme` is enabled during setup in a private repository
 
 Your repository does not store any collected data in git. The dashboard HTML is rendered during `publish` and, for encrypted hosted dashboards, deployed as a GitHub Pages artifact.
 
@@ -53,10 +54,10 @@ This template currently supports one collection credential. Fine-grained persona
 The canonical data store is the `dashboard-data` GitHub Actions artifact.
 
 - `collect` restores the prior artifact, collects current GitHub data, merges and trims retained CSV history, then uploads a new `dashboard-data` artifact.
-- `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
+- `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 
-Git history is used for configuration, workflow shells, and optional README output. It is not the analytics database.
+Git history is used for configuration, workflow shells, the static setup README, and optional private-repository metric README output. It is not the analytics database.
 
 The template keeps GitHub Actions artifact retention at the default 90 days, which works across public repositories and default GitHub Actions settings.
 

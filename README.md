@@ -20,7 +20,7 @@ uses: reponomics/reponomics-dashboard-action@v0.12.1
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 6. For a hosted encrypted dashboard, open this repository's **Settings -> Pages** page and set **Build and deployment -> Source** to **GitHub Actions**. If GitHub suggests workflow templates, skip them; the Reponomics publish workflow already deploys the Pages artifact.
 
-Setup enables the collection workflow and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
+Setup enables the collection workflow, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
 
 ## Configuration
 
@@ -60,7 +60,7 @@ The canonical store is the `dashboard-data` Actions artifact.
 - `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly in the artifact and is rejected in public repositories.
 - The dashboard HTML is generated during `publish` and deployed through GitHub Pages Actions artifacts.
-- README output is committed only when setup enables `generate_readme` in a private repository.
+- Setup commits a static README. Metric README output is committed only when setup enables `generate_readme` in a private repository.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same dashboard key stored in `DASHBOARD_SECRET_DO_NOT_REPLACE`. After unlock, the dashboard can export a canonical CSV ZIP in the browser. The export path downloads an encrypted asset, decrypts it locally, verifies SHA-256 digests, and does not upload plaintext CSV back to GitHub.
 
