@@ -64,9 +64,7 @@ backported to this repository before the next generated publication.
 
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
 
-- template workflows use canonical user-facing filenames:
-  `setup.yml`, `collect.yml.disabled`, `publish.yml.disabled`,
-  `rotate-key.yml`
+- template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-sentinel.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
 `template-manifest.yml` is allowed to include only the canonical template

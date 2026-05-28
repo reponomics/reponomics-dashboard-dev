@@ -27,7 +27,7 @@ against the released action.
 
 The generated template intentionally includes only:
 
-- workflow stubs for setup, collection, publication, and key rotation
+- workflow stubs for setup, collection, publication, scheduled workflow keepalive, incident response, and key rotation
 - `README.md`
 - `config.yaml`
 - user-facing docs under `docs/`
