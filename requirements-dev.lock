@@ -319,7 +319,9 @@ pluggy==1.6.0 \
 pygments==2.20.0 \
     --hash=sha256:6757cd03768053ff99f3039c1a36d6c0aa0b263438fcab17520b30a303a82b5f \
     --hash=sha256:81a9e26dd42fd28a23a2d169d86d7ac03b46e2f8b59ed4698fb4785f946d0176
-    # via pytest
+    # via
+    #   -r requirements-dev.txt
+    #   pytest
 pyproject-hooks==1.2.0 \
     --hash=sha256:1e859bd5c40fae9448642dd871adf459e5e2084186e8d2c2a79a824c970da1f8 \
     --hash=sha256:9e5c6bfa8dcc30091c74b0cf803c81fdd29d94f01992a7707bc97babb1141913
@@ -442,7 +444,9 @@ typing-extensions==4.15.0 \
 wheel==0.47.0 \
     --hash=sha256:212281cab4dff978f6cedd499cd893e1f620791ca6ff7107cf270781e587eced \
     --hash=sha256:cc72bd1009ba0cf63922e28f94d9d83b920aa2bb28f798a31d0691b02fa3c9b3
-    # via pip-tools
+    # via
+    #   -r requirements-dev.txt
+    #   pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
 pip==26.1.1 \
@@ -452,4 +456,6 @@ pip==26.1.1 \
 setuptools==82.0.1 \
     --hash=sha256:7d872682c5d01cfde07da7bccc7b65469d3dca203318515ada1de5eda35efbf9 \
     --hash=sha256:a59e362652f08dcd477c78bb6e7bd9d80a7995bc73ce773050228a348ce2e5bb
-    # via pip-tools
+    # via
+    #   -r requirements-dev.txt
+    #   pip-tools
