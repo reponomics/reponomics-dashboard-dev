@@ -34,7 +34,3 @@
 ### Bug Fixes
 
 * align template with pages artifact publishing ([cf46aa0](https://github.com/reponomics/reponomics-dashboard-dev/commit/cf46aa02ee78e761884ed3e71467d18db7e40209))
-
-## Changelog
-
-All notable changes to this project will be documented in this file.
