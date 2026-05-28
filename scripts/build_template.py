@@ -21,6 +21,33 @@ class TemplateBuildError(RuntimeError):
     """Raised when the template output cannot be generated or verified."""
 
 
+def _manifest_path(value: Any, *, field: str) -> Path:
+    if not isinstance(value, str) or not value.strip():
+        raise TemplateBuildError(f"Manifest include {field} must be a non-empty string")
+    path = Path(value)
+    if path.is_absolute() or ".." in path.parts:
+        raise TemplateBuildError(f"Manifest include {field} must be a relative safe path: {value}")
+    return path
+
+
+def iter_include_entries(manifest: dict[str, Any]) -> list[tuple[Path, Path]]:
+    entries: list[tuple[Path, Path]] = []
+    for raw_entry in manifest.get("include", []):
+        if isinstance(raw_entry, str):
+            path = _manifest_path(raw_entry, field="path")
+            entries.append((path, path))
+            continue
+        if isinstance(raw_entry, dict):
+            source = _manifest_path(raw_entry.get("source"), field="source")
+            target = _manifest_path(raw_entry.get("target"), field="target")
+            entries.append((source, target))
+            continue
+        raise TemplateBuildError(
+            "Manifest include entries must be strings or source/target mappings"
+        )
+    return entries
+
+
 def load_manifest(path: Path = DEFAULT_MANIFEST) -> dict[str, Any]:
     with path.open(encoding="utf-8") as handle:
         manifest = yaml.safe_load(handle) or {}
@@ -82,9 +109,8 @@ def build_template(
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for entry in manifest["include"]:
-        relative = Path(entry)
-        _copy_path(ROOT / relative, output_dir / relative)
+    for source, target in iter_include_entries(manifest):
+        _copy_path(ROOT / source, output_dir / target)
 
     verify_template(output_dir, manifest_path)
     return output_dir
@@ -108,13 +134,13 @@ def verify_template(
         raise TemplateBuildError(f"Template output does not exist: {output_dir}")
 
     files = iter_files(output_dir)
-    for entry in manifest["include"]:
-        source = ROOT / entry
-        target = output_dir / entry
+    for source_path, target_path in iter_include_entries(manifest):
+        source = ROOT / source_path
+        target = output_dir / target_path
         if source.is_file() and not target.is_file():
-            raise TemplateBuildError(f"Required file missing from output: {entry}")
+            raise TemplateBuildError(f"Required file missing from output: {target_path}")
         if source.is_dir() and not target.exists():
-            raise TemplateBuildError(f"Required directory missing from output: {entry}")
+            raise TemplateBuildError(f"Required directory missing from output: {target_path}")
 
     forbidden = manifest.get("forbidden", [])
     leaks = [

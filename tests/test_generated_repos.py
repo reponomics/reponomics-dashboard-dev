@@ -50,6 +50,7 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "scripts",
         "tests",
         "vendor",
+        "template",
         "docs/GENERATED_REPOSITORY_MODEL.md",
         "docs/REPOSITORY_POLICY.md",
         "docs/archive",
@@ -92,7 +93,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
 
 
 def test_setup_workflow_resolves_privacy_modes():
-    setup = Path(".github/workflows/setup.yml").read_text(encoding="utf-8")
+    setup = Path("template/.github/workflows/setup.yml").read_text(encoding="utf-8")
 
     for mode in ("strong", "casual", "plain"):
         assert re.search(rf"^\s+- {mode}$", setup, flags=re.MULTILINE)

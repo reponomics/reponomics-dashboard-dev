@@ -64,12 +64,11 @@ backported to this repository before the next generated publication.
 
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
 
-- template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-sentinel.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
+- template workflow sources live under `template/.github/workflows` with normal `.yml` filenames
+- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-sentinel.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
-`template-manifest.yml` is allowed to include only the canonical template
-workflow set. Maintainer workflows must stay out of the generated template
-surface.
+`template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.
 
 ## Future Demo Repository
 
