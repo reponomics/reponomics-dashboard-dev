@@ -1,10 +1,12 @@
 # Secure Dashboard Key Generation
 
 `privacy-mode=strong` and `privacy-mode=casual` use
-`TRAFFIC_DASHBOARD_SECRET` to encrypt retained artifacts and hosted dashboard
+`DASHBOARD_SECRET_DO_NOT_REPLACE` to encrypt retained artifacts and hosted dashboard
 data. Anyone with this key can decrypt the dashboard and CSV export. GitHub
 will not show the secret value again after you save it, so store it somewhere
 private.
+
+Do not replace `DASHBOARD_SECRET_DO_NOT_REPLACE` directly if you forget the key. That cannot recover existing encrypted data. Despite the name, there is one safe time to replace it: after the rotation workflow completes successfully and tells you to promote `DASHBOARD_NEXT_SECRET`.
 
 Do not choose a memorable password for `strong`. Generate a random dashboard
 key.
@@ -18,13 +20,13 @@ openssl rand -hex 32
 ```
 
 Save the generated value in a password manager, then add it as the repository
-secret named `TRAFFIC_DASHBOARD_SECRET`.
+secret named `DASHBOARD_SECRET_DO_NOT_REPLACE`.
 
 ## Password Manager
 
 Use your password manager to generate a random password of at least 64
 characters. Store it as `Reponomics dashboard key`, then paste it into the
-repository secret named `TRAFFIC_DASHBOARD_SECRET`.
+repository secret named `DASHBOARD_SECRET_DO_NOT_REPLACE`.
 
 ## Browser Console On A Blank Tab
 
@@ -38,7 +40,7 @@ Array.from(crypto.getRandomValues(new Uint8Array(32)), (byte) =>
 ```
 
 Copy the generated value, store it somewhere private, and save it as
-`TRAFFIC_DASHBOARD_SECRET`.
+`DASHBOARD_SECRET_DO_NOT_REPLACE`.
 
 ## Strong Versus Casual
 
@@ -56,11 +58,11 @@ without encryption and is only supported in private repositories.
 ## Rotation
 
 1. Generate and save a new key.
-2. Add it as `TRAFFIC_DASHBOARD_NEXT_SECRET`.
+2. Add it as `DASHBOARD_NEXT_SECRET`.
 3. Run **Actions -> Rotate Reponomics dashboard key -> Run workflow**.
 4. Confirm the dashboard opens with the new key.
-5. Replace `TRAFFIC_DASHBOARD_SECRET` with the new key.
-6. Delete `TRAFFIC_DASHBOARD_NEXT_SECRET`.
+5. Replace `DASHBOARD_SECRET_DO_NOT_REPLACE` with the new key.
+6. Delete `DASHBOARD_NEXT_SECRET`.
 
-If the old `TRAFFIC_DASHBOARD_SECRET` was deleted or overwritten before
+If the old `DASHBOARD_SECRET_DO_NOT_REPLACE` was deleted or overwritten before
 rotation, the previous encrypted artifact cannot be recovered.

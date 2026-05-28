@@ -1,23 +1,14 @@
 # Reponomics Dashboard Documentation
 
-Reponomics is a GitHub-native traffic dashboard. It collects views, clones,
-top referrers, popular paths, and repository growth counters, then renders
-static dashboard output during the `publish` workflow.
+The Reponomics Dashboard is a GitHub-native repository traffic and growth dashboard. It collects views, clones, top referrers, popular paths, and repository growth counters, then renders static dashboard output during the `publish` workflow.
 
-This generated repository is intentionally thin. The workflows call
-`reponomics/reponomics-dashboard-action@v0.8.0`, which owns collection,
-artifact restore/upload, schema migration, encryption, README rendering,
-dashboard rendering, CSV export packaging, and dashboard key rotation.
+This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.12.1`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, and dashboard key rotation.
 
-Template repositories do not require local Python for normal use. Workflows run
-in GitHub Actions and delegate runtime behavior to
-`reponomics/reponomics-dashboard-action`.
+Template repositories do not require local Python for normal use. Workflows run in GitHub Actions and delegate runtime behavior to `reponomics/reponomics-dashboard-action`.
 
-If a repository uses self-hosted runners, runner images should provide Python
-`3.11+` and GitHub CLI (`gh`) for setup token validation.
+If a repository uses self-hosted runners, runner images should provide Python `3.11+` and GitHub CLI (`gh`) for setup token validation.
 
-Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and
-`3.12`.
+Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and `3.12`.
 
 ## Repository Model
 
@@ -27,26 +18,21 @@ Your repository owns:
 - repository secrets
 - workflow schedule and permissions
 - the pinned action version
-- retained `traffic-data` workflow artifacts
-- optional committed README output when `generate_readme` is enabled during setup
+- retained `dashboard-data` workflow artifacts
+- static post-setup README output
+- optional committed metric README output when `generate_readme` is enabled during setup in a private repository
 
-Your repository does not store retained traffic data in git. The dashboard HTML
-is rendered during `publish` and, for encrypted hosted dashboards, deployed as
-a GitHub Pages artifact.
+Your repository does not store any collected data in git. The dashboard HTML is rendered during `publish` and, for encrypted hosted dashboards, deployed as a GitHub Pages artifact.
 
-`TRAFFIC_TOKEN` is only for reading repository traffic data. Create it as a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. The setup workflow uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes, so the traffic token does not need repository, Pages, or Administration write permissions.
+`COLLECTION_TOKEN` is only for repository data collection, including GitHub traffic data. Create it as a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. The setup workflow uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes, so the collection token does not need repository, Pages, or Administration write permissions. Ideally, we will have one, limited-scope token responsible for any queries outside of the dashboard repo, and all other operations will be done by the repo's own `GITHUB_TOKEN`. This minimizes the scope of the collection token, which for many users will have access to lots of repositories.
 
 This template currently supports one collection credential. Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
 
 ## Configuration
 
-`config.yaml` is the active configuration for this repository. It is
-user-owned: collection and publication runs read it, but do not silently rewrite
-it.
+`config.yaml` is the active configuration for this repository. It is user-owned: collection and publication runs read it, but do not silently rewrite it.
 
-`config.example.yaml` shows the supported configuration shape. Missing
-optional keys use runtime defaults; explicit keys in `config.yaml` are treated
-as your choices.
+`config.example.yaml` shows the supported configuration shape. Missing optional keys use runtime defaults; explicit keys in `config.yaml` are treated as your choices.
 
 ## Privacy Modes
 
@@ -54,71 +40,53 @@ as your choices.
 
 | Mode | Retained artifact | Hosted dashboard | Secret requirement | Intended use |
 | --- | --- | --- | --- | --- |
-| `strong` | encrypted `traffic-data.enc` | encrypted Pages artifact | generated high-entropy `TRAFFIC_DASHBOARD_SECRET` | default for public or sensitive dashboards |
-| `casual` | encrypted `traffic-data.enc` | encrypted Pages artifact | any non-empty `TRAFFIC_DASHBOARD_SECRET` | low-sensitivity sharing where accidental discovery is the concern |
+| `strong` | encrypted `dashboard-data.enc` | encrypted Pages artifact | generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE` | default for public or sensitive dashboards |
+| `casual` | encrypted `dashboard-data.enc` | encrypted Pages artifact | any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE` | low-sensitivity sharing where accidental discovery is the concern |
 | `plain` | plaintext retained CSV files | disabled | none | private repositories that use GitHub repo/artifact access as the boundary |
 
-`plain` is rejected in public repositories. Public repositories can use
-`strong` or `casual`, but README metrics are not committed there; public README
-output is limited to a non-metric status block.
+`plain` is rejected in public repositories. Public repositories can use `strong` or `casual`, but README dashboard generation is rejected there so repository metrics are not committed to public git history.
+
+> [!NOTE]
+> We chose the deliberately outlandish name `DASHBOARD_SECRET_DO_NOT_REPLACE` precisely because there is no other way in the Action > Secrets UI to convey the message to the user that if they want to rotate the key, they should not do so by simply replacing that value, which seems like a tempting mistake.
 
 ## Storage
 
-The canonical data store is the `traffic-data` GitHub Actions artifact.
+The canonical data store is the `dashboard-data` GitHub Actions artifact.
 
-- `collect` restores the prior artifact, collects current GitHub data, merges
-  and trims retained CSV history, then uploads a new `traffic-data` artifact.
-- `publish` restores the retained artifact, renders README/dashboard output,
-  and deploys an encrypted Pages artifact for `strong` and `casual`.
-- `rotate-key` restores encrypted retained state, decrypts with
-  `TRAFFIC_DASHBOARD_SECRET`, re-encrypts with
-  `TRAFFIC_DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
+- `collect` restores the prior artifact, collects current GitHub data, merges and trims retained CSV history, then uploads a new `dashboard-data` artifact.
+- `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
+- `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 
-Git history is used for configuration, workflow shells, and optional README
-output. It is not the analytics database.
+Git history is used for configuration, workflow shells, the static setup README, and optional private-repository metric README output. It is not the analytics database.
 
 The template keeps GitHub Actions artifact retention at the default 90 days, which works across public repositories and default GitHub Actions settings.
 
 ## CSV Export
 
-Encrypted hosted dashboards include an `Export CSV` control after unlock. The
-browser downloads an encrypted export asset, decrypts it locally with the
-dashboard key, verifies ciphertext and plaintext SHA-256 digests, and downloads
-a canonical ZIP of retained CSV files. Plaintext CSV is not uploaded back to
-GitHub during export.
+Encrypted hosted dashboards include an `Export CSV` control after unlock. The browser downloads an encrypted export asset, decrypts it locally with the dashboard key, verifies ciphertext and plaintext SHA-256 digests, and downloads a canonical ZIP of retained CSV files. Plaintext CSV is not uploaded back to GitHub during export.
 
-For `plain`, download the `traffic-data` workflow artifact directly.
+For `plain`, download the `dashboard-data` workflow artifact directly.
 
 ## Offline Viewing
 
-The generated dashboard is not committed to this repository. To view an
-encrypted dashboard offline, open a successful **Publish Reponomics dashboard**
-workflow run and download the GitHub Pages artifact before it expires. Extract
-the artifact and open `index.html` with the same dashboard key that unlocks the
-hosted Pages dashboard.
+The generated dashboard is not committed to this repository. To view an encrypted dashboard offline, open a successful **Publish Reponomics dashboard** workflow run and download the GitHub Pages artifact before it expires. Extract the artifact and open `index.html` with the same dashboard key that unlocks the hosted Pages dashboard.
 
-Some browsers block local `file://` fetches used by CSV export. If export fails
-offline, serve the extracted artifact directory over local HTTP or use the
-hosted Pages dashboard.
+Some browsers block local `file://` fetches used by CSV export. If export fails offline, serve the extracted artifact directory over local HTTP or use the hosted Pages dashboard.
 
 ## Key Rotation
 
 1. Generate and save a new dashboard key.
-2. Add it as `TRAFFIC_DASHBOARD_NEXT_SECRET`.
+2. Add it as `DASHBOARD_NEXT_SECRET`.
 3. Run **Actions -> Rotate Reponomics dashboard key -> Run workflow**.
 4. Confirm the dashboard opens with the new key.
-5. Replace `TRAFFIC_DASHBOARD_SECRET` with the new key.
-6. Delete `TRAFFIC_DASHBOARD_NEXT_SECRET`.
+5. Replace `DASHBOARD_SECRET_DO_NOT_REPLACE` with the new key (this a rare instance in which you are allowed to disobey the instructions in the secret's name).
+6. Delete `DASHBOARD_NEXT_SECRET`.
 
-Normal collection refuses to run while `TRAFFIC_DASHBOARD_NEXT_SECRET` is set,
-so rotation cannot be left half-finished unnoticed.
+Normal collection refuses to run while `DASHBOARD_NEXT_SECRET` is set, so rotation cannot be left half-finished unnoticed.
 
 ## GitHub Pages
 
-For a hosted encrypted dashboard, manually configure this repository's **Settings -> Pages** page so **Build and deployment -> Source** is **GitHub Actions**. The Reponomics publish workflow renders the dashboard shell and uploads it as a GitHub Pages artifact; retained traffic data remains in the `traffic-data` Actions artifact. The action verifies the existing Pages setting during deployment, but it does not enable Pages or change the publishing source. If GitHub suggests workflow templates while you are changing the setting, skip them.
+For a hosted encrypted dashboard, manually configure this repository's **Settings -> Pages** page so **Build and deployment -> Source** is **GitHub Actions**. The Reponomics publish workflow renders the dashboard shell and uploads it as a GitHub Pages artifact; retained dashboard data remains in the `dashboard-data` Actions artifact. The action verifies the existing Pages setting during deployment, but it does not enable Pages or change the publishing source. If GitHub suggests workflow templates while you are changing the setting, skip them.
 
 > [!WARNING]
-> Unless your GitHub plan provides Pages access controls, a GitHub Pages site
-> is reachable on the internet even when the repository is private. Use
-> `privacy-mode=strong` when the hosted dashboard must not disclose metrics to
-> people without the dashboard key.
+> Unless your GitHub plan provides Pages access controls, a GitHub Pages site is reachable on the internet even when the repository is private. Use `privacy-mode=strong` when the hosted dashboard must not disclose metrics to people without the dashboard key.

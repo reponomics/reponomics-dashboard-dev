@@ -31,7 +31,7 @@ include_others: true
 # enter the automatic pool.
 include_new: false
 
-# Allow private repositories in the automatic pool when TRAFFIC_TOKEN can see
+# Allow private repositories in the automatic pool when COLLECTION_TOKEN can see
 # them.
 include_private: true
 

@@ -1,6 +1,6 @@
 # Reponomics Privacy Configuration Matrix
 
-Status: current for action `v0.8.0`.
+Status: current for action `v0.12.1`.
 
 Repository visibility and Reponomics privacy mode are separate concepts.
 Repository visibility controls who can read the repository. `privacy-mode`
@@ -10,9 +10,9 @@ controls how retained artifacts and hosted dashboard output are stored.
 
 | Mode | Repository visibility | Retained artifact | Hosted Pages dashboard | README output | Secret policy |
 | --- | --- | --- | --- | --- | --- |
-| `strong` | public or private | encrypted `traffic-data.enc` | encrypted during `publish` | private repos may commit metrics when `commit-outputs=true`; public repos get non-metric status | generated high-entropy `TRAFFIC_DASHBOARD_SECRET` required |
-| `casual` | public or private | encrypted `traffic-data.enc` | encrypted during `publish` | same as `strong` | any non-empty `TRAFFIC_DASHBOARD_SECRET`; weak-secret risk is accepted |
-| `plain` | private only | plaintext retained CSV files | disabled | private repos may commit metrics when `commit-outputs=true` | no dashboard secret |
+| `strong` | public or private | encrypted `dashboard-data.enc` | encrypted during `publish` | setup commits a static README; private repos may commit metrics when `generate-readme=true`; public repos do not commit README metrics | generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE` required |
+| `casual` | public or private | encrypted `dashboard-data.enc` | encrypted during `publish` | same as `strong` | any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`; weak-secret risk is accepted |
+| `plain` | private only | plaintext retained CSV files | disabled | setup commits a static README; private repos may commit metrics when `generate-readme=true` | no dashboard secret |
 
 ## Strong
 
@@ -38,7 +38,7 @@ artifact or dashboard payload.
 
 Use `plain` only in private repositories where GitHub repository and artifact
 access are the intended privacy boundary. It uploads retained CSV files directly
-inside the `traffic-data` artifact and does not publish a hosted Pages
+inside the `dashboard-data` artifact and does not publish a hosted Pages
 dashboard.
 
 The action rejects `plain` in public repositories.
@@ -51,4 +51,4 @@ dashboard key, verifies SHA-256 digests, and downloads a ZIP of retained CSV
 files without uploading plaintext CSV back to GitHub.
 
 For `plain`, users inspect the retained CSV files by downloading the
-`traffic-data` workflow artifact.
+`dashboard-data` workflow artifact.

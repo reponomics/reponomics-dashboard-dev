@@ -22,7 +22,7 @@ on:
         required: true
         default: false
       generate_readme:
-        description: "Generate README after collection"
+        description: "Generate README after collection (private repositories only)"
         type: boolean
         required: true
         default: false
@@ -72,6 +72,16 @@ jobs:
             exit 1
           fi
 
+          if [ "$GENERATE_README" = "true" ] && [ "$REPOSITORY_PRIVATE" = "false" ]; then
+            {
+              echo "## Setup stopped"
+              echo
+              echo "README dashboard generation is only supported for private repositories."
+              echo "Disable \`generate_readme\` for public repositories."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
           publish_workflow="disabled"
           if [ "$GENERATE_HTML_DASHBOARD" = "true" ]; then
             publish_workflow="enabled"
@@ -80,21 +90,21 @@ jobs:
           {
             echo "PRIVACY_MODE=$resolved_privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
-            echo "COMMIT_OUTPUTS=$GENERATE_README"
+            echo "GENERATE_README=$GENERATE_README"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets
         env:
-          TRAFFIC_TOKEN: ${{ secrets.TRAFFIC_TOKEN }}
-          TRAFFIC_DASHBOARD_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          COLLECTION_TOKEN: ${{ secrets.COLLECTION_TOKEN }}
+          DASHBOARD_SECRET_DO_NOT_REPLACE: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
         run: |
           set -euo pipefail
 
-          token_url="https://github.com/settings/personal-access-tokens/new?name=Reponomics%20Traffic%20Token&description=Read%20repository%20traffic%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
+          token_url="https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
           key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/SECURE_DASHBOARD_KEY.md"
           privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md"
 
-          if [ -z "${TRAFFIC_TOKEN:-}" ]; then
+          if [ -z "${COLLECTION_TOKEN:-}" ]; then
             {
               echo "## Setup stopped"
               echo
@@ -104,16 +114,16 @@ jobs:
               echo "**Only selected repositories** if you want to limit collection."
               echo "If you choose selected repositories, keep \`config.yaml\` within"
               echo "that token's repository access."
-              echo "Then save the token as repository secret \`TRAFFIC_TOKEN\` and run setup again."
+              echo "Then save the token as repository secret \`COLLECTION_TOKEN\` and run setup again."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
-          if ! GH_TOKEN="$TRAFFIC_TOKEN" gh api rate_limit >/dev/null 2>&1; then
+          if ! GH_TOKEN="$COLLECTION_TOKEN" gh api rate_limit >/dev/null 2>&1; then
             {
               echo "## Setup stopped"
               echo
-              echo "\`TRAFFIC_TOKEN\` did not authenticate with the GitHub API."
+              echo "\`COLLECTION_TOKEN\` did not authenticate with the GitHub API."
               echo "Check the token value and repository permissions, then run setup again."
               echo
               echo "If the token expired or has the wrong permissions,"
@@ -125,22 +135,22 @@ jobs:
           fi
 
           if [ "$PRIVACY_MODE" = "strong" ] || [ "$PRIVACY_MODE" = "casual" ]; then
-            if [ -z "${TRAFFIC_DASHBOARD_SECRET:-}" ]; then
+            if [ -z "${DASHBOARD_SECRET_DO_NOT_REPLACE:-}" ]; then
               {
                 echo "## Setup stopped"
                 echo
-                echo "\`privacy_mode=$PRIVACY_MODE\` needs a repository secret named \`TRAFFIC_DASHBOARD_SECRET\`."
+                echo "\`privacy_mode=$PRIVACY_MODE\` needs a repository secret named \`DASHBOARD_SECRET_DO_NOT_REPLACE\`."
                 echo
                 echo "See [Secure Dashboard Key]($key_doc_url) for key generation options."
               } >> "$GITHUB_STEP_SUMMARY"
               exit 1
             fi
 
-            if [ "${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$PRIVACY_MODE" = "strong" ]; then
+            if [ "${#DASHBOARD_SECRET_DO_NOT_REPLACE}" -lt 40 ] && [ "$PRIVACY_MODE" = "strong" ]; then
               {
                 echo "## Setup stopped"
                 echo
-                echo "\`TRAFFIC_DASHBOARD_SECRET\` is not strong enough for \`privacy_mode=strong\`."
+                echo "\`DASHBOARD_SECRET_DO_NOT_REPLACE\` is not strong enough for \`privacy_mode=strong\`."
                 echo "Please generate a strong password following one of the methods described [here]($key_doc_url)."
                 echo
                 echo "Use \`privacy_mode=casual\` only if you explicitly accept"
@@ -189,7 +199,7 @@ jobs:
               Path(".github/workflows/publish.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
-                  "COMMIT_OUTPUTS": os.environ["COMMIT_OUTPUTS"],
+                  "GENERATE_README": os.environ["GENERATE_README"],
               },
           }
 
@@ -207,6 +217,22 @@ jobs:
               workflow.write_text(text, encoding="utf-8")
           PY
 
+      - name: Write setup README
+        run: |
+          set -euo pipefail
+
+          cat > README.md <<'MD'
+          # Reponomics Dashboard
+
+          This repository was generated from the [Reponomics Dashboard template repo](https://github.com/reponomics/reponomics-dashboard).
+
+          The Reponomics Dashboard provides users with a convenient, private, and cost-free way to store and aggregate key metrics about their GitHub repos. Because this data is private, we do not publish any metrics to the README for public repositories.
+
+          If you'd like to learn more about the Reponomics Dashboard and create one for yourself, check out our doc-site at [reponomics/reponomics](https://github.com/reponomics/reponomics), or view a demo dashboard [here](https://github.com/reponomics/reponomics-demo).
+
+          Thanks!
+          MD
+
       - name: Summarize setup
         run: |
           set -euo pipefail
@@ -218,7 +244,7 @@ jobs:
             echo "- Incident sentinel workflow: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
-            echo "- README generation: \`$COMMIT_OUTPUTS\`"
+            echo "- README generation: \`$GENERATE_README\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -230,7 +256,7 @@ jobs:
               echo "To host the encrypted dashboard, open this repository's"
               echo "**Settings -> Pages** page and set **Build and deployment -> Source**"
               echo "to **GitHub Actions**. Do not grant Pages or Administration write"
-              echo "permissions to \`TRAFFIC_TOKEN\` for this setup step."
+              echo "permissions to \`COLLECTION_TOKEN\` for this setup step."
               echo
               echo "If GitHub suggests Pages workflow templates, skip them."
               echo "The Reponomics publish workflow already uploads and deploys"
@@ -244,6 +270,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A .github/workflows
+          git add -A .github/workflows README.md
           git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
           git push

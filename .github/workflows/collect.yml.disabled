@@ -1,4 +1,4 @@
-name: Collect Reponomics traffic
+name: Collect Reponomics Data
 
 on:
   schedule:
@@ -29,27 +29,27 @@ jobs:
 
       - name: Refuse incomplete key rotation
         env:
-          TRAFFIC_DASHBOARD_NEXT_SECRET: ${{ secrets.TRAFFIC_DASHBOARD_NEXT_SECRET }}
+          DASHBOARD_NEXT_SECRET: ${{ secrets.DASHBOARD_NEXT_SECRET }}
         run: |
           set -euo pipefail
 
-          if [ -n "${TRAFFIC_DASHBOARD_NEXT_SECRET:-}" ]; then
+          if [ -n "${DASHBOARD_NEXT_SECRET:-}" ]; then
             {
               echo "## Collection stopped"
               echo
-              echo "\`TRAFFIC_DASHBOARD_NEXT_SECRET\` is still set."
-              echo "Finish key rotation by replacing \`TRAFFIC_DASHBOARD_SECRET\`"
-              echo "with the new key, then delete \`TRAFFIC_DASHBOARD_NEXT_SECRET\`."
+              echo "\`DASHBOARD_NEXT_SECRET\` is still set."
+              echo "Finish key rotation by replacing \`DASHBOARD_SECRET_DO_NOT_REPLACE\`"
+              echo "with the new key, then delete \`DASHBOARD_NEXT_SECRET\`."
             } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
 
-      - name: Collect retained traffic data
-        uses: reponomics/reponomics-dashboard-action@v0.8.0
+      - name: Collect retained dashboard data
+        uses: reponomics/reponomics-dashboard-action@v0.12.1
         with:
           mode: collect
-          traffic-token: ${{ secrets.TRAFFIC_TOKEN }}
+          collection-token: ${{ secrets.COLLECTION_TOKEN }}
           github-token: ${{ github.token }}
-          dashboard-secret: ${{ secrets.TRAFFIC_DASHBOARD_SECRET }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}

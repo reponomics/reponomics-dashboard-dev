@@ -21,7 +21,7 @@ help: ## Show available commands
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 clean: ## Remove generated build and cache artifacts (keeps venv)
-	rm -rf dist output .pytest_cache .mypy_cache __pycache__ .traffic-artifact
+	rm -rf dist output .pytest_cache .mypy_cache __pycache__ .dashboard-data-artifact
 	rm -f .coverage .coverage.*
 	rm -f $(DEV_STAMP)
 	find . -type d -name "__pycache__" -prune -exec rm -rf {} +

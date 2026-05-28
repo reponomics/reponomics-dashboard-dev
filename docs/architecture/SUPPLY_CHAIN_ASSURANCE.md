@@ -17,7 +17,7 @@ The strongest user-impacting trust boundary is the action reference in
 template workflows:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.8.0
+uses: reponomics/reponomics-dashboard-action@v0.12.1
 ```
 
 Recommended policy:

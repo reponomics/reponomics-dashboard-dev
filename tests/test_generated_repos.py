@@ -29,6 +29,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "config.example.yaml",
         "docs/README.md",
         "docs/SECURE_DASHBOARD_KEY.md",
+        "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
@@ -69,7 +70,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
 
-    action_ref = "uses: reponomics/reponomics-dashboard-action@v0.8.0"
+    action_ref = "uses: reponomics/reponomics-dashboard-action@v0.12.1"
     assert action_ref in collect
     assert action_ref in publish
     assert action_ref not in setup
@@ -93,7 +94,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "generate_html_dashboard:" in setup
     assert 'description: "Generate HTML dashboard after collection"' in setup
     assert "generate_readme:" in setup
-    assert 'description: "Generate README after collection"' in setup
+    assert 'description: "Generate README after collection (private repositories only)"' in setup
     assert "publish_dashboard:" not in setup
     assert "commit_readme:" not in setup
     assert "commit_readme_snapshot:" not in setup
@@ -101,7 +102,11 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "PUBLISH_README" not in setup
     assert "COMMIT_README_SNAPSHOT" not in setup
     assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
-    assert 'echo "COMMIT_OUTPUTS=$GENERATE_README"' in setup
+    assert 'echo "GENERATE_README=$GENERATE_README"' in setup
+    assert "README dashboard generation is only supported for private repositories." in setup
+    assert "cat > README.md <<'MD'" in setup
+    assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
+    assert "git add -A .github/workflows README.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup
@@ -112,10 +117,12 @@ def test_setup_workflow_resolves_privacy_modes():
     assert re.search(r"^permissions:\n  contents: read$", setup, flags=re.MULTILINE)
     assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
     assert "actions: write" not in setup
-    assert "TRAFFIC_DASHBOARD_NEXT_SECRET" not in setup
+    assert "DASHBOARD_NEXT_SECRET" not in setup
     assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
-    assert "token: ${{ secrets.TRAFFIC_TOKEN" not in setup
+    assert "token: ${{ secrets.COLLECTION_TOKEN" not in setup
     assert "personal-access-tokens/new" in setup
+    assert "name=COLLECTION_TOKEN" in setup
+    assert "name=Reponomics%20Collection%20Token" not in setup
     assert "administration=read" in setup
     assert "target_name=$GITHUB_REPOSITORY_OWNER" in setup
     assert "All repositories" in setup
@@ -126,7 +133,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (
-        '${#TRAFFIC_DASHBOARD_SECRET}" -lt 40 ] && [ "$PRIVACY_MODE" = "casual"'
+        '${#DASHBOARD_SECRET_DO_NOT_REPLACE}" -lt 40 ] && [ "$PRIVACY_MODE" = "casual"'
     )
     assert casual_length_check not in setup
     assert "Manual GitHub Pages step" in setup
@@ -167,6 +174,7 @@ def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
         if path.is_file() and path.suffix in {"", ".md", ".yml", ".yaml", ".html"}
     )
     assert "github-traffic-report" not in text
+    assert "GitHub Traffic Report" not in text
     assert "hesreallyhim" not in text
     assert "GENERATED_REPOSITORY_MODEL.md" not in text
     assert "REPOSITORY_POLICY.md" not in text

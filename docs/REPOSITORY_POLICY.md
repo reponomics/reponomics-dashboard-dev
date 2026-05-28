@@ -38,12 +38,12 @@ internals into every user repository.
 
 ## Data Storage Boundary
 
-Retained traffic data belongs in GitHub Actions artifacts:
+Retained dashboard data belongs in GitHub Actions artifacts:
 
-- encrypted `traffic-data.enc` for `strong` and `casual`
+- encrypted `dashboard-data.enc` for `strong` and `casual`
 - plaintext retained CSV files for private-repository `plain`
 
-Retained traffic data must not be committed to the generated repository.
+Retained dashboard data must not be committed to the generated repository.
 Dashboard HTML is rendered during `publish` and deployed through Pages artifacts
 for encrypted hosted dashboards.
 

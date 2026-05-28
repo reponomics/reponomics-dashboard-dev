@@ -18,6 +18,7 @@ include:
   - config.example.yaml
   - docs/README.md
   - docs/SECURE_DASHBOARD_KEY.md
+  - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md
 
 forbidden:
   - .github/workflows/dev-*.yml
