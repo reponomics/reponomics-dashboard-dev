@@ -73,7 +73,7 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 - README output is committed only when `commit-outputs` is true.
 - CSV export is browser-local after encrypted dashboard unlock.
 
-No retained traffic CSV is committed to the generated repository.
+No retained dashboard data CSV is committed to the generated repository.
 
 ## Maintainer Gates
 

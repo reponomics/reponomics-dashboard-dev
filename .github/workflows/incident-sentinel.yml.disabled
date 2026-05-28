@@ -1,4 +1,4 @@
-name: Preserve Reponomics traffic artifact on outage
+name: Preserve Reponomics dashboard data artifact on outage
 
 on:
   workflow_run:
@@ -168,7 +168,7 @@ jobs:
           unzip -o .sentinel/dashboard-data.zip -d .sentinel/dashboard-data >/dev/null
           ls -la .sentinel/dashboard-data
 
-      - name: Upload preserved traffic artifact
+      - name: Upload preserved dashboard data artifact
         if: ${{ steps.source.outputs.found == 'true' }}
         uses: actions/upload-artifact@v4
         with:
