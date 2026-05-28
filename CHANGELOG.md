@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.2.2...v0.3.0) (2026-05-28)
+
+
+### Features
+
+* add keepalive workflow ([ff502a4](https://github.com/reponomics/reponomics-dashboard-dev/commit/ff502a4d489f995e7d26c6d987076e2fc42343cc))
+
 ## [0.2.2](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.2.1...v0.2.2) (2026-05-28)
 
 
