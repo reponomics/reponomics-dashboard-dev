@@ -23,6 +23,7 @@ include:
   - README.md
   - config.yaml
   - config.example.yaml
+  - docs/FAQ.md
   - docs/README.md
   - docs/SECURE_DASHBOARD_KEY.md
   - docs/TRUST_BOUNDARY.md
