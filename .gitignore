@@ -4,6 +4,7 @@ __pycache__/
 .DS_Store
 .env
 .playwright-cli/
+action-runtime/
 data/
 dist/
 .traffic-artifact/

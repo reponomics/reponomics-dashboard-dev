@@ -52,3 +52,32 @@ jobs:
 
       - name: Run template smoke checks
         run: make template-smoke
+
+  template-consumer-e2e:
+    needs: template-smoke
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Checkout action runtime
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          repository: reponomics/reponomics-dashboard-action
+          ref: main
+          path: action-runtime
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install maintainer dependencies
+        run: make install-dev
+
+      - name: Install action runtime dependencies
+        run: make -C action-runtime install
+
+      - name: Run template consumer e2e checks
+        run: make template-consumer-e2e ACTION_REPO=action-runtime ACTION_PYTHON=action-runtime/venv/bin/python
