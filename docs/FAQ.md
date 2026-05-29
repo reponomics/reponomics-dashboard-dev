@@ -50,6 +50,8 @@ Repository access is part of the dashboard security model. In personal private r
 
 Collaborators may not be able to read existing secret values directly, but if they can update repository secrets, run workflows, or affect trusted workflow behavior, they can exfiltrate dashboard data through workflow changes, replace dashboard keys, take over publication, rotation, or incident-response flows, delete retained workflow runs or artifacts, deny access to current encrypted state, or cause data loss. A hostile collaborator could exfiltrate retained data, rotate to a key they control, and delete prior GitHub-hosted history before the owner notices. Branch rulesets can protect branches, but they are not a clean data-access boundary.
 
+Do not treat GitHub policy enforcement, support, or retained workflow history as a backup plan. If retained dashboard history matters, periodically export an independent copy outside the repository control plane.
+
 See [Repository Access And Trust Boundary](TRUST_BOUNDARY.md).
 
 ## Can someone use browser devtools to export CSV before unlocking the dashboard?

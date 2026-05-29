@@ -51,6 +51,8 @@ Public repositories also reject README dashboard generation because that would c
 
 For a personal private dashboard repository, keep the collaborator list short. Add only people you trust with the dashboard's operational integrity, not merely people you would allow to read a report.
 
+Do not treat GitHub policy enforcement, support, or retained workflow history as a backup plan. If retained dashboard history matters, periodically export an independent copy outside the repository control plane.
+
 For less-trusted viewers, prefer sharing rendered outputs outside the repository boundary, or use an organization repository with explicit roles and policies.
 
 For teams, prefer an organization repository before the dashboard becomes operationally important. Moving later is possible, but secrets, artifacts, workflow history, Pages settings, and access policies all become part of the migration.
