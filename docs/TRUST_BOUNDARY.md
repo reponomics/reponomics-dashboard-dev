@@ -4,9 +4,9 @@ Reponomics stores its long-lived dashboard state in GitHub Actions artifacts and
 
 The strongest practical rule is:
 
-> Only add a collaborator to a personal dashboard repository if you trust them not to exfiltrate data, hijack dashboard control, disrupt operations, or take over the dashboard.
+> Only add a collaborator to a personal dashboard repository if you trust them not to exfiltrate data, hijack dashboard control, delete retained history, disrupt operations, or take over the dashboard.
 
-This is stronger than "would I be comfortable with this person reading dashboard data?" A collaborator in a personal-account repository may be able to affect secrets, workflow execution, generated outputs, and retained artifact continuity. A malicious collaborator with the relevant workflow or secret access can use the repository control plane to expose dashboard data, replace dashboard keys, publish altered outputs, or make current dashboard state inaccessible until the owner intervenes.
+This is stronger than "would I be comfortable with this person reading dashboard data?" A collaborator in a personal-account repository may be able to affect secrets, workflow execution, generated outputs, and retained artifact continuity. A hostile collaborator with the relevant workflow or secret access can use the repository control plane to expose dashboard data, replace dashboard keys, publish altered outputs, delete retained workflow runs or artifacts, or make current dashboard state inaccessible until the owner intervenes.
 
 ## Personal Repositories
 
@@ -23,9 +23,9 @@ In a personal dashboard repository, treat collaborators as trusted with:
 - workflow dispatch ability where GitHub grants write-level users that ability
 - repository secret management paths available to collaborators
 - the ability to interfere with dashboard setup, rotation, reset, and publication flows
-- the ability, if malicious, to exfiltrate data through workflow changes or generated artifacts, take over rotation/publication flows, or deny access to current encrypted state
+- the ability, if hostile, to exfiltrate data through workflow changes or generated artifacts, take over rotation/publication flows, delete retained workflow runs or artifacts, or deny access to current encrypted state
 
-Repository secrets are especially important. Collaborators cannot read existing secret values directly, but if they can update repository secrets and run workflows, they can still disrupt encrypted state, replace dashboard keys, exfiltrate decrypted outputs through workflow changes, or cause data loss if old keys are not preserved. This is a dashboard control-plane takeover risk, not only an operational accident risk. The rotation flow is intentionally careful because replacing `DASHBOARD_SECRET_DO_NOT_REPLACE` at the wrong time can make retained encrypted artifacts unrecoverable.
+Repository secrets are especially important. Collaborators cannot read existing secret values directly, but if they can update repository secrets and run workflows, they can still disrupt encrypted state, replace dashboard keys, exfiltrate decrypted outputs through workflow changes, or cause data loss if old keys are not preserved. This is a dashboard control-plane takeover risk, not only an operational accident risk. A hostile collaborator could exfiltrate retained data, run the incident-response or rotation flow with a key they control, and delete prior workflow runs or artifacts; if the owner has never exported an independent copy, GitHub-hosted retained history may no longer be available as a recovery path. The rotation flow is intentionally careful because replacing `DASHBOARD_SECRET_DO_NOT_REPLACE` at the wrong time can make retained encrypted artifacts unrecoverable.
 
 ## Organization Repositories
 

@@ -48,7 +48,7 @@ Otherwise, retained dashboard data lives in GitHub Actions artifacts, not in the
 
 Repository access is part of the dashboard security model. In personal private repositories, collaborators should be treated as trusted with the dashboard control plane, not merely as people who can read a report.
 
-Collaborators may not be able to read existing secret values directly, but if they can update repository secrets, run workflows, or affect trusted workflow behavior, they can exfiltrate dashboard data through workflow changes, replace dashboard keys, take over publication or rotation flows, deny access to current encrypted state, or cause data loss. Branch rulesets can protect branches, but they are not a clean data-access boundary.
+Collaborators may not be able to read existing secret values directly, but if they can update repository secrets, run workflows, or affect trusted workflow behavior, they can exfiltrate dashboard data through workflow changes, replace dashboard keys, take over publication, rotation, or incident-response flows, delete retained workflow runs or artifacts, deny access to current encrypted state, or cause data loss. A hostile collaborator could exfiltrate retained data, rotate to a key they control, and delete prior GitHub-hosted history before the owner notices. Branch rulesets can protect branches, but they are not a clean data-access boundary.
 
 See [Repository Access And Trust Boundary](TRUST_BOUNDARY.md).
 
