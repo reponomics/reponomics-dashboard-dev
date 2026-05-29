@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
+.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke template-consumer-e2e release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
@@ -20,6 +20,8 @@ COVERAGE_MIN ?= 55
 COVERAGE_TARGETS := --cov=build_template --cov=publish_generated_repo --cov=verify_workflow_classification
 TEMPLATE_REMOTE ?= reponomics-dashboard
 TEMPLATE_PUBLISH_MESSAGE ?= chore: publish generated template
+ACTION_REPO ?= ../reponomics-action
+ACTION_PYTHON ?= $(ACTION_REPO)/venv/bin/python
 
 help: ## Show available commands
 	@awk 'BEGIN {FS = ":.*## "}; /^[a-zA-Z0-9_-]+:.*## / {printf "  %-24s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
@@ -110,5 +112,8 @@ coverage: install-dev ## Run tests with coverage gate for maintainer scripts
 
 template-smoke: build-template ## Smoke-test ephemeral template publish and generated workflows
 	$(PYTHON) scripts/smoke_template_release.py --output dist/template
+
+template-consumer-e2e: build-template ## Run generated template consumers against a local action runtime
+	$(PYTHON) scripts/template_consumer_e2e.py --template-dir dist/template --action-repo $(ACTION_REPO) --action-python $(ACTION_PYTHON)
 
 verify: validate-requirement-locks lint typecheck coverage verify-workflow-classification release-dry-run template-smoke ## Run lint, type checks, coverage, dependency-lock, and generated-output checks
