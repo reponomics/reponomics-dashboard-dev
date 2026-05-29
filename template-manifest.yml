@@ -25,6 +25,7 @@ include:
   - config.example.yaml
   - docs/README.md
   - docs/SECURE_DASHBOARD_KEY.md
+  - docs/TRUST_BOUNDARY.md
   - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md
 
 forbidden:

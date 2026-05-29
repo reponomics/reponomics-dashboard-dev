@@ -74,6 +74,8 @@ To view a dashboard offline, open a successful **Publish Reponomics dashboard** 
 
 More details are in [docs/README.md](docs/README.md).
 
+Repository access is part of the dashboard security model. In personal private repositories, collaborators should be treated as trusted with the dashboard control plane, not merely as people who can read a report. See [Repository Access And Trust Boundary](docs/TRUST_BOUNDARY.md).
+
 ## Scheduled Workflow Liveness
 
 GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. Setup enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires and re-enable workflows from the Actions tab.
