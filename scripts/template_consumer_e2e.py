@@ -155,6 +155,13 @@ class TemplateConsumerE2EError(RuntimeError):
     """Raised when the template-consumer e2e check fails."""
 
 
+def _absolute_path(path: Path) -> Path:
+    """Make a path cwd-relative without resolving virtualenv symlinks."""
+    if path.is_absolute():
+        return path
+    return Path.cwd() / path
+
+
 def _run(
     args: list[str],
     *,
@@ -291,6 +298,9 @@ def run_e2e(
     action_python: Path,
     keep_temp: bool = False,
 ) -> None:
+    template_dir = _absolute_path(template_dir)
+    action_repo = _absolute_path(action_repo)
+    action_python = _absolute_path(action_python)
     temp_root = Path(tempfile.mkdtemp(prefix="template-consumer-e2e-"))
     try:
         for profile in PROFILES:

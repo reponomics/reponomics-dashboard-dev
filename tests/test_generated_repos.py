@@ -10,6 +10,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import build_template
 import publish_generated_repo
+import template_consumer_e2e
 import verify_workflow_classification
 
 
@@ -171,6 +172,14 @@ def test_docs_explain_multi_owner_token_fallback():
 
 def test_workflow_classification_contract():
     verify_workflow_classification.verify()
+
+
+def test_template_consumer_e2e_absolutizes_cwd_relative_paths(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    action_python = Path("action-runtime/venv/bin/python")
+
+    assert template_consumer_e2e._absolute_path(action_python) == tmp_path / action_python
 
 
 def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
