@@ -30,6 +30,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "config.yaml",
         "config.example.yaml",
         "docs/FAQ.md",
+        "docs/PROVENANCE.md",
         "docs/README.md",
         "docs/SECURE_DASHBOARD_KEY.md",
         "docs/TRUST_BOUNDARY.md",

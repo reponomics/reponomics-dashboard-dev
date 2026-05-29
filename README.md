@@ -78,6 +78,8 @@ Repository access is part of the dashboard security model. In personal private r
 
 Common privacy, storage, export, and trust-boundary questions are answered in the [FAQ](docs/FAQ.md).
 
+For release, dependency, vendored-asset, and generated-artifact verification, see [Provenance And Supply Chain Verification](docs/PROVENANCE.md).
+
 ## Scheduled Workflow Liveness
 
 GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. Setup enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires and re-enable workflows from the Actions tab.

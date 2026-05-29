@@ -79,6 +79,10 @@ Operational trust and auditability. Some users want an independent verification 
 
 No. It protects export payload integrity within the client-side model. It does not replace broader trust in the action release, generated workflow, GitHub Actions execution, GitHub Pages deployment, browser, device, or dashboard key strength.
 
+## How can I verify the action release and supply chain?
+
+See [Provenance And Supply Chain Verification](PROVENANCE.md). It explains how to inspect the action ref your workflows use, verify vendored browser assets, check action release immutability and attestations, and understand which claims apply to generated artifacts in your own repository.
+
 ## What is the practical export difference between `strong` and `casual`?
 
 Both modes keep export payloads encrypted at rest and in transit as published assets. The difference is key strength policy. `strong` requires a high-entropy secret and is intended to resist offline guessing. `casual` allows weak or memorable secrets and is not intended to resist determined brute-force attempts.
