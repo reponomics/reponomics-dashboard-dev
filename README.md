@@ -14,7 +14,7 @@ uses: reponomics/reponomics-dashboard-action@v0.12.1
 ## Setup
 
 1. Create a repository from this template.
-2. Create a token and add it as a repository secret named `COLLECTION_TOKEN`. [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
+2. Create a token and add it as a repository secret named `COLLECTION_TOKEN` (NOTE: see below for instructions regarding the use of a GitHub App installation token instead.) [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
 3. Choose a privacy mode:
    - `strong`: encrypted retained artifacts and encrypted hosted dashboard; requires a generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE`.
    - `casual`: encrypted retained artifacts and encrypted hosted dashboard; accepts any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`, but is not intended to resist targeted offline guessing.
@@ -83,6 +83,18 @@ For release, dependency, vendored-asset, and generated-artifact verification, se
 ## Scheduled Workflow Liveness
 
 GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. Setup enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires and re-enable workflows from the Actions tab.
+
+### Advanced: User-Owned GitHub App Collection Token
+
+Advanced users can run collection with a user-owned GitHub App installation token instead of a PAT:
+
+1. Create and install your own GitHub App (Reponomics does **not** provide or operate a shared collection app).
+2. Grant the app repository `Administration: read` for collection endpoints.
+3. Add `COLLECTION_APP_PRIVATE_KEY` as a repository secret.
+4. Add `COLLECTION_APP_ID` as a repository variable (or secret).
+5. Run setup with `use_github_app: true`.
+
+In this mode, the generated collect workflow mints a short-lived installation token during the run and passes it to `reponomics-dashboard-action` with `use-github-app: true`.
 
 ## Runtime Requirements
 

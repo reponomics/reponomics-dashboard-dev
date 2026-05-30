@@ -89,6 +89,10 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
     assert "mode: collect" in collect
+    assert 'USE_GITHUB_APP: "false"' in collect
+    assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect
+    assert "app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}" in collect
+    assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect
     assert "mode: publish" in publish
     assert "workflow_run:" in publish
     assert "COLLECTION_TOKEN" not in keepalive
@@ -106,6 +110,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert 'description: "Generate HTML dashboard after collection"' in setup
     assert "generate_readme:" in setup
     assert 'description: "Generate README after collection (private repositories only)"' in setup
+    assert "use_github_app:" in setup
+    assert 'description: "Advanced collection auth: use a user-owned GitHub App installation token"' in setup
     assert "publish_dashboard:" not in setup
     assert "commit_readme:" not in setup
     assert "commit_readme_snapshot:" not in setup
@@ -114,6 +120,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COMMIT_README_SNAPSHOT" not in setup
     assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
     assert 'echo "GENERATE_README=$GENERATE_README"' in setup
+    assert 'echo "USE_GITHUB_APP=$USE_GITHUB_APP"' in setup
     assert "README dashboard generation is only supported for private repositories." in setup
     assert "cat > README.md <<'MD'" in setup
     assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
@@ -142,6 +149,9 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "All repositories" in setup
     assert "Only selected repositories" in setup
     assert "keep \\`config.yaml\\` within" in setup
+    assert "COLLECTION_APP_PRIVATE_KEY" in setup
+    assert "COLLECTION_APP_ID" in setup
+    assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
     assert "docs/SECURE_DASHBOARD_KEY.md" in setup
     assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
@@ -151,6 +161,7 @@ def test_setup_workflow_resolves_privacy_modes():
     )
     assert casual_length_check not in setup
     assert "Manual GitHub Pages step" in setup
+    assert "Collection auth mode" in setup
     assert "Settings -> Pages" in setup
     assert "skip them" in setup
     assert "repos/$GITHUB_REPOSITORY/pages" not in setup

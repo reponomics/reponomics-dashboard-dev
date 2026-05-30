@@ -34,6 +34,8 @@ For release, dependency, vendored-asset, and generated-artifact verification, se
 
 This template currently supports one collection credential. Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
 
+Advanced option: use a user-owned GitHub App installation token for collection instead of a PAT. Reponomics does not provide or operate a shared collection app; the app, installation scope, and credentials are fully user-owned. In this mode, set workflow/setup input `use_github_app: true`, store `COLLECTION_APP_PRIVATE_KEY` as a repository secret, store `COLLECTION_APP_ID` as a repository variable (or secret), and let the collect workflow mint a short-lived installation token at runtime.
+
 ## Configuration
 
 `config.yaml` is the active configuration for this repository. It is user-owned: collection and publication runs read it, but do not silently rewrite it.
