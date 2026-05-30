@@ -16,7 +16,7 @@ Before `v1`, generated workflows should pin an explicit accepted release such
 as:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.12.1
+uses: reponomics/reponomics-dashboard-action@v0.15.0
 ```
 
 Pre-v1 releases may change inputs, retained artifact schema, generated

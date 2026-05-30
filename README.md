@@ -5,7 +5,7 @@ The Reponomics Dashboard provides GitHub maintainers with a convenient and cost-
 The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, and key rotation are owned by the versioned action:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.12.1
+uses: reponomics/reponomics-dashboard-action@v0.15.0
 ```
 
 > [!WARNING]

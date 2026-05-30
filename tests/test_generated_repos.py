@@ -77,7 +77,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
 
-    action_ref = "uses: reponomics/reponomics-dashboard-action@v0.12.1"
+    action_ref = "uses: reponomics/reponomics-dashboard-action@v0.15.0"
     assert action_ref in collect
     assert action_ref in publish
     assert action_ref not in setup

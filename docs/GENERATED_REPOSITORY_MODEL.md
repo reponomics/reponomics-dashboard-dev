@@ -43,7 +43,7 @@ Template workflow sources live under `template/.github/workflows` so this reposi
 Generated workflows delegate to:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.12.1
+uses: reponomics/reponomics-dashboard-action@v0.15.0
 ```
 
 The action input contract used by this template is:
