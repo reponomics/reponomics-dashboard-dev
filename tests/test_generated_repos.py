@@ -114,6 +114,15 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "source_sha" in publish
     assert "workflow_run_id" in publish
     assert "action_sha" in publish
+    assert (
+        "EXPECTED_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || '' }}"
+        in publish
+    )
+    assert "resolve_action_ref(expected_repository, action_ref)" in publish
+    assert "Publish stopped: action release provenance is inconsistent" in publish
+    assert "Publish stopped: collect provenance does not match this publish trigger" in publish
+    assert "Do not rerun publish. Run `Collect Reponomics Data` again" in publish
+    assert "Repair the generated workflow action metadata" in publish
     assert "generate_html_dashboard" in publish
     assert "uses: ./reponomics-dashboard-action" in publish
     assert "if: steps.provenance.outputs.generate_html_dashboard == 'true'" in publish

@@ -96,7 +96,10 @@ Collection writes a provenance artifact containing:
 
 Publication downloads provenance and `dashboard-data` from the triggering
 collect run, checks out the recorded source revision, checks out the action at
-the recorded action SHA, and renders with that local action checkout.
+the recorded action SHA, and renders with that local action checkout. Before
+checkout, publication resolves the recorded exact action tag and requires it to
+match the recorded action SHA. For automatic runs, it also requires the
+recorded collect workflow run ID to equal the triggering `workflow_run.id`.
 
 If README publication is enabled, publish checks out `main` and verifies that
 `main` still equals the recorded source SHA before committing README output. If
@@ -194,7 +197,9 @@ contract does not match the template.
 
 The retained artifact name is stable and may be overwritten by later collection
 runs. Automatic publish must therefore download `dashboard-data` from the
-triggering collect workflow run, not from "latest" repository artifacts.
+triggering collect workflow run, not from "latest" repository artifacts. The
+provenance workflow run ID is treated as part of that binding: if it differs
+from the triggering run, publish stops before downloading dashboard data.
 
 If a user or schedule triggers another collection before the first publication
 finishes, two publish runs may exist. The publish concurrency policy ensures
@@ -267,4 +272,3 @@ This ADR does not:
 - define final public visibility for the generated template repository
 - replace Release Please as the release mechanism
 - define branch protection or environment approval details for the GitHub App
-
