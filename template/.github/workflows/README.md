@@ -1,5 +1,8 @@
 # Template Workflows
 
+> [!WARNING]
+> Pre-release placeholder workflow inventory.
+
 Repository context:
 
 - In `reponomics/reponomics-dashboard`, these files are generated from `reponomics-dashboard-dev`.

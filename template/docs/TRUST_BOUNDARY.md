@@ -1,5 +1,8 @@
 # Repository Trust Boundary
 
+> [!WARNING]
+> Pre-release placeholder guidance.
+
 Access to this repository is part of the dashboard security model.
 
 ## What Repository Access Can Control

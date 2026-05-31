@@ -1,5 +1,8 @@
 # Reponomics Privacy Configuration Matrix
 
+> [!WARNING]
+> Pre-release placeholder matrix; details may change before `v1`.
+
 Repository visibility and Reponomics privacy mode are separate. Repository visibility controls repository access. `privacy-mode` controls storage and publication handling.
 
 | Mode | Repository visibility | Retained artifact | Hosted Pages dashboard | Downloadable dashboard artifact | Secret policy |

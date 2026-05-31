@@ -1,5 +1,8 @@
 # FAQ
 
+> [!WARNING]
+> Pre-release placeholder FAQ. Guidance may change before `v1`.
+
 ## Is This Repository The Development Source?
 
 No. This repository is generated output intended for template users.

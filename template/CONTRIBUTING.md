@@ -5,7 +5,7 @@ Repository context:
 - In `reponomics/reponomics-dashboard`, this repository is generated output.
 - In repositories created from this template, local configuration is user-owned, but template/runtime development still belongs in source repositories.
 
-For Reponomics development, this repository is not the contribution surface.
+This is placeholder policy text for pre-release use. For Reponomics development, this repository is not the contribution surface.
 
 ## Where To Send Changes
 

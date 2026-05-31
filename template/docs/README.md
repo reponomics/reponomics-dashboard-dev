@@ -1,11 +1,14 @@
 # Reponomics Dashboard Template Docs
 
-This documentation set is for two contexts:
+This documentation set is pre-release placeholder content for two contexts:
 
 - `reponomics/reponomics-dashboard` (the published template repository)
 - repositories created from that template
 
 It is intentionally user-facing and does not include maintainer ADRs or source-repo development protocols.
+
+> [!WARNING]
+> Not intended as final production guidance yet.
 
 ## Documents
 

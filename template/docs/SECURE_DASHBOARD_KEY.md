@@ -1,5 +1,8 @@
 # Secure Dashboard Key Generation
 
+> [!WARNING]
+> Pre-release placeholder guidance.
+
 For `privacy-mode=strong`, generate a high-entropy secret for `DASHBOARD_SECRET_DO_NOT_REPLACE`.
 
 ## Recommended

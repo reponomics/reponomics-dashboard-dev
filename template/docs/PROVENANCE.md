@@ -2,7 +2,10 @@
 
 This repository is generated from `reponomics-dashboard-dev` and consumes the versioned `reponomics-dashboard-action` runtime.
 
-## Practical Verification
+> [!WARNING]
+> Pre-release placeholder. This document is not a finalized assurance policy.
+
+## Practical Verification (Draft)
 
 1. Inspect workflow refs in `.github/workflows/`.
 2. Confirm the action release in workflow metadata and run logs.
