@@ -161,7 +161,8 @@ Treating automation PRs as normal reviewed PRs keeps dashboard-dev work unblocke
 
 - `template-action-release.yml` becomes part of the template product contract.
 - Dashboard-dev CI must verify action-release refs and action metadata.
-- Template publication remains release-driven from dashboard-dev, so accepting an action release does not update the generated template until a dev release - Action releases can create dashboard-dev PRs, but cannot bypass dev review. is published.
+- Action releases can create dashboard-dev PRs, but cannot bypass dev review.
+- Template publication remains release-driven from dashboard-dev, so accepting an action release does not update the generated template until a dev release is published.
 - Maintainers need to close or supersede stale action sync PRs when newer action releases are accepted first.
 - Publication failures caused by `main` moving after collection are expected safety stops, not infrastructure failures. The remedy is to collect again.
 
