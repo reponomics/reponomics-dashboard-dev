@@ -14,7 +14,7 @@ Use `strong` unless you have a specific reason not to. It encrypts retained arti
 
 Use `casual` only when you want to deter accidental viewing or casual discovery but are not trying to resist targeted guessing. It encrypts the same surfaces as `strong`, but allows weak or memorable secrets. Weak secrets can be guessed offline from encrypted dashboard payloads.
 
-Use `plain` only in private repositories where GitHub repository and artifact access are the intended privacy boundary. `plain` stores retained CSV files directly in the `dashboard-data` artifact and does not publish a hosted Pages dashboard. The publish workflow still generates a downloadable HTML dashboard artifact.
+Use `plain` only in private repositories where GitHub repository and artifact access are the intended privacy boundary. `plain` stores retained CSV files directly in the `dashboard-data` artifact and does not publish a hosted Pages dashboard. The publish workflow can still generate a downloadable HTML dashboard artifact. For `strong` and `casual`, that downloadable artifact remains encrypted when hosted Pages publication is disabled.
 
 For the full matrix, see [Privacy Configuration Matrix](architecture/PRIVACY_CONFIGURATION_MATRIX.md).
 
@@ -42,7 +42,7 @@ Encryption does not hide everything. A hosted encrypted dashboard can still disc
 
 Only if you enable metric README generation in a private repository. In that case, the README dashboard and its supporting assets become part of git history.
 
-Otherwise, retained dashboard data lives in GitHub Actions artifacts, not in the repository's tracked files. The HTML dashboard is rendered during workflow runs and is deployed or uploaded as an artifact depending on privacy mode.
+Otherwise, retained dashboard data lives in GitHub Actions artifacts, not in the repository's tracked files. The HTML dashboard is rendered during workflow runs and is deployed only when hosted dashboard publication is enabled; otherwise it is uploaded as a downloadable artifact.
 
 ## Who should I trust with repository access?
 

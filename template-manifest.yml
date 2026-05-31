@@ -50,6 +50,7 @@ forbidden:
   - requirements-dev.txt
   - scripts
   - template
+  - template-action-release.yml
   - template-manifest.yml
   - tests
   - vendor

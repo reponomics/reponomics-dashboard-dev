@@ -32,7 +32,7 @@ jobs:
         run: make install-dev
 
       - name: Run maintainer quality gates
-        run: make validate-requirement-locks lint typecheck coverage verify-workflow-classification release-dry-run
+        run: make validate-requirement-locks lint typecheck coverage verify-workflow-classification verify-action-release release-dry-run
 
   template-smoke:
     needs: quality
@@ -61,11 +61,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Read template action release
+        id: action-release
+        run: |
+          set -euo pipefail
+          tag="$(sed -n 's/^tag: //p' template-action-release.yml)"
+          test -n "$tag"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
       - name: Checkout action runtime
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           repository: reponomics/reponomics-dashboard-action
-          ref: main
+          ref: ${{ steps.action-release.outputs.tag }}
           path: action-runtime
 
       - name: Set up Python
