@@ -89,7 +89,7 @@ jobs:
           echo "collection_token=$COLLECTION_TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Collect retained dashboard data
-        uses: reponomics/reponomics-dashboard-action@v0.15.0
+        uses: reponomics/reponomics-dashboard-action@v0.16.0
         with:
           mode: collect
           collection-token: ${{ steps.resolve_collection_token.outputs.collection_token }}

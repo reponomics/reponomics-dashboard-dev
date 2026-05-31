@@ -34,7 +34,7 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Publish dashboard outputs
-        uses: reponomics/reponomics-dashboard-action@v0.15.0
+        uses: reponomics/reponomics-dashboard-action@v0.16.0
         with:
           mode: publish
           github-token: ${{ github.token }}

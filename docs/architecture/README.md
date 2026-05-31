@@ -1,6 +1,6 @@
 # Reponomics Architecture Docs
 
-Status: current docs are aligned with the action `v0.12.1` contract.
+Status: current docs are aligned with the action `v0.16.0` contract.
 
 Active architecture docs:
 

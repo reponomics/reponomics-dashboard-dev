@@ -1,6 +1,6 @@
 # Reponomics Privacy Configuration Matrix
 
-Status: current for action `v0.12.1`.
+Status: current for action `v0.16.0`.
 
 Repository visibility and Reponomics privacy mode are separate concepts.
 Repository visibility controls who can read the repository. `privacy-mode`
