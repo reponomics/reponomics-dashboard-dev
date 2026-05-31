@@ -21,6 +21,7 @@ TEMPLATE_WORKFLOW_OUTPUTS = {
     "template/.github/workflows/publish.yml": ".github/workflows/publish.yml.disabled",
     "template/.github/workflows/rotate-key.yml": ".github/workflows/rotate-key.yml",
     "template/.github/workflows/setup.yml": ".github/workflows/setup.yml",
+    "template/.github/workflows/README.md": ".github/workflows/README.md",
 }
 DEV_WORKFLOW_GLOB = ".github/workflows/dev-*.yml"
 

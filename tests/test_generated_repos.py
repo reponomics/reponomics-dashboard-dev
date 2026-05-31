@@ -44,6 +44,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
+        ".github/workflows/README.md",
         "CODE_OF_CONDUCT.md",
         "CONTRIBUTING.md",
         "README.md",

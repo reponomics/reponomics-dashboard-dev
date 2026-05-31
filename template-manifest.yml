@@ -20,6 +20,8 @@ include:
     target: .github/workflows/rotate-key.yml
   - source: template/.github/workflows/setup.yml
     target: .github/workflows/setup.yml
+  - source: template/.github/workflows/README.md
+    target: .github/workflows/README.md
   - .gitignore
   - source: template/CODE_OF_CONDUCT.md
     target: CODE_OF_CONDUCT.md
