@@ -8,7 +8,7 @@ updates:
       time: "05:00"
       timezone: "UTC"
     commit-message:
-      prefix: "deps"
+      prefix: "chore"
       include: "scope"
     open-pull-requests-limit: 5
     labels:
@@ -22,7 +22,7 @@ updates:
       time: "05:30"
       timezone: "UTC"
     commit-message:
-      prefix: "deps"
+      prefix: "chore"
       include: "scope"
     open-pull-requests-limit: 5
     labels:

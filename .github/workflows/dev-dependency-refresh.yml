@@ -45,7 +45,7 @@ jobs:
         run: |
           set -euo pipefail
           branch="automation/dependency-lock-refresh"
-          title="deps(python): refresh requirements lockfiles"
+          title="chore(deps): refresh requirements lockfiles"
           remote_ref="refs/heads/${branch}"
 
           if git diff --quiet requirements.lock requirements-dev.lock; then
