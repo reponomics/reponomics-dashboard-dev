@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification sync-action-release verify-action-release template-smoke template-consumer-e2e release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
+.PHONY: help clean install install-dev lock-requirements upgrade-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification sync-action-release verify-action-release template-smoke template-consumer-e2e release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
@@ -47,15 +47,21 @@ $(DEV_STAMP): $(VENV)/bin/activate $(REQUIREMENTS) $(DEV_REQUIREMENTS) $(DEV_REQ
 	$(PIP) install --require-hashes -r $(DEV_REQUIREMENTS_LOCK)
 	touch $(DEV_STAMP)
 
-lock-requirements: install-dev ## Regenerate hash-pinned dependency locks
-	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file $(REQUIREMENTS_LOCK) $(REQUIREMENTS)
-	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file $(DEV_REQUIREMENTS_LOCK) $(DEV_REQUIREMENTS)
+lock-requirements: install-dev ## Regenerate hash-pinned dependency locks without upgrading pinned versions
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --no-upgrade --output-file $(REQUIREMENTS_LOCK) $(REQUIREMENTS)
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --no-upgrade --output-file $(DEV_REQUIREMENTS_LOCK) $(DEV_REQUIREMENTS)
+
+upgrade-requirements: install-dev ## Upgrade dependency locks to latest resolvable versions
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --upgrade --output-file $(REQUIREMENTS_LOCK) $(REQUIREMENTS)
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --upgrade --output-file $(DEV_REQUIREMENTS_LOCK) $(DEV_REQUIREMENTS)
 
 validate-requirement-locks: install-dev ## Verify dependency locks are current and hash-installable
 	tmp_runtime_lock=$$(mktemp); \
 	tmp_dev_lock=$$(mktemp); \
-	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file "$$tmp_runtime_lock" $(REQUIREMENTS); \
-	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --output-file "$$tmp_dev_lock" $(DEV_REQUIREMENTS); \
+	cp "$(REQUIREMENTS_LOCK)" "$$tmp_runtime_lock"; \
+	cp "$(DEV_REQUIREMENTS_LOCK)" "$$tmp_dev_lock"; \
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --no-upgrade --output-file "$$tmp_runtime_lock" $(REQUIREMENTS); \
+	$(PIP_COMPILE) $(PIP_COMPILE_FLAGS) --no-upgrade --output-file "$$tmp_dev_lock" $(DEV_REQUIREMENTS); \
 	if ! cmp -s "$(REQUIREMENTS_LOCK)" "$$tmp_runtime_lock"; then \
 		echo "$(REQUIREMENTS_LOCK) is stale; run make lock-requirements"; \
 		diff -u "$(REQUIREMENTS_LOCK)" "$$tmp_runtime_lock" || true; \

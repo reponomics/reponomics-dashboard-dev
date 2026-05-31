@@ -1,0 +1,83 @@
+name: DEV / Refresh Dependency Locks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependency-lock-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  refresh-dependency-locks:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install maintainer dependencies
+        run: make install-dev
+
+      - name: Upgrade dependency locks
+        run: make upgrade-requirements
+
+      - name: Validate dependency locks
+        run: make validate-requirement-locks
+
+      - name: Open or update lock refresh PR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          branch="automation/dependency-lock-refresh"
+          title="deps(python): refresh requirements lockfiles"
+          remote_ref="refs/heads/${branch}"
+
+          if git diff --quiet requirements.lock requirements-dev.lock; then
+            echo "No dependency lock updates."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git switch -C "$branch"
+          git add requirements.lock requirements-dev.lock
+          git commit -m "$title"
+
+          if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+            git fetch --depth=1 origin "${remote_ref}:refs/remotes/origin/${branch}"
+            expected="$(git rev-parse "refs/remotes/origin/${branch}")"
+            git push --force-with-lease="${remote_ref}:${expected}" origin "HEAD:${remote_ref}"
+          else
+            git push origin "HEAD:${remote_ref}"
+          fi
+
+          body_file="$(mktemp)"
+          {
+            echo "Automated dependency lock refresh."
+            echo
+            echo "Validation:"
+            echo "- make upgrade-requirements"
+            echo "- make validate-requirement-locks"
+          } > "$body_file"
+
+          if gh pr view "$branch" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh pr edit "$branch" --repo "$GITHUB_REPOSITORY" --title "$title" --body-file "$body_file"
+          else
+            gh pr create --repo "$GITHUB_REPOSITORY" --base main --head "$branch" --title "$title" --body-file "$body_file"
+          fi

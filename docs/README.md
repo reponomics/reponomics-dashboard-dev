@@ -9,6 +9,7 @@ Template repositories do not require local Python for normal use. Workflows run 
 If a repository uses self-hosted runners, runner images should provide Python `3.11+` and GitHub CLI (`gh`) for setup token validation.
 
 Maintainer CI for `reponomics-dashboard-dev` validates Python `3.11` and `3.12`.
+Dependency lock refresh and Dependabot policy for maintainers is documented in [Maintainer Dependency Update Protocol](MAINTAINER_DEPENDENCY_PROTOCOL.md).
 
 ## Repository Model
 
