@@ -22,3 +22,7 @@ It is intentionally user-facing and does not include maintainer ADRs or source-r
 
 - Template generation source: [`reponomics/reponomics-dashboard-dev`](https://github.com/reponomics/reponomics-dashboard-dev)
 - Runtime action source: [`reponomics/reponomics-dashboard-action`](https://github.com/reponomics/reponomics-dashboard-action)
+
+## GitHub App Installation Boundary
+
+Any GitHub App installed on `reponomics/reponomics-dashboard` does not imply installation on repositories created from the template. Installation/access decisions for copied repositories are owned by each repository owner.

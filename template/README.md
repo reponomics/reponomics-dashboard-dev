@@ -17,6 +17,12 @@ Repository context:
 
 Collection, publish, encryption, rotation, and docs-sync behavior are implemented by the action and consumed by generated workflows.
 
+## GitHub App Installations
+
+- If you are in `reponomics/reponomics-dashboard`, a maintainer GitHub App installation may exist to support upstream publication automation.
+- If you create a repository from this template, GitHub App installations are not inherited as repository content.
+- Reponomics does not automatically gain access to repositories created from this template. Any app installation in a copied repository is controlled by that repository owner.
+
 ## Contribution Policy For This Repository
 
 This repository does not accept direct pull requests for feature or runtime changes. If you need a change to the template or action behavior:
