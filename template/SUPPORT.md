@@ -1,6 +1,9 @@
 # Support
 
-This repository is a published template artifact.
+Repository context:
+
+- If you are in `reponomics/reponomics-dashboard`, this is the published template artifact.
+- If you are in a repository created from the template, this support routing still applies for upstream template/action issues.
 
 ## Help And Questions
 

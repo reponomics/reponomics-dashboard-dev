@@ -1,6 +1,11 @@
 # Contributing
 
-This repository is generated output and is not the contribution surface for Reponomics development.
+Repository context:
+
+- In `reponomics/reponomics-dashboard`, this repository is generated output.
+- In repositories created from this template, local configuration is user-owned, but template/runtime development still belongs in source repositories.
+
+For Reponomics development, this repository is not the contribution surface.
 
 ## Where To Send Changes
 
@@ -11,4 +16,4 @@ This repository is generated output and is not the contribution surface for Repo
 
 ## Pull Requests In This Repository
 
-Direct pull requests to this generated repository may be closed without merge. Changes should be proposed in the source repositories above.
+Direct pull requests to `reponomics/reponomics-dashboard` may be closed without merge. Changes should be proposed in the source repositories above.

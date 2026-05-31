@@ -1,6 +1,11 @@
 # Template Workflows
 
-This repository is generated from `reponomics-dashboard-dev`. These workflows are template runtime entry points and are intentionally minimal wrappers around `reponomics-dashboard-action`.
+Repository context:
+
+- In `reponomics/reponomics-dashboard`, these files are generated from `reponomics-dashboard-dev`.
+- In repositories created from the template, these are the consumer workflow entry points.
+
+These workflows are intentionally minimal wrappers around `reponomics-dashboard-action`.
 
 - `setup.yml`: bootstraps repository configuration, enables managed workflows, and writes initial setup state.
 - `collect.yml.disabled`: scheduled/manual data collection and retained artifact update.

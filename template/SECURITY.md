@@ -1,6 +1,9 @@
 # Security Policy
 
-This repository is generated from `reponomics-dashboard-dev`; security fixes should be coordinated in source repositories.
+Repository context:
+
+- If you are in `reponomics/reponomics-dashboard`, this repository is generated from `reponomics-dashboard-dev`.
+- If you are in a repository created from the template, security-sensitive runtime fixes should still be coordinated upstream in source repositories.
 
 ## Report A Vulnerability
 
