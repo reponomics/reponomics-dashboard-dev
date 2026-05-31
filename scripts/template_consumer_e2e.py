@@ -72,6 +72,7 @@ def build_config(mode):
         "retention_days": 90,
         "artifact_run_id": "",
         "generate_readme": profile["generate_readme"],
+        "publish_pages_requested": profile.get("expected_publish_pages", True),
         "pages_index_path": consumer_repo / "docs" / "index.html",
         "readme_path": consumer_repo / "README.md",
         "incident_confirm_mode": "",

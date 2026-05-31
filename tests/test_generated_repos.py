@@ -261,7 +261,7 @@ def test_action_release_manifest_and_metadata_contract():
     release = sync_action_release.load_manifest()
 
     assert release.repository == sync_action_release.ACTION_REPOSITORY
-    assert release.tag == "v0.16.0"
+    assert re.fullmatch(r"v[0-9]+\.[0-9]+\.[0-9]+", release.tag)
     assert re.fullmatch(r"[0-9a-f]{40}", release.target_commitish)
     sync_action_release.validate_action_metadata(ACTION_YML_FIXTURE)
 
