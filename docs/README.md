@@ -2,7 +2,7 @@
 
 The Reponomics Dashboard is a GitHub-native repository traffic and growth dashboard. It collects views, clones, top referrers, popular paths, and repository growth counters, then renders static dashboard output during the `publish` workflow.
 
-This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.16.0`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, and dashboard key rotation.
+This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.16.0`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, dashboard key rotation, and managed local documentation sync.
 
 Template repositories do not require local Python for normal use. Workflows run in GitHub Actions and delegate runtime behavior to `reponomics/reponomics-dashboard-action`.
 
@@ -21,8 +21,11 @@ Your repository owns:
 - retained `dashboard-data` workflow artifacts
 - static post-setup README output
 - optional committed metric README output when `generate_readme` is enabled during setup in a private repository
+- optional Reponomics-managed local documentation under `docs/reponomics/`
 
-Your repository does not store any collected data in git. The dashboard HTML is rendered during `publish` and, for encrypted hosted dashboards, deployed as a GitHub Pages artifact.
+Your repository does not store any collected data in git. The dashboard HTML is rendered during `publish` and, for encrypted hosted dashboards, deployed as a GitHub Pages artifact. Automatic publish runs consume the `reponomics-collect-provenance` artifact uploaded by the triggering collect run, then check out the recorded repository SHA and action SHA before rendering. They also restore `dashboard-data` from the triggering collect workflow run rather than from the latest artifact with that name. This matters because `overwrite: true` keeps the logical artifact name stable, but each upload still belongs to a specific workflow run.
+
+Publish is latest-wins on `main`. If a later collect run completes while an older publish is pending or still running, the newer publish cancels the older one. That avoids an obsolete render becoming the final published dashboard after fresher retained data exists.
 
 Repository access is part of the dashboard security model. In personal private repositories, collaborators should be treated as trusted with the dashboard control plane, not merely as people who can read a report. See [Repository Access And Trust Boundary](TRUST_BOUNDARY.md).
 
@@ -41,6 +44,8 @@ Advanced option: use a user-owned GitHub App installation token for collection i
 `config.yaml` is the active configuration for this repository. It is user-owned: collection and publication runs read it, but do not silently rewrite it.
 
 `config.example.yaml` shows the supported configuration shape. Missing optional keys use runtime defaults; explicit keys in `config.yaml` are treated as your choices.
+
+`allow_docs_sync` controls whether Reponomics may update `docs/reponomics/` before collection. The default is `true`. Set `allow_docs_sync: false` before editing that directory yourself. Managed docs sync writes only that namespace, commits with `[skip ci]`, and reports missing write permission without failing collection by default.
 
 ## Privacy Modes
 
@@ -62,8 +67,10 @@ Advanced option: use a user-owned GitHub App installation token for collection i
 The canonical data store is the `dashboard-data` GitHub Actions artifact.
 
 - `collect` restores the prior artifact, collects current GitHub data, merges and trims retained CSV history, then uploads a new `dashboard-data` artifact.
-- `publish` restores the retained artifact, renders dashboard output, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
+- `collect` also uploads a `reponomics-collect-provenance` artifact when publishing is enabled. That artifact records the collected repository revision, accepted action tag, and accepted action commit SHA.
+- `publish` downloads that provenance for automatic runs, restores the `dashboard-data` artifact from the recorded collect run, renders dashboard output with the recorded action commit, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual`.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
+- `docs-sync` runs before collection and writes the action-bundled managed documentation to `docs/reponomics/` when enabled.
 - `keepalive` runs monthly, updates `.reponomics/keepalive.md`, and tries to create a persistent data safety reminder issue so scheduled collection is less likely to be silently disabled.
 
 Git history is used for configuration, workflow shells, the static setup README, and optional private-repository metric README output. It is not the analytics database.

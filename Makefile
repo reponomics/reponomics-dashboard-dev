@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification template-smoke template-consumer-e2e release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
+.PHONY: help clean install install-dev lock-requirements validate-requirement-locks lint typecheck test coverage build-template verify-template verify-workflow-classification sync-action-release verify-action-release template-smoke template-consumer-e2e release-dry-run publish-template-dry-run publish-template enforce-repo-policy-dry-run enforce-repo-policy verify
 
 VENV := venv
 PYTHON := $(VENV)/bin/python
@@ -90,6 +90,13 @@ verify-template: install ## Verify dist/template/ against the template manifest
 verify-workflow-classification: install ## Verify maintainer vs template workflow boundaries
 	$(PYTHON) scripts/verify_workflow_classification.py
 
+sync-action-release: install ## Sync template refs to ACTION_TAG from reponomics-dashboard-action
+	@test -n "$(ACTION_TAG)" || { echo "ACTION_TAG is required, for example ACTION_TAG=v0.16.0"; exit 1; }
+	$(PYTHON) scripts/sync_action_release.py sync --tag "$(ACTION_TAG)"
+
+verify-action-release: install ## Verify template action release refs and metadata
+	$(PYTHON) scripts/sync_action_release.py verify
+
 release-dry-run: build-template ## Build generated template artifact locally
 
 publish-template-dry-run: build-template ## Show the generated template publish target without pushing
@@ -116,4 +123,4 @@ template-smoke: build-template ## Smoke-test ephemeral template publish and gene
 template-consumer-e2e: build-template ## Run generated template consumers against a local action runtime
 	$(PYTHON) scripts/template_consumer_e2e.py --template-dir dist/template --action-repo $(ACTION_REPO) --action-python $(ACTION_PYTHON)
 
-verify: validate-requirement-locks lint typecheck coverage verify-workflow-classification release-dry-run template-smoke ## Run lint, type checks, coverage, dependency-lock, and generated-output checks
+verify: validate-requirement-locks lint typecheck coverage verify-workflow-classification verify-action-release release-dry-run template-smoke ## Run lint, type checks, coverage, dependency-lock, and generated-output checks

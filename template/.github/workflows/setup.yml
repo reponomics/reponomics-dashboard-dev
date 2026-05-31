@@ -92,6 +92,9 @@ jobs:
           if [ "$GENERATE_HTML_DASHBOARD" = "true" ]; then
             publish_workflow="enabled"
           fi
+          if [ "$GENERATE_README" = "true" ]; then
+            publish_workflow="enabled"
+          fi
 
           collection_auth_mode="pat"
           if [ "$USE_GITHUB_APP" = "true" ]; then
@@ -101,6 +104,7 @@ jobs:
           {
             echo "PRIVACY_MODE=$resolved_privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
+            echo "GENERATE_HTML_DASHBOARD=$GENERATE_HTML_DASHBOARD"
             echo "GENERATE_README=$GENERATE_README"
             echo "USE_GITHUB_APP=$USE_GITHUB_APP"
             echo "COLLECTION_AUTH_MODE=$collection_auth_mode"
@@ -242,6 +246,8 @@ jobs:
               Path(".github/workflows/collect.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+                  "GENERATE_HTML_DASHBOARD": os.environ["GENERATE_HTML_DASHBOARD"],
+                  "GENERATE_README": os.environ["GENERATE_README"],
                   "USE_GITHUB_APP": os.environ["USE_GITHUB_APP"],
               },
               Path(".github/workflows/incident-sentinel.yml"): {
@@ -279,6 +285,8 @@ jobs:
 
           The Reponomics Dashboard provides users with a convenient, private, and cost-free way to store and aggregate key metrics about their GitHub repos. Because this data is private, we do not publish any metrics to the README for public repositories.
 
+          Reponomics may update managed local documentation under `docs/reponomics/` before future collect runs. To opt out before editing that directory yourself, set `allow_docs_sync: false` in `config.yaml`.
+
           If you'd like to learn more about the Reponomics Dashboard and create one for yourself, check out our doc-site at [reponomics/reponomics](https://github.com/reponomics/reponomics), or view a demo dashboard [here](https://github.com/reponomics/reponomics-demo).
 
           Thanks!
@@ -299,6 +307,7 @@ jobs:
             echo "- Collection auth mode: \`$COLLECTION_AUTH_MODE\`"
             echo "- README generation: \`$GENERATE_README\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
+            echo "- Managed docs sync: enabled by default; set \`allow_docs_sync: false\` in \`config.yaml\` to opt out"
           } >> "$GITHUB_STEP_SUMMARY"
 
           {

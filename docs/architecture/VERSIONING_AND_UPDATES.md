@@ -19,6 +19,19 @@ as:
 uses: reponomics/reponomics-dashboard-action@v0.16.0
 ```
 
+Dashboard-dev records the accepted template action release in
+`template-action-release.yml`. Template workflow refs, generated docs, and
+tests are synchronized from that single source of truth.
+
+The generated collect workflow also embeds the accepted action tag and resolved
+action commit SHA as workflow environment. When publishing is enabled, collect
+uploads those values with the collected repository SHA in a
+`reponomics-collect-provenance` artifact. The separate publish workflow consumes
+that artifact, restores `dashboard-data` from the recorded collect workflow run,
+and checks out the recorded action commit as a local action before rendering, so
+a later collect or template action bump cannot publish an older retained artifact
+under a newer action/data contract.
+
 Pre-v1 releases may change inputs, retained artifact schema, generated
 dashboard structure, migration behavior, or docs. Users should review release
 notes before changing pre-v1 refs.

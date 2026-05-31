@@ -58,41 +58,48 @@ write_csv(
     scenario.status_rows,
 )
 
-runtime_kwargs = {
-    "mode": "publish",
-    "collection_token": "ghp_collection",
-    "github_token": "ghp_runtime",
-    "dashboard_secret": profile["dashboard_secret"],
-    "dashboard_next_secret": "",
-    "privacy_mode": profile["privacy_mode"],
-    "repo_is_public": profile["repo_is_public"],
-    "config_path": consumer_repo / "config.yaml",
-    "data_dir": data_dir,
-    "retention_days": 90,
-    "generate_readme": profile["generate_readme"],
-    "pages_index_path": consumer_repo / "docs" / "index.html",
-    "readme_path": consumer_repo / "README.md",
-    "incident_confirm_mode": "",
-    "incident_confirm_purge": "",
-    "incident_confirm_irreversible": "",
-    "action_ref": "template-consumer-e2e",
-    "action_repository": "reponomics/reponomics-dashboard-action",
-    # Compatibility across action revisions used by dashboard-dev CI.
-    "use_github_app": False,
-    "allow_docs_sync": True,
-    "update_notices": False,
-}
-accepted_runtime_fields = set(getattr(run.RuntimeConfig, "__dataclass_fields__", {}))
-config = run.RuntimeConfig(**{
-    key: value
-    for key, value in runtime_kwargs.items()
-    if key in accepted_runtime_fields
-})
+def build_config(mode):
+    runtime_kwargs = {
+        "mode": mode,
+        "collection_token": "ghp_collection",
+        "github_token": "ghp_runtime",
+        "dashboard_secret": profile["dashboard_secret"],
+        "dashboard_next_secret": "",
+        "privacy_mode": profile["privacy_mode"],
+        "repo_is_public": profile["repo_is_public"],
+        "config_path": consumer_repo / "config.yaml",
+        "data_dir": data_dir,
+        "retention_days": 90,
+        "artifact_run_id": "",
+        "generate_readme": profile["generate_readme"],
+        "pages_index_path": consumer_repo / "docs" / "index.html",
+        "readme_path": consumer_repo / "README.md",
+        "incident_confirm_mode": "",
+        "incident_confirm_purge": "",
+        "incident_confirm_irreversible": "",
+        "action_ref": "template-consumer-e2e",
+        "action_repository": "reponomics/reponomics-dashboard-action",
+        # Compatibility across action revisions used by dashboard-dev CI.
+        "use_github_app": False,
+        "allow_docs_sync": True,
+        "update_notices": False,
+    }
+    accepted_runtime_fields = set(getattr(run.RuntimeConfig, "__dataclass_fields__", {}))
+    return run.RuntimeConfig(**{
+        key: value
+        for key, value in runtime_kwargs.items()
+        if key in accepted_runtime_fields
+    })
 
 os.environ["GITHUB_OUTPUT"] = (consumer_repo / ".e2e-github-output").as_posix()
 os.chdir(consumer_repo)
 
 try:
+    if hasattr(run, "run_docs_sync"):
+        docs_config = build_config("docs-sync")
+        run.validate_config(docs_config)
+        run.run_docs_sync(docs_config)
+    config = build_config("publish")
     run.validate_config(config)
     run.run_publish(config, restore_artifact=False)
 except run.ActionError as exc:
@@ -277,6 +284,10 @@ def _assert_successful_profile(consumer_dir: Path, profile: ConsumerProfile) -> 
             raise TemplateConsumerE2EError(f"{profile.name}: encrypted export asset missing")
     elif "encrypted-payload" in dashboard:
         raise TemplateConsumerE2EError(f"{profile.name}: plain dashboard contains encrypted payload")
+
+    managed_manifest = consumer_dir / "docs" / "reponomics" / ".manifest.json"
+    if not managed_manifest.is_file():
+        raise TemplateConsumerE2EError(f"{profile.name}: managed docs manifest missing")
 
     if not profile.generate_readme:
         return

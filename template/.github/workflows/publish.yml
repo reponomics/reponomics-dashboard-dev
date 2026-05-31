@@ -8,19 +8,19 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  actions: read
-  pages: write
-  id-token: write
+  contents: read
 
 concurrency:
-  group: reponomics-publish-${{ github.ref }}
-  cancel-in-progress: false
+  group: reponomics-publish-main
+  cancel-in-progress: true
 
 env:
   PRIVACY_MODE: "strong"
   RETENTION_DAYS: "90"
   GENERATE_README: "false"
+  REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
+  REPONOMICS_ACTION_REF: "v0.16.0"
+  REPONOMICS_ACTION_SHA: "beacc5725039272128cc87e222a391353f7d684d"
 
 jobs:
   publish:
@@ -28,17 +28,179 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
       github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pages: write
+      id-token: write
 
     steps:
-      - name: Checkout repository
+      - name: Download collect provenance
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: reponomics-collect-provenance
+          path: reponomics-collect-provenance
+          github-token: ${{ github.token }}
+          run-id: ${{ github.event.workflow_run.id }}
+
+      - name: Write manual publish provenance
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          set -euo pipefail
+
+          mkdir -p reponomics-collect-provenance
+          SOURCE_SHA="$GITHUB_SHA"
+          export SOURCE_SHA
+
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              "schema_version": 1,
+              "source_repository": os.environ["GITHUB_REPOSITORY"],
+              "source_sha": os.environ["SOURCE_SHA"],
+              "workflow_run_id": "",
+              "workflow_run_attempt": "",
+              "action_repository": os.environ["REPONOMICS_ACTION_REPOSITORY"],
+              "action_ref": os.environ["REPONOMICS_ACTION_REF"],
+              "action_sha": os.environ["REPONOMICS_ACTION_SHA"],
+              "privacy_mode": os.environ["PRIVACY_MODE"],
+              "retention_days": os.environ["RETENTION_DAYS"],
+              "generate_readme": os.environ["GENERATE_README"],
+          }
+          Path("reponomics-collect-provenance/collect-provenance.json").write_text(
+              json.dumps(payload, indent=2) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
+      - name: Validate publish provenance
+        id: provenance
+        run: |
+          set -euo pipefail
+
+          python - <<'PY'
+          import json
+          import os
+          import re
+          from pathlib import Path
+
+          path = Path("reponomics-collect-provenance/collect-provenance.json")
+          payload = json.loads(path.read_text(encoding="utf-8"))
+
+          expected_repository = "reponomics/reponomics-dashboard-action"
+          semver = re.compile(r"^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
+          sha = re.compile(r"^[0-9a-f]{40}$")
+
+          if payload.get("schema_version") != 1:
+              raise SystemExit("Unsupported collect provenance schema.")
+          if payload.get("source_repository") != os.environ["GITHUB_REPOSITORY"]:
+              raise SystemExit("Collect provenance belongs to another repository.")
+          if payload.get("action_repository") != expected_repository:
+              raise SystemExit("Collect provenance uses an unexpected action repository.")
+          if not semver.fullmatch(str(payload.get("action_ref", ""))):
+              raise SystemExit("Collect provenance action_ref is not an exact SemVer tag.")
+          for key in ("source_sha", "action_sha"):
+              if not sha.fullmatch(str(payload.get(key, ""))):
+                  raise SystemExit(f"Collect provenance {key} is not a commit SHA.")
+          if str(payload.get("privacy_mode", "")) not in {"strong", "casual", "plain"}:
+              raise SystemExit("Collect provenance privacy_mode is invalid.")
+          if str(payload.get("generate_readme", "")) not in {"true", "false"}:
+              raise SystemExit("Collect provenance generate_readme is invalid.")
+          workflow_run_id = str(payload.get("workflow_run_id", ""))
+          if os.environ["GITHUB_EVENT_NAME"] == "workflow_run":
+              workflow_run_id = str(int(workflow_run_id))
+              if int(workflow_run_id) < 1:
+                  raise SystemExit("Collect provenance workflow_run_id is out of range.")
+          elif workflow_run_id:
+              raise SystemExit("Manual publish provenance must not set workflow_run_id.")
+          retention_days = int(str(payload.get("retention_days", "")))
+          if retention_days < 1 or retention_days > 90:
+              raise SystemExit("Collect provenance retention_days is out of range.")
+
+          outputs = {
+              "source_sha": payload["source_sha"],
+              "workflow_run_id": workflow_run_id,
+              "action_repository": payload["action_repository"],
+              "action_ref": payload["action_ref"],
+              "action_sha": payload["action_sha"],
+              "privacy_mode": payload["privacy_mode"],
+              "retention_days": str(retention_days),
+              "generate_readme": payload["generate_readme"],
+          }
+          with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
+              for key, value in outputs.items():
+                  handle.write(f"{key}={value}\n")
+          PY
+
+      - name: Checkout collected source revision
+        if: steps.provenance.outputs.generate_readme != 'true'
         uses: actions/checkout@v6
+        with:
+          ref: ${{ steps.provenance.outputs.source_sha }}
+
+      - name: Checkout main for README publication
+        if: steps.provenance.outputs.generate_readme == 'true'
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Verify README publication source revision
+        if: steps.provenance.outputs.generate_readme == 'true'
+        env:
+          EXPECTED_SOURCE_SHA: ${{ steps.provenance.outputs.source_sha }}
+        run: |
+          set -euo pipefail
+
+          actual_sha="$(git rev-parse HEAD)"
+          if [ "$actual_sha" != "$EXPECTED_SOURCE_SHA" ]; then
+            echo "README publication stopped because main moved after collection." >&2
+            echo "Expected $EXPECTED_SOURCE_SHA but checked out $actual_sha." >&2
+            echo "Run collection again so README publication uses a fresh artifact." >&2
+            exit 1
+          fi
+
+      - name: Checkout collected action revision
+        uses: actions/checkout@v6
+        with:
+          repository: ${{ steps.provenance.outputs.action_repository }}
+          ref: ${{ steps.provenance.outputs.action_sha }}
+          path: reponomics-dashboard-action
+
+      - name: Verify collected action checkout
+        working-directory: reponomics-dashboard-action
+        env:
+          EXPECTED_ACTION_SHA: ${{ steps.provenance.outputs.action_sha }}
+        run: |
+          set -euo pipefail
+
+          actual_sha="$(git rev-parse HEAD)"
+          if [ "$actual_sha" != "$EXPECTED_ACTION_SHA" ]; then
+            echo "Expected action checkout $EXPECTED_ACTION_SHA but got $actual_sha." >&2
+            exit 1
+          fi
+
+      - name: Download collected dashboard data
+        if: github.event_name == 'workflow_run'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: dashboard-data
+          path: data
+          github-token: ${{ github.token }}
+          run-id: ${{ steps.provenance.outputs.workflow_run_id }}
 
       - name: Publish dashboard outputs
-        uses: reponomics/reponomics-dashboard-action@v0.16.0
+        uses: ./reponomics-dashboard-action
         with:
           mode: publish
-          github-token: ${{ github.token }}
+          # Automatic runs pre-download the triggering collect run's
+          # dashboard-data artifact. Leave github-token blank there so
+          # released actions that restore "latest" do not overwrite it.
+          github-token: ${{ github.event_name == 'workflow_dispatch' && github.token || '' }}
           dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
-          privacy-mode: ${{ env.PRIVACY_MODE }}
-          retention-days: ${{ env.RETENTION_DAYS }}
-          generate-readme: ${{ env.GENERATE_README }}
+          privacy-mode: ${{ steps.provenance.outputs.privacy_mode }}
+          retention-days: ${{ steps.provenance.outputs.retention_days }}
+          generate-readme: ${{ steps.provenance.outputs.generate_readme }}

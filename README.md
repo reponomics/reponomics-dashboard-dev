@@ -2,7 +2,7 @@
 
 The Reponomics Dashboard provides GitHub maintainers with a convenient and cost-free way to collect and analyze GitHub traffic data beyond GitHub's rolling traffic window, as well as other growth metrics, and renders a GitHub-native dashboard that can be hosted privately in encrypted form via GitHub Pages. A repository created from this template collects views, clones, top referrers, popular paths, and repository growth counters into retained GitHub Actions artifacts. The HTML dashboard is rendered during the publish workflow and deployed as a GitHub Pages artifact; retained dashboard data is not committed to the repository, unless the user opts in to a more lightweight dashboard that is rendered to their README. This is only available for private repos.
 
-The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, and key rotation are owned by the versioned action:
+The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, key rotation, and managed local documentation sync are owned by the versioned action:
 
 ```yaml
 uses: reponomics/reponomics-dashboard-action@v0.16.0
@@ -26,7 +26,7 @@ uses: reponomics/reponomics-dashboard-action@v0.16.0
 > [!NOTE]
 > We chose the deliberately outlandish name `DASHBOARD_SECRET_DO_NOT_REPLACE` because the Actions > Secrets UI does not provide another affordance where we can warn users that if they want to rotate their secret, simply overwriting the existing secret is not the correct way to do so, and will in fact result in permanent data loss if the previous secret was not retained by the user.
 
-Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; dashboard generation runs after successful collection and can also be run manually.
+Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; when publishing is enabled, collection uploads a small provenance artifact and the separate publish workflow renders from that exact collect run's dashboard-data artifact, repository revision, and action commit. Publish is latest-wins on `main`: a newer publish cancels an older pending or running publish so obsolete renders do not overwrite newer collection results. The publish workflow can also be run manually against the current template revision.
 
 ## Configuration
 
@@ -47,9 +47,14 @@ exclude:
 include_others: true
 include_new: false
 include_private: true
+
+# Optional: disable Reponomics-managed local docs updates.
+allow_docs_sync: true
 ```
 
 If `include_only` is non-empty, Reponomics tracks exactly those repositories and ignores the automatic pool.
+
+Reponomics may update the managed local documentation namespace at `docs/reponomics/` before collection after action upgrades. It writes only that namespace, commits with `[skip ci]`, and treats missing write permission as advisory. Set `allow_docs_sync: false` before editing `docs/reponomics/` yourself.
 
 ### Token Scope And Repository Owners
 
@@ -66,7 +71,9 @@ The canonical store is the `dashboard-data` Actions artifact.
 - `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly in the artifact and is rejected in public repositories.
 - The dashboard HTML is generated during `publish` and deployed through GitHub Pages Actions artifacts.
+- The automatic publish path consumes the `reponomics-collect-provenance` artifact from the triggering collect run, then restores that run's `dashboard-data` artifact and checks out the recorded repository SHA and action SHA before rendering.
 - Setup commits a static README. Metric README output is committed only when setup enables `generate_readme` in a private repository.
+- Managed local documentation, when enabled, is committed only under `docs/reponomics/`.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same dashboard key stored in `DASHBOARD_SECRET_DO_NOT_REPLACE`. After unlock, the dashboard can export a canonical CSV ZIP in the browser. The export path downloads an encrypted asset, decrypts it locally, verifies SHA-256 digests, and does not upload plaintext CSV back to GitHub.
 

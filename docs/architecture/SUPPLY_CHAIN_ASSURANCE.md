@@ -23,6 +23,9 @@ uses: reponomics/reponomics-dashboard-action@v0.16.0
 Recommended policy:
 
 - pin to accepted release refs only
+- record the accepted release tag and target commit in `template-action-release.yml`
+- copy that resolved commit into generated collect/publish provenance so
+  automatic publish can run the action revision paired with the collect run
 - prefer commit-SHA pinning for highest supply-chain assurance when release
   ergonomics permit
 - publish release notes and compatibility policy in the action repository

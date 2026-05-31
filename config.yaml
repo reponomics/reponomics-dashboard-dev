@@ -31,3 +31,7 @@ include_new: false
 # Allow private repositories in the automatic pool when COLLECTION_TOKEN can see
 # them.
 include_private: true
+
+# Reponomics may update docs/reponomics/ before collection after action upgrades.
+# Set to false before editing that directory yourself.
+allow_docs_sync: true
