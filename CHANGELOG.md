@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.4.0...v0.5.0) (2026-05-31)
+
+
+### Features
+
+* standardize action release sync ([#20](https://github.com/reponomics/reponomics-dashboard-dev/issues/20)) ([c081b63](https://github.com/reponomics/reponomics-dashboard-dev/commit/c081b63d2b8976a516d7dac171aa4c03a44e7f46))
+
 ## [0.4.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.3.0...v0.4.0) (2026-05-31)
 
 
