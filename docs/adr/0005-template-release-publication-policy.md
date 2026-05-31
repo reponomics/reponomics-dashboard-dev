@@ -52,7 +52,7 @@ Use release-driven publication for the generated template repository.
   runtime behavior changes.
 - Maintainer guidance should continue to treat action releases as the primary
   compatibility and migration signal.
-- Commit discipline still matters: `feat`/`fix`/`deps` should be used when a
+- Commit discipline still matters: `feat`/`fix`/`chore(deps)` should be used when a
   release is intended, while non-releasable change types remain available for
   maintainer-only work.
 
