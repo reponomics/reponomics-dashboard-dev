@@ -7,4 +7,4 @@ pytest-cov>=7.1.0
 ruff>=0.6
 setuptools>=78.1.1
 types-PyYAML>=6.0.12
-wheel>=0.38.1
+wheel>=0.47.0
