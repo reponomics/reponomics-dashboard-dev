@@ -6,22 +6,13 @@ This project treats repository boundaries as product boundaries.
 
 ## Repositories
 
-`reponomics-dashboard-dev` is the editable source of truth for the generated
-dashboard template. It contains maintainer docs, template workflow stubs,
-`template-manifest.yml`, tests, release tooling, and generated-output checks.
+`reponomics-dashboard-dev` is the editable source of truth for the generated dashboard template. It contains maintainer docs, template workflow stubs, `template-manifest.yml`, tests, release tooling, and generated-output checks.
 
-`reponomics-dashboard` is the shipped template repository for **Use this
-template**. It is generated from `reponomics-dashboard-dev` and should contain
-only the files listed in `template-manifest.yml`.
+`reponomics-dashboard` is the shipped template repository for **Use this template**. It is generated from `reponomics-dashboard-dev` and should contain only the files listed in `template-manifest.yml`.
 
-`reponomics-dashboard-action` is the versioned runtime action. It owns
-collection, artifact restore/upload, schema migration, encryption, README
-rendering, HTML dashboard rendering, CSV export packaging, key rotation,
-managed local documentation sync, and release notices.
+`reponomics-dashboard-action` is the versioned runtime action. It owns collection, artifact restore/upload, schema migration, encryption, README rendering, HTML dashboard rendering, CSV export packaging, key rotation, managed local documentation sync, and release notices.
 
-`reponomics-dashboard-demo` is not part of the current release path. A demo can
-be reintroduced after a staging consumer has validated the generated template
-against the released action.
+`reponomics-dashboard-demo` is not part of the current release path. A demo can be reintroduced after a staging consumer has validated the generated template against the released action.
 
 ## Generated Template Surface
 
@@ -34,8 +25,7 @@ The generated template intentionally includes only:
 - Reponomics-managed local docs under `docs/reponomics/` after docs sync runs
 - repository metadata such as `.gitignore` and `LICENSE`
 
-It intentionally excludes maintainer scripts, tests, ADRs, archived planning
-docs, `dist/`, virtual environments, and runtime implementation files.
+It intentionally excludes maintainer scripts, tests, ADRs, archived planning docs, `dist/`, virtual environments, and runtime implementation files.
 
 Template workflow sources live under `template/.github/workflows` so this repository's live `.github/workflows` directory contains only maintainer workflows. `template-manifest.yml` is the source-to-template contract; it maps those source workflows into the generated workflow filenames copied to `reponomics-dashboard`. Changes to the generated surface should be made by updating the manifest and tests, then building the generated output.
 
@@ -47,14 +37,7 @@ Generated workflows delegate to:
 uses: reponomics/reponomics-dashboard-action@v0.16.0
 ```
 
-Collection also records the accepted action tag and resolved action commit SHA
-in a `reponomics-collect-provenance` artifact when publication is enabled.
-The automatic publish workflow downloads that artifact, restores
-`dashboard-data` from the recorded collect workflow run, checks out the recorded
-repository SHA, checks out `reponomics-dashboard-action` at the recorded commit,
-and runs the action as a local action. This keeps automatic publish locked to
-the same action/data contract as the collect run that produced the retained
-artifact.
+Collection also records the accepted action tag and resolved action commit SHA in a `reponomics-collect-provenance` artifact when publication is enabled. The automatic publish workflow downloads that artifact, restores `dashboard-data` from the recorded collect workflow run, checks out the recorded repository SHA, checks out `reponomics-dashboard-action` at the recorded commit, and runs the action as a local action. This keeps automatic publish locked to the same action/data contract as the collect run that produced the retained artifact.
 
 The action input contract used by this template is:
 
@@ -77,13 +60,8 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 
 - `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly and is private-repository only.
-- Hosted dashboard HTML is rendered during `publish` and deployed as a GitHub
-  Pages artifact for `strong` and `casual` only when hosted publication is
-  enabled. Otherwise, the rendered dashboard is uploaded as a downloadable
-  workflow artifact.
-- Automatic publish consumes collect provenance instead of the latest default
-  branch action ref, so action upgrades cannot reinterpret an older collection
-  artifact.
+- Hosted dashboard HTML is rendered during `publish` and deployed as a GitHub Pages artifact for `strong` and `casual` only when hosted publication is enabled. Otherwise, the rendered dashboard is uploaded as a downloadable workflow artifact.
+- Automatic publish consumes collect provenance instead of the latest default branch action ref, so action upgrades cannot reinterpret an older collection artifact.
 - setup commits a static README; metric README output is committed only when `generate-readme` is true in a private repository.
 - `docs-sync` runs before collection and commits managed local documentation only under `docs/reponomics/`; missing write permission is advisory by default.
 - CSV export is browser-local after encrypted dashboard unlock.
