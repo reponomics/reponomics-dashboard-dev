@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.3.0...v0.4.0) (2026-05-31)
+
+
+### Features
+
+* GitHub app installation token flow ([2b4a8e4](https://github.com/reponomics/reponomics-dashboard-dev/commit/2b4a8e494fb40bd86633bd284091cfdea106a70a))
+
 ## [0.3.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.2.2...v0.3.0) (2026-05-28)
 
 
