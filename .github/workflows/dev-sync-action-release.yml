@@ -103,7 +103,7 @@ jobs:
         run: |
           set -euo pipefail
           branch="automation/reponomics-dashboard-action-${ACTION_TAG}"
-          title="chore(deps): bump reponomics-dashboard-action to ${ACTION_TAG}"
+          title="deps(action): bump reponomics-dashboard-action to ${ACTION_TAG}"
           remote_ref="refs/heads/${branch}"
 
           git config user.name "reponomics-release"
