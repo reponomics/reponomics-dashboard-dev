@@ -26,6 +26,11 @@ on:
         type: boolean
         required: true
         default: false
+      use_github_app:
+        description: "Advanced collection auth: use a user-owned GitHub App installation token"
+        type: boolean
+        required: true
+        default: false
 
 env:
   RETENTION_DAYS: "90"
@@ -48,6 +53,7 @@ jobs:
           PRIVACY_MODE: ${{ inputs.privacy_mode }}
           GENERATE_HTML_DASHBOARD: ${{ inputs.generate_html_dashboard }}
           GENERATE_README: ${{ inputs.generate_readme }}
+          USE_GITHUB_APP: ${{ inputs.use_github_app }}
           REPOSITORY_PRIVATE: ${{ github.event.repository.private }}
         run: |
           set -euo pipefail
@@ -87,51 +93,94 @@ jobs:
             publish_workflow="enabled"
           fi
 
+          collection_auth_mode="pat"
+          if [ "$USE_GITHUB_APP" = "true" ]; then
+            collection_auth_mode="github_app"
+          fi
+
           {
             echo "PRIVACY_MODE=$resolved_privacy_mode"
             echo "PUBLISH_WORKFLOW=$publish_workflow"
             echo "GENERATE_README=$GENERATE_README"
+            echo "USE_GITHUB_APP=$USE_GITHUB_APP"
+            echo "COLLECTION_AUTH_MODE=$collection_auth_mode"
           } >> "$GITHUB_ENV"
 
       - name: Validate required secrets
         env:
+          USE_GITHUB_APP: ${{ env.USE_GITHUB_APP }}
           COLLECTION_TOKEN: ${{ secrets.COLLECTION_TOKEN }}
+          COLLECTION_APP_ID_VAR: ${{ vars.COLLECTION_APP_ID }}
+          COLLECTION_APP_ID_SECRET: ${{ secrets.COLLECTION_APP_ID }}
+          COLLECTION_APP_PRIVATE_KEY: ${{ secrets.COLLECTION_APP_PRIVATE_KEY }}
           DASHBOARD_SECRET_DO_NOT_REPLACE: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
         run: |
           set -euo pipefail
 
           token_url="https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
+          app_url="https://github.com/settings/apps/new"
           key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/SECURE_DASHBOARD_KEY.md"
           privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md"
 
-          if [ -z "${COLLECTION_TOKEN:-}" ]; then
-            {
-              echo "## Setup stopped"
-              echo
-              echo "[Create a fine-grained personal access token]($token_url)"
-              echo "with repository \`Administration: read\` for \`$GITHUB_REPOSITORY_OWNER\`."
-              echo "Choose **All repositories** for broad automatic discovery, or"
-              echo "**Only selected repositories** if you want to limit collection."
-              echo "If you choose selected repositories, keep \`config.yaml\` within"
-              echo "that token's repository access."
-              echo "Then save the token as repository secret \`COLLECTION_TOKEN\` and run setup again."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
+          collection_app_id="${COLLECTION_APP_ID_VAR:-}"
+          if [ -z "$collection_app_id" ] && [ -n "${COLLECTION_APP_ID_SECRET:-}" ]; then
+            collection_app_id="${COLLECTION_APP_ID_SECRET:-}"
           fi
 
-          if ! GH_TOKEN="$COLLECTION_TOKEN" gh api rate_limit >/dev/null 2>&1; then
-            {
-              echo "## Setup stopped"
-              echo
-              echo "\`COLLECTION_TOKEN\` did not authenticate with the GitHub API."
-              echo "Check the token value and repository permissions, then run setup again."
-              echo
-              echo "If the token expired or has the wrong permissions,"
-              echo "[create a replacement fine-grained personal access token]($token_url)"
-              echo "with repository \`Administration: read\` for the repositories"
-              echo "this dashboard collects."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
+          if [ "$USE_GITHUB_APP" = "true" ]; then
+            if [ -z "$collection_app_id" ]; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "Advanced GitHub App mode is enabled but no app ID is configured."
+                echo "Set repository variable \`COLLECTION_APP_ID\` (or repository secret \`COLLECTION_APP_ID\`)"
+                echo "for your own GitHub App, then run setup again."
+                echo
+                echo "Create an app at [$app_url]($app_url), install it for the repositories"
+                echo "you want to collect, and grant repository \`Administration: read\`."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+            if [ -z "${COLLECTION_APP_PRIVATE_KEY:-}" ]; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "Advanced GitHub App mode is enabled but \`COLLECTION_APP_PRIVATE_KEY\` is missing."
+                echo "Store your own app private key as repository secret \`COLLECTION_APP_PRIVATE_KEY\`,"
+                echo "then run setup again."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+          else
+            if [ -z "${COLLECTION_TOKEN:-}" ]; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "[Create a fine-grained personal access token]($token_url)"
+                echo "with repository \`Administration: read\` for \`$GITHUB_REPOSITORY_OWNER\`."
+                echo "Choose **All repositories** for broad automatic discovery, or"
+                echo "**Only selected repositories** if you want to limit collection."
+                echo "If you choose selected repositories, keep \`config.yaml\` within"
+                echo "that token's repository access."
+                echo "Then save the token as repository secret \`COLLECTION_TOKEN\` and run setup again."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
+
+            if ! GH_TOKEN="$COLLECTION_TOKEN" gh api rate_limit >/dev/null 2>&1; then
+              {
+                echo "## Setup stopped"
+                echo
+                echo "\`COLLECTION_TOKEN\` did not authenticate with the GitHub API."
+                echo "Check the token value and repository permissions, then run setup again."
+                echo
+                echo "If the token expired or has the wrong permissions,"
+                echo "[create a replacement fine-grained personal access token]($token_url)"
+                echo "with repository \`Administration: read\` for the repositories"
+                echo "this dashboard collects."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 1
+            fi
           fi
 
           if [ "$PRIVACY_MODE" = "strong" ] || [ "$PRIVACY_MODE" = "casual" ]; then
@@ -193,6 +242,7 @@ jobs:
               Path(".github/workflows/collect.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+                  "USE_GITHUB_APP": os.environ["USE_GITHUB_APP"],
               },
               Path(".github/workflows/incident-sentinel.yml"): {
                   "OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"],
@@ -246,6 +296,7 @@ jobs:
             echo "- Scheduled workflow keepalive: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
+            echo "- Collection auth mode: \`$COLLECTION_AUTH_MODE\`"
             echo "- README generation: \`$GENERATE_README\`"
             echo "- Artifact retention: \`$RETENTION_DAYS\` day(s)"
           } >> "$GITHUB_STEP_SUMMARY"

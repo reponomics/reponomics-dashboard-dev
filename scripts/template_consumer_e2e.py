@@ -58,27 +58,36 @@ write_csv(
     scenario.status_rows,
 )
 
-config = run.RuntimeConfig(
-    mode="publish",
-    collection_token="ghp_collection",
-    github_token="ghp_runtime",
-    dashboard_secret=profile["dashboard_secret"],
-    dashboard_next_secret="",
-    privacy_mode=profile["privacy_mode"],
-    repo_is_public=profile["repo_is_public"],
-    config_path=consumer_repo / "config.yaml",
-    data_dir=data_dir,
-    retention_days=90,
-    generate_readme=profile["generate_readme"],
-    pages_index_path=consumer_repo / "docs" / "index.html",
-    readme_path=consumer_repo / "README.md",
-    update_notices=False,
-    incident_confirm_mode="",
-    incident_confirm_purge="",
-    incident_confirm_irreversible="",
-    action_ref="template-consumer-e2e",
-    action_repository="reponomics/reponomics-dashboard-action",
-)
+runtime_kwargs = {
+    "mode": "publish",
+    "collection_token": "ghp_collection",
+    "github_token": "ghp_runtime",
+    "dashboard_secret": profile["dashboard_secret"],
+    "dashboard_next_secret": "",
+    "privacy_mode": profile["privacy_mode"],
+    "repo_is_public": profile["repo_is_public"],
+    "config_path": consumer_repo / "config.yaml",
+    "data_dir": data_dir,
+    "retention_days": 90,
+    "generate_readme": profile["generate_readme"],
+    "pages_index_path": consumer_repo / "docs" / "index.html",
+    "readme_path": consumer_repo / "README.md",
+    "incident_confirm_mode": "",
+    "incident_confirm_purge": "",
+    "incident_confirm_irreversible": "",
+    "action_ref": "template-consumer-e2e",
+    "action_repository": "reponomics/reponomics-dashboard-action",
+    # Compatibility across action revisions used by dashboard-dev CI.
+    "use_github_app": False,
+    "allow_docs_sync": True,
+    "update_notices": False,
+}
+accepted_runtime_fields = set(getattr(run.RuntimeConfig, "__dataclass_fields__", {}))
+config = run.RuntimeConfig(**{
+    key: value
+    for key, value in runtime_kwargs.items()
+    if key in accepted_runtime_fields
+})
 
 os.environ["GITHUB_OUTPUT"] = (consumer_repo / ".e2e-github-output").as_posix()
 os.chdir(consumer_repo)

@@ -188,7 +188,7 @@ Current hardening is focused on the action/template pair:
 - `reponomics-dashboard-dev` owns the generated-template source and docs.
 - `reponomics-dashboard` remains the generated template target.
 - `reponomics-dashboard-action` owns runtime behavior and is currently pinned
-  by the template at `reponomics/reponomics-dashboard-action@v0.12.1`.
+  by the template at `reponomics/reponomics-dashboard-action@v0.16.0`.
 
 The separate generated demo repository remains deferred until a staging
 consumer validates setup, collection, encrypted publish, CSV export, and key

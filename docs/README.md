@@ -2,7 +2,7 @@
 
 The Reponomics Dashboard is a GitHub-native repository traffic and growth dashboard. It collects views, clones, top referrers, popular paths, and repository growth counters, then renders static dashboard output during the `publish` workflow.
 
-This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.12.1`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, and dashboard key rotation.
+This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.16.0`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, and dashboard key rotation.
 
 Template repositories do not require local Python for normal use. Workflows run in GitHub Actions and delegate runtime behavior to `reponomics/reponomics-dashboard-action`.
 
@@ -33,6 +33,8 @@ For release, dependency, vendored-asset, and generated-artifact verification, se
 `COLLECTION_TOKEN` is only for repository data collection, including GitHub traffic data. Create it as a [fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. The setup workflow uses the repository-scoped `GITHUB_TOKEN` to commit workflow enablement changes, so the collection token does not need repository, Pages, or Administration write permissions. Ideally, we will have one, limited-scope token responsible for any queries outside of the dashboard repo, and all other operations will be done by the repo's own `GITHUB_TOKEN`. This minimizes the scope of the collection token, which for many users will have access to lots of repositories.
 
 This template currently supports one collection credential. Fine-grained personal access tokens are scoped to one GitHub resource owner. If one dashboard needs to track repositories under multiple users or organizations, the fine-grained token flow is not the right fit for the current single-token setup. Use a classic PAT with `repo` scope where the relevant organizations allow it. Classic PATs are broader and can access repositories your GitHub account can access.
+
+Advanced option: use a user-owned GitHub App installation token for collection instead of a PAT. Reponomics does not provide or operate a shared collection app; the app, installation scope, and credentials are fully user-owned. In this mode, set workflow/setup input `use_github_app: true`, store `COLLECTION_APP_PRIVATE_KEY` as a repository secret, store `COLLECTION_APP_ID` as a repository variable (or secret), and let the collect workflow mint a short-lived installation token at runtime.
 
 ## Configuration
 
