@@ -78,7 +78,9 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 - `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly and is private-repository only.
 - Hosted dashboard HTML is rendered during `publish` and deployed as a GitHub
-  Pages artifact for `strong` and `casual`.
+  Pages artifact for `strong` and `casual` only when hosted publication is
+  enabled. Otherwise, the rendered dashboard is uploaded as a downloadable
+  workflow artifact.
 - Automatic publish consumes collect provenance instead of the latest default
   branch action ref, so action upgrades cannot reinterpret an older collection
   artifact.

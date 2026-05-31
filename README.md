@@ -1,6 +1,6 @@
 # Reponomics Dashboard
 
-The Reponomics Dashboard provides GitHub maintainers with a convenient and cost-free way to collect and analyze GitHub traffic data beyond GitHub's rolling traffic window, as well as other growth metrics, and renders a GitHub-native dashboard that can be hosted privately in encrypted form via GitHub Pages. A repository created from this template collects views, clones, top referrers, popular paths, and repository growth counters into retained GitHub Actions artifacts. The HTML dashboard is rendered during the publish workflow and deployed as a GitHub Pages artifact; retained dashboard data is not committed to the repository, unless the user opts in to a more lightweight dashboard that is rendered to their README. This is only available for private repos.
+The Reponomics Dashboard provides GitHub maintainers with a convenient and cost-free way to collect and analyze GitHub traffic data beyond GitHub's rolling traffic window, as well as other growth metrics, and renders a GitHub-native dashboard that can be hosted privately in encrypted form via GitHub Pages. A repository created from this template collects views, clones, top referrers, popular paths, and repository growth counters into retained GitHub Actions artifacts. The HTML dashboard is rendered during the publish workflow; it is deployed to GitHub Pages only when hosted dashboard publication is enabled, and otherwise remains a downloadable workflow artifact. Retained dashboard data is not committed to the repository, unless the user opts in to a more lightweight dashboard that is rendered to their README. This is only available for private repos.
 
 The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, key rotation, and managed local documentation sync are owned by the versioned action:
 
@@ -16,17 +16,17 @@ uses: reponomics/reponomics-dashboard-action@v0.16.0
 1. Create a repository from this template.
 2. Create a token and add it as a repository secret named `COLLECTION_TOKEN` (NOTE: see below for instructions regarding the use of a GitHub App installation token instead.) [Create a fine-grained personal access token](https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&expires_in=366&administration=read), choose the owner whose repositories should be collected, and keep the prefilled repository permission `Administration: read`. Choose **All repositories** for broad automatic discovery, or **Only selected repositories** if you want to limit collection to specific repositories. If you choose selected repositories, keep `config.yaml` within that token's repository access. If this dashboard must track repositories under multiple GitHub users or organizations, read [Token Scope And Repository Owners](#token-scope-and-repository-owners) before choosing a token. Do not grant Pages or Administration write permissions to this token for dashboard setup. Setup uses the workflow `GITHUB_TOKEN` to commit workflow enablement changes in this repository.
 3. Choose a privacy mode:
-   - `strong`: encrypted retained artifacts and encrypted hosted dashboard; requires a generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE`.
-   - `casual`: encrypted retained artifacts and encrypted hosted dashboard; accepts any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`, but is not intended to resist targeted offline guessing.
+   - `strong`: encrypted retained artifacts and encrypted dashboard output; requires a generated high-entropy `DASHBOARD_SECRET_DO_NOT_REPLACE`.
+   - `casual`: encrypted retained artifacts and encrypted dashboard output; accepts any non-empty `DASHBOARD_SECRET_DO_NOT_REPLACE`, but is not intended to resist targeted offline guessing.
    - `plain`: plaintext retained CSV artifacts; private repositories only and no hosted Pages dashboard.
 4. For `strong` or `casual`, add `DASHBOARD_SECRET_DO_NOT_REPLACE` and store the same value somewhere private. See [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
-6. For a hosted encrypted dashboard, open this repository's **Settings -> Pages** page and set **Build and deployment -> Source** to **GitHub Actions**. If GitHub suggests workflow templates, skip them; the Reponomics publish workflow already deploys the Pages artifact.
+6. If you enabled hosted dashboard publication, open this repository's **Settings -> Pages** page and set **Build and deployment -> Source** to **GitHub Actions**. If GitHub suggests workflow templates, skip them; the Reponomics publish workflow already deploys the Pages artifact.
 
 > [!NOTE]
 > We chose the deliberately outlandish name `DASHBOARD_SECRET_DO_NOT_REPLACE` because the Actions > Secrets UI does not provide another affordance where we can warn users that if they want to rotate their secret, simply overwriting the existing secret is not the correct way to do so, and will in fact result in permanent data loss if the previous secret was not retained by the user.
 
-Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves HTML dashboard generation disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; when publishing is enabled, collection uploads a small provenance artifact and the separate publish workflow renders from that exact collect run's dashboard-data artifact, repository revision, and action commit. Publish is latest-wins on `main`: a newer publish cancels an older pending or running publish so obsolete renders do not overwrite newer collection results. The publish workflow can also be run manually against the current template revision.
+Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves hosted Pages publication disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; when publishing or README generation is enabled, collection uploads a small provenance artifact and the separate publish workflow renders from that exact collect run's dashboard-data artifact, repository revision, and action commit. Publish is latest-wins on `main`: a newer publish cancels an older pending or running publish so obsolete renders do not overwrite newer collection results. The publish workflow can also be run manually against the current template revision.
 
 ## Configuration
 
@@ -70,14 +70,14 @@ The canonical store is the `dashboard-data` Actions artifact.
 
 - `strong` and `casual` store encrypted retained data as `dashboard-data.enc`.
 - `plain` stores retained CSV files directly in the artifact and is rejected in public repositories.
-- The dashboard HTML is generated during `publish` and deployed through GitHub Pages Actions artifacts.
+- The dashboard HTML is generated during `publish`; it is deployed through GitHub Pages Actions artifacts only when hosted dashboard publication is enabled, and otherwise uploaded as a downloadable workflow artifact.
 - The automatic publish path consumes the `reponomics-collect-provenance` artifact from the triggering collect run, then restores that run's `dashboard-data` artifact and checks out the recorded repository SHA and action SHA before rendering.
 - Setup commits a static README. Metric README output is committed only when setup enables `generate_readme` in a private repository.
 - Managed local documentation, when enabled, is committed only under `docs/reponomics/`.
 
 For encrypted dashboards, unlock the hosted Pages dashboard with the same dashboard key stored in `DASHBOARD_SECRET_DO_NOT_REPLACE`. After unlock, the dashboard can export a canonical CSV ZIP in the browser. The export path downloads an encrypted asset, decrypts it locally, verifies SHA-256 digests, and does not upload plaintext CSV back to GitHub.
 
-To view a dashboard offline, open a successful **Publish Reponomics dashboard** workflow run and download the GitHub Pages artifact before it expires. Extract the artifact and open `index.html`. Some browsers block local `file://` fetches; if export fails offline, serve the extracted artifact directory over local HTTP or use the hosted Pages dashboard.
+To view a dashboard offline, open a successful **Publish Reponomics dashboard** workflow run and download the dashboard artifact before it expires. Extract the artifact and open `index.html`. Some browsers block local `file://` fetches; if export fails offline, serve the extracted artifact directory over local HTTP or use the hosted Pages dashboard.
 
 More details are in [docs/README.md](docs/README.md).
 

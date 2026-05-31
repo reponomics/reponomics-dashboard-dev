@@ -17,6 +17,7 @@ concurrency:
 env:
   PRIVACY_MODE: "strong"
   RETENTION_DAYS: "90"
+  GENERATE_HTML_DASHBOARD: "false"
   GENERATE_README: "false"
   REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
   REPONOMICS_ACTION_REF: "v0.16.0"
@@ -69,6 +70,7 @@ jobs:
               "action_sha": os.environ["REPONOMICS_ACTION_SHA"],
               "privacy_mode": os.environ["PRIVACY_MODE"],
               "retention_days": os.environ["RETENTION_DAYS"],
+              "generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"],
               "generate_readme": os.environ["GENERATE_README"],
           }
           Path("reponomics-collect-provenance/collect-provenance.json").write_text(
@@ -108,6 +110,11 @@ jobs:
                   raise SystemExit(f"Collect provenance {key} is not a commit SHA.")
           if str(payload.get("privacy_mode", "")) not in {"strong", "casual", "plain"}:
               raise SystemExit("Collect provenance privacy_mode is invalid.")
+          generate_html_dashboard = str(
+              payload.get("generate_html_dashboard", os.environ["GENERATE_HTML_DASHBOARD"])
+          )
+          if generate_html_dashboard not in {"true", "false"}:
+              raise SystemExit("Collect provenance generate_html_dashboard is invalid.")
           if str(payload.get("generate_readme", "")) not in {"true", "false"}:
               raise SystemExit("Collect provenance generate_readme is invalid.")
           workflow_run_id = str(payload.get("workflow_run_id", ""))
@@ -129,6 +136,7 @@ jobs:
               "action_sha": payload["action_sha"],
               "privacy_mode": payload["privacy_mode"],
               "retention_days": str(retention_days),
+              "generate_html_dashboard": generate_html_dashboard,
               "generate_readme": payload["generate_readme"],
           }
           with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
@@ -193,6 +201,7 @@ jobs:
           run-id: ${{ steps.provenance.outputs.workflow_run_id }}
 
       - name: Publish dashboard outputs
+        if: steps.provenance.outputs.generate_html_dashboard == 'true'
         uses: ./reponomics-dashboard-action
         with:
           mode: publish
@@ -204,3 +213,51 @@ jobs:
           privacy-mode: ${{ steps.provenance.outputs.privacy_mode }}
           retention-days: ${{ steps.provenance.outputs.retention_days }}
           generate-readme: ${{ steps.provenance.outputs.generate_readme }}
+
+      - name: Set up Python for artifact-only publish
+        if: steps.provenance.outputs.generate_html_dashboard != 'true'
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: "3.11"
+
+      - name: Install action runtime dependencies
+        if: steps.provenance.outputs.generate_html_dashboard != 'true'
+        run: python -m pip install --require-hashes -r reponomics-dashboard-action/requirements-runtime.txt
+
+      - name: Render README and downloadable dashboard without Pages deployment
+        if: steps.provenance.outputs.generate_html_dashboard != 'true'
+        env:
+          REPONOMICS_MODE: publish
+          # Automatic runs pre-download the triggering collect run's
+          # dashboard-data artifact. Leave github-token blank there so
+          # released actions that restore "latest" do not overwrite it.
+          REPONOMICS_GITHUB_TOKEN: ${{ github.event_name == 'workflow_dispatch' && github.token || '' }}
+          REPONOMICS_DASHBOARD_SECRET: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          REPONOMICS_PRIVACY_MODE: ${{ steps.provenance.outputs.privacy_mode }}
+          REPONOMICS_RETENTION_DAYS: ${{ steps.provenance.outputs.retention_days }}
+          REPONOMICS_GENERATE_README: ${{ steps.provenance.outputs.generate_readme }}
+          REPONOMICS_ACTION_REF: ${{ steps.provenance.outputs.action_ref }}
+          REPONOMICS_ACTION_REPOSITORY: ${{ steps.provenance.outputs.action_repository }}
+        run: python reponomics-dashboard-action/dashboard_action/run.py
+
+      - name: Upload plain downloadable dashboard
+        if: >-
+          steps.provenance.outputs.generate_html_dashboard != 'true' &&
+          steps.provenance.outputs.privacy_mode == 'plain'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: html-dashboard-plain
+          path: docs
+          retention-days: ${{ steps.provenance.outputs.retention_days }}
+          overwrite: true
+
+      - name: Upload encrypted downloadable dashboard
+        if: >-
+          steps.provenance.outputs.generate_html_dashboard != 'true' &&
+          steps.provenance.outputs.privacy_mode != 'plain'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: html-dashboard-encrypted
+          path: docs
+          retention-days: ${{ steps.provenance.outputs.retention_days }}
+          overwrite: true

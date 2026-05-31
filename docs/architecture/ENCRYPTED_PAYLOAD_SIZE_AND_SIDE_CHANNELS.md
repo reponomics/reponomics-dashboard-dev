@@ -8,8 +8,10 @@ Encrypted hosted dashboards protect dashboard contents from viewers without
 ## Current Surface
 
 The dashboard renderer lives in `reponomics-dashboard-action`. In `strong` and
-`casual`, `publish` renders an encrypted GitHub Pages artifact. The generated
-repository does not commit the hosted dashboard HTML.
+`casual`, `publish` renders encrypted dashboard HTML. When hosted publication
+is enabled, that output is deployed as a GitHub Pages artifact. Otherwise, it
+remains a downloadable workflow artifact. The generated repository does not
+commit the dashboard HTML.
 
 The public hosted surface can still reveal:
 

@@ -153,6 +153,7 @@ jobs:
               "action_sha": os.environ["REPONOMICS_ACTION_SHA"],
               "privacy_mode": os.environ["PRIVACY_MODE"],
               "retention_days": os.environ["RETENTION_DAYS"],
+              "generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"],
               "generate_readme": os.environ["GENERATE_README"],
           }
           Path("reponomics-collect-provenance/collect-provenance.json").write_text(

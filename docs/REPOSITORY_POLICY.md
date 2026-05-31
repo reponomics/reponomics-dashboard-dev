@@ -45,7 +45,8 @@ Retained dashboard data belongs in GitHub Actions artifacts:
 
 Retained dashboard data must not be committed to the generated repository.
 Dashboard HTML is rendered during `publish` and deployed through Pages artifacts
-for encrypted hosted dashboards.
+only for encrypted hosted dashboards. Non-hosted publish runs may still upload
+the rendered dashboard as a downloadable workflow artifact.
 
 ## Publication Discipline
 

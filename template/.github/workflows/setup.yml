@@ -17,7 +17,7 @@ on:
           # Plain retained CSV artifacts; private repositories only, no hosted Pages dashboard.
           - plain
       generate_html_dashboard:
-        description: "Generate HTML dashboard after collection"
+        description: "Publish hosted HTML dashboard after collection"
         type: boolean
         required: true
         default: false
@@ -256,6 +256,7 @@ jobs:
               Path(".github/workflows/publish.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+                  "GENERATE_HTML_DASHBOARD": os.environ["GENERATE_HTML_DASHBOARD"],
                   "GENERATE_README": os.environ["GENERATE_README"],
               },
           }
@@ -326,7 +327,7 @@ jobs:
             echo "the workflows from the Actions tab."
           } >> "$GITHUB_STEP_SUMMARY"
 
-          if [ "$PUBLISH_WORKFLOW" = "enabled" ] && [ "$PRIVACY_MODE" != "plain" ]; then
+          if [ "$GENERATE_HTML_DASHBOARD" = "true" ] && [ "$PRIVACY_MODE" != "plain" ]; then
             {
               echo
               echo "## Manual GitHub Pages step"

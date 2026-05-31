@@ -99,6 +99,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     action_ref = f"uses: {release.repository}@{release.tag}"
     action_ref_env = f'REPONOMICS_ACTION_REF: "{release.tag}"'
     action_sha_env = f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"'
+    html_env = 'GENERATE_HTML_DASHBOARD: "false"'
     assert "docs-sync:" in collect
     assert "mode: docs-sync" in collect
     assert "github-token: ${{ github.token }}" in collect
@@ -106,17 +107,26 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert action_ref in collect
     assert action_ref_env in collect
     assert action_sha_env in collect
+    assert html_env in collect
     assert "reponomics-collect-provenance" in collect
+    assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"]' in collect
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in collect
     assert "source_sha" in publish
     assert "workflow_run_id" in publish
     assert "action_sha" in publish
+    assert "generate_html_dashboard" in publish
     assert "uses: ./reponomics-dashboard-action" in publish
+    assert "if: steps.provenance.outputs.generate_html_dashboard == 'true'" in publish
+    assert "Render README and downloadable dashboard without Pages deployment" in publish
+    assert "Upload plain downloadable dashboard" in publish
+    assert "Upload encrypted downloadable dashboard" in publish
+    assert "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405" in publish
     assert "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in publish
     assert "repository: ${{ steps.provenance.outputs.action_repository }}" in publish
     assert "ref: ${{ steps.provenance.outputs.action_sha }}" in publish
     assert "mode: docs-sync" not in publish
     assert "allow-docs-sync" not in publish
+    assert html_env in publish
     assert action_ref_env in publish
     assert action_sha_env in publish
     assert action_ref not in setup
@@ -146,7 +156,7 @@ def test_setup_workflow_resolves_privacy_modes():
         assert re.search(rf"^\s+- {mode}$", setup, flags=re.MULTILINE)
 
     assert "generate_html_dashboard:" in setup
-    assert 'description: "Generate HTML dashboard after collection"' in setup
+    assert 'description: "Publish hosted HTML dashboard after collection"' in setup
     assert "generate_readme:" in setup
     assert 'description: "Generate README after collection (private repositories only)"' in setup
     assert "use_github_app:" in setup
@@ -205,6 +215,7 @@ def test_setup_workflow_resolves_privacy_modes():
     )
     assert casual_length_check not in setup
     assert "Manual GitHub Pages step" in setup
+    assert '[ "$GENERATE_HTML_DASHBOARD" = "true" ] && [ "$PRIVACY_MODE" != "plain" ]' in setup
     assert "Collection auth mode" in setup
     assert "Settings -> Pages" in setup
     assert "skip them" in setup
@@ -244,6 +255,23 @@ def test_action_release_manifest_and_metadata_contract():
     assert release.tag == "v0.16.0"
     assert re.fullmatch(r"[0-9a-f]{40}", release.target_commitish)
     sync_action_release.validate_action_metadata(ACTION_YML_FIXTURE)
+
+
+def test_action_release_sync_workflow_can_update_existing_branch():
+    workflow = Path(".github/workflows/dev-sync-action-release.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert 'git ls-remote --exit-code --heads origin "$branch"' in workflow
+    assert (
+        'git fetch --depth=1 origin "${remote_ref}:refs/remotes/origin/${branch}"'
+        in workflow
+    )
+    assert (
+        'git push --force-with-lease="${remote_ref}:${expected}" '
+        'origin "HEAD:${remote_ref}"'
+    ) in workflow
+    assert 'git push origin "HEAD:${remote_ref}"' in workflow
 
 
 def test_action_release_sync_rewrites_refs_and_status(tmp_path):
