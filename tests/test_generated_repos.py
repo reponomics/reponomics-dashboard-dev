@@ -37,21 +37,26 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     build_template.build_template(output)
 
     required = [
+        ".github/ISSUE_TEMPLATE/config.yml",
         ".github/workflows/collect.yml.disabled",
         ".github/workflows/incident-sentinel.yml.disabled",
         ".github/workflows/keepalive.yml.disabled",
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
         "README.md",
+        "SECURITY.md",
+        "SUPPORT.md",
         "config.yaml",
         "config.example.yaml",
         "docs/FAQ.md",
+        "docs/PRIVACY_CONFIGURATION_MATRIX.md",
         "docs/PROVENANCE.md",
         "docs/README.md",
         "docs/SECURE_DASHBOARD_KEY.md",
         "docs/TRUST_BOUNDARY.md",
-        "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
@@ -77,6 +82,7 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "docs/REPOSITORY_POLICY.md",
         "docs/archive",
         "docs/adr",
+        "docs/architecture",
     ]
     for relative_path in forbidden:
         assert not (output / relative_path).exists()
@@ -216,7 +222,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COLLECTION_APP_ID" in setup
     assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
     assert "docs/SECURE_DASHBOARD_KEY.md" in setup
-    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "docs/PRIVACY_CONFIGURATION_MATRIX.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (
@@ -360,6 +366,22 @@ def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
     assert "hesreallyhim" not in text
     assert "GENERATED_REPOSITORY_MODEL.md" not in text
     assert "REPOSITORY_POLICY.md" not in text
+
+
+def test_template_community_docs_mark_generated_artifact_boundary(tmp_path):
+    output = tmp_path / "template"
+    build_template.build_template(output)
+
+    readme = (output / "README.md").read_text(encoding="utf-8")
+    contributing = (output / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    support = (output / "SUPPORT.md").read_text(encoding="utf-8")
+
+    assert "generated artifact" in readme.lower()
+    assert "does not accept direct pull requests" in readme.lower()
+    assert "not the contribution surface" in contributing.lower()
+    assert "reponomics-dashboard-dev" in contributing
+    assert "reponomics-dashboard-action" in support
+    assert not (output / "docs" / "architecture").exists()
 
 
 def test_template_verify_rejects_forbidden_paths(tmp_path):
