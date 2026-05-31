@@ -17,9 +17,9 @@ We need an automated, low-friction safeguard that preserves the latest unexpired
 
 ## Decision
 
-Add a dedicated template workflow: `.github/workflows/incident-sentinel.yml.disabled`.
+Add a dedicated template workflow: `.github/workflows/incident-sentinel.yml`.
 
-The setup workflow enables this sentinel workflow alongside `collect` so generated repositories receive it automatically.
+The setup workflow marks the repository as initialized, and the sentinel workflow activates after that setup marker is present.
 
 Sentinel behavior:
 

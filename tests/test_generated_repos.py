@@ -38,10 +38,10 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
 
     required = [
         ".github/ISSUE_TEMPLATE/config.yml",
-        ".github/workflows/collect.yml.disabled",
-        ".github/workflows/incident-sentinel.yml.disabled",
-        ".github/workflows/keepalive.yml.disabled",
-        ".github/workflows/publish.yml.disabled",
+        ".github/workflows/collect.yml",
+        ".github/workflows/incident-sentinel.yml",
+        ".github/workflows/keepalive.yml",
+        ".github/workflows/publish.yml",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
         ".github/workflows/README.md",
@@ -96,10 +96,10 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     release = sync_action_release.load_manifest()
 
     workflows = output / ".github" / "workflows"
-    collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
-    sentinel = (workflows / "incident-sentinel.yml.disabled").read_text(encoding="utf-8")
-    keepalive = (workflows / "keepalive.yml.disabled").read_text(encoding="utf-8")
-    publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
+    collect = (workflows / "collect.yml").read_text(encoding="utf-8")
+    sentinel = (workflows / "incident-sentinel.yml").read_text(encoding="utf-8")
+    keepalive = (workflows / "keepalive.yml").read_text(encoding="utf-8")
+    publish = (workflows / "publish.yml").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
 
@@ -108,6 +108,8 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     action_sha_env = f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"'
     html_env = 'GENERATE_HTML_DASHBOARD: "false"'
     assert "docs-sync:" in collect
+    assert "Verify setup marker" in collect
+    assert "SETUP_COMPLETE_MARKER" in collect
     assert "mode: docs-sync" in collect
     assert "github-token: ${{ github.token }}" in collect
     assert "allow-docs-sync" not in collect
@@ -119,6 +121,8 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"]' in collect
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in collect
     assert "source_sha" in publish
+    assert 'PUBLISH_WORKFLOW_ENABLED: "false"' in publish
+    assert "env.PUBLISH_WORKFLOW_ENABLED == 'true'" in publish
     assert "workflow_run_id" in publish
     assert "action_sha" in publish
     assert (
@@ -162,6 +166,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "workflow_run:" in publish
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
+    assert "Verify setup marker" in keepalive
     assert "60 days without repository activity" in keepalive
 
 
@@ -194,7 +199,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
     assert "allow_docs_sync: false" in setup
     assert "Managed docs sync" in setup
-    assert "git add -A .github/workflows README.md" in setup
+    assert "setup-complete.md" in setup
+    assert "git add -A .github/workflows .reponomics/setup-complete.md README.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup
@@ -206,8 +212,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
     assert "actions: write" not in setup
     assert "DASHBOARD_NEXT_SECRET" not in setup
-    assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
-    assert 'enable_workflow ".github/workflows/keepalive.yml"' in setup
+    assert "enable_workflow" not in setup
     assert "Scheduled workflow keepalive" in setup
     assert "60 days without repository activity" in setup
     assert "token: ${{ secrets.COLLECTION_TOKEN" not in setup

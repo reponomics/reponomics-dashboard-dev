@@ -9,13 +9,13 @@ include:
   - source: template/.github/ISSUE_TEMPLATE/config.yml
     target: .github/ISSUE_TEMPLATE/config.yml
   - source: template/.github/workflows/collect.yml
-    target: .github/workflows/collect.yml.disabled
+    target: .github/workflows/collect.yml
   - source: template/.github/workflows/incident-sentinel.yml
-    target: .github/workflows/incident-sentinel.yml.disabled
+    target: .github/workflows/incident-sentinel.yml
   - source: template/.github/workflows/keepalive.yml
-    target: .github/workflows/keepalive.yml.disabled
+    target: .github/workflows/keepalive.yml
   - source: template/.github/workflows/publish.yml
-    target: .github/workflows/publish.yml.disabled
+    target: .github/workflows/publish.yml
   - source: template/.github/workflows/rotate-key.yml
     target: .github/workflows/rotate-key.yml
   - source: template/.github/workflows/setup.yml

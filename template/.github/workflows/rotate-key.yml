@@ -26,6 +26,19 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Verify setup marker
+        run: |
+          set -euo pipefail
+
+          if [ ! -f ".reponomics/setup-complete.md" ]; then
+            {
+              echo "## Rotation stopped"
+              echo
+              echo "Run \`Set up Reponomics dashboard\` before rotating the dashboard key."
+            } >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+
       - name: Load collection modes
         env:
           CONFIRM_ROTATION: ${{ inputs.confirm_rotation }}

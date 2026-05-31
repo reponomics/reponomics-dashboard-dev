@@ -37,7 +37,7 @@ Keep a required smoke check that:
 
 1. builds `dist/template`
 2. publishes to an ephemeral local bare remote
-3. lints generated workflows (including disabled workflow variants) with
+3. lints generated workflows (including setup-guarded workflows) with
    `actionlint`
 
 This validates template publication mechanics and workflow syntax while staying

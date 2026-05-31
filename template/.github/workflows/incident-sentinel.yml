@@ -12,6 +12,7 @@ permissions:
 
 env:
   OUTAGE_RETENTION_DAYS: "90"
+  SETUP_COMPLETE_MARKER: ".reponomics/setup-complete.md"
 
 jobs:
   preserve:
@@ -24,7 +25,30 @@ jobs:
       actions: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Verify setup marker
+        id: setup_state
+        run: |
+          set -euo pipefail
+
+          if [ -f "$SETUP_COMPLETE_MARKER" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          {
+            echo "## Incident sentinel skipped"
+            echo
+            echo "Run \`Set up Reponomics dashboard\` before using incident sentinel."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+
       - name: Resolve source artifact
+        if: steps.setup_state.outputs.ready == 'true'
         id: source
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -131,7 +155,7 @@ jobs:
           PY
 
       - name: Download selected artifact archive
-        if: ${{ steps.source.outputs.found == 'true' }}
+        if: ${{ steps.setup_state.outputs.ready == 'true' && steps.source.outputs.found == 'true' }}
         env:
           GITHUB_TOKEN: ${{ github.token }}
           DOWNLOAD_URL: ${{ steps.source.outputs.download_url }}
@@ -161,7 +185,7 @@ jobs:
           PY
 
       - name: Extract selected artifact payload
-        if: ${{ steps.source.outputs.found == 'true' }}
+        if: ${{ steps.setup_state.outputs.ready == 'true' && steps.source.outputs.found == 'true' }}
         run: |
           set -euo pipefail
           mkdir -p .sentinel/dashboard-data
@@ -169,7 +193,7 @@ jobs:
           ls -la .sentinel/dashboard-data
 
       - name: Upload preserved dashboard data artifact
-        if: ${{ steps.source.outputs.found == 'true' }}
+        if: ${{ steps.setup_state.outputs.ready == 'true' && steps.source.outputs.found == 'true' }}
         uses: actions/upload-artifact@v4
         with:
           name: dashboard-data
@@ -178,7 +202,7 @@ jobs:
           overwrite: true
 
       - name: Write preservation summary
-        if: ${{ steps.source.outputs.found == 'true' }}
+        if: ${{ steps.setup_state.outputs.ready == 'true' && steps.source.outputs.found == 'true' }}
         run: |
           {
             echo "## Outage sentinel"

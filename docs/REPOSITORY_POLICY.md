@@ -53,7 +53,8 @@ Direct edits to `reponomics-dashboard` are emergency-only and must be backported
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
 
 - template workflow sources live under `template/.github/workflows` with normal `.yml` filenames
-- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-sentinel.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
+- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml`, `incident-sentinel.yml`, `keepalive.yml`, `publish.yml`, `rotate-key.yml`
+- before setup runs, those workflows are visible but guard their runtime paths using setup markers and/or explicit setup-enabled flags
 - maintainer workflows use the `dev-*.yml` filename prefix
 
 `template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.

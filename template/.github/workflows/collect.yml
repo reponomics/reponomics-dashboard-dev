@@ -18,6 +18,7 @@ env:
   RETENTION_DAYS: "90"
   GENERATE_HTML_DASHBOARD: "false"
   GENERATE_README: "false"
+  SETUP_COMPLETE_MARKER: ".reponomics/setup-complete.md"
   USE_GITHUB_APP: "false"
   REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
   REPONOMICS_ACTION_REF: "v0.17.0"
@@ -37,7 +38,25 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Verify setup marker
+        id: setup_state
+        run: |
+          set -euo pipefail
+
+          if [ -f "$SETUP_COMPLETE_MARKER" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          {
+            echo "## Collection skipped"
+            echo
+            echo "Run \`Set up Reponomics dashboard\` before running collection."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+
       - name: Sync managed Reponomics docs
+        if: steps.setup_state.outputs.ready == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.17.0
         with:
           mode: docs-sync
@@ -57,7 +76,25 @@ jobs:
         with:
           ref: main
 
+      - name: Verify setup marker
+        id: setup_state
+        run: |
+          set -euo pipefail
+
+          if [ -f "$SETUP_COMPLETE_MARKER" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          {
+            echo "## Collection skipped"
+            echo
+            echo "Run \`Set up Reponomics dashboard\` before running collection."
+          } >> "$GITHUB_STEP_SUMMARY"
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+
       - name: Refuse incomplete key rotation
+        if: steps.setup_state.outputs.ready == 'true'
         env:
           DASHBOARD_NEXT_SECRET: ${{ secrets.DASHBOARD_NEXT_SECRET }}
         run: |
@@ -75,8 +112,8 @@ jobs:
           fi
 
       - name: Mint GitHub App installation token (advanced)
+        if: steps.setup_state.outputs.ready == 'true' && env.USE_GITHUB_APP == 'true'
         id: collection_app_token
-        if: ${{ env.USE_GITHUB_APP == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}
@@ -84,6 +121,7 @@ jobs:
           owner: ${{ github.repository_owner }}
 
       - name: Resolve collection token
+        if: steps.setup_state.outputs.ready == 'true'
         id: resolve_collection_token
         env:
           USE_GITHUB_APP: ${{ env.USE_GITHUB_APP }}
@@ -118,6 +156,7 @@ jobs:
           echo "collection_token=$COLLECTION_TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Collect retained dashboard data
+        if: steps.setup_state.outputs.ready == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.17.0
         with:
           mode: collect
@@ -129,7 +168,7 @@ jobs:
           retention-days: ${{ env.RETENTION_DAYS }}
 
       - name: Write collect provenance for publish
-        if: env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true'
+        if: steps.setup_state.outputs.ready == 'true' && (env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true')
         run: |
           set -euo pipefail
 
@@ -163,7 +202,7 @@ jobs:
           PY
 
       - name: Upload collect provenance for publish
-        if: env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true'
+        if: steps.setup_state.outputs.ready == 'true' && (env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true')
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: reponomics-collect-provenance

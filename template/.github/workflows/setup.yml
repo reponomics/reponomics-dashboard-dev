@@ -217,26 +217,6 @@ jobs:
         run: |
           set -euo pipefail
 
-          enable_workflow() {
-            local workflow="$1"
-            local disabled_workflow="$1.disabled"
-
-            if [ -f "$disabled_workflow" ]; then
-              mv "$disabled_workflow" "$workflow"
-            elif [ ! -f "$workflow" ]; then
-              echo "Could not find $disabled_workflow or $workflow."
-              exit 1
-            fi
-          }
-
-          enable_workflow ".github/workflows/collect.yml"
-          enable_workflow ".github/workflows/incident-sentinel.yml"
-          enable_workflow ".github/workflows/keepalive.yml"
-
-          if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
-            enable_workflow ".github/workflows/publish.yml"
-          fi
-
           python - <<'PY'
           import os
           import re
@@ -258,6 +238,11 @@ jobs:
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
                   "GENERATE_HTML_DASHBOARD": os.environ["GENERATE_HTML_DASHBOARD"],
                   "GENERATE_README": os.environ["GENERATE_README"],
+                  "PUBLISH_WORKFLOW_ENABLED": (
+                      "true"
+                      if os.environ["PUBLISH_WORKFLOW"] == "enabled"
+                      else "false"
+                  ),
               },
           }
 
@@ -274,6 +259,14 @@ jobs:
                   )
               workflow.write_text(text, encoding="utf-8")
           PY
+
+          mkdir -p .reponomics
+          cat > .reponomics/setup-complete.md <<'MD'
+          # Reponomics Setup Complete
+
+          This marker file is written by `Set up Reponomics dashboard`.
+          Managed workflows check this file before running runtime jobs.
+          MD
 
       - name: Write setup README
         run: |
@@ -300,10 +293,10 @@ jobs:
           {
             echo "## Reponomics setup configured"
             echo
-            echo "- Collection workflow: enabled"
-            echo "- Incident sentinel workflow: enabled"
-            echo "- Scheduled workflow keepalive: enabled"
-            echo "- Publish workflow: $PUBLISH_WORKFLOW"
+            echo "- Collection workflow: visible with setup guard"
+            echo "- Incident sentinel workflow: visible with setup guard"
+            echo "- Scheduled workflow keepalive: visible with setup guard"
+            echo "- Publish workflow: visible; runtime enabled = $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
             echo "- Collection auth mode: \`$COLLECTION_AUTH_MODE\`"
             echo "- README generation: \`$GENERATE_README\`"
@@ -349,6 +342,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A .github/workflows README.md
+          git add -A .github/workflows .reponomics/setup-complete.md README.md
           git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
           git push

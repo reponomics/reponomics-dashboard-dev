@@ -14,9 +14,9 @@ Users also need an explicit reminder that the retained artifact is the canonical
 
 ## Decision
 
-Add a dedicated template workflow: `.github/workflows/keepalive.yml.disabled`.
+Add a dedicated template workflow: `.github/workflows/keepalive.yml`.
 
-The setup workflow enables this keepalive workflow alongside `collect` and `incident-sentinel` so generated repositories receive it automatically.
+The setup workflow marks the repository as initialized, and keepalive behavior activates after that setup marker is present.
 
 Keepalive behavior:
 

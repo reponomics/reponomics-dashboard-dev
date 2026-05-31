@@ -19,6 +19,7 @@ env:
   RETENTION_DAYS: "90"
   GENERATE_HTML_DASHBOARD: "false"
   GENERATE_README: "false"
+  PUBLISH_WORKFLOW_ENABLED: "false"
   REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
   REPONOMICS_ACTION_REF: "v0.17.0"
   REPONOMICS_ACTION_SHA: "fb512571f7e91740a4df6e8ef4bd97d083b71311"
@@ -26,8 +27,11 @@ env:
 jobs:
   publish:
     if: >-
-      (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
-      github.event.workflow_run.conclusion == 'success'
+      env.PUBLISH_WORKFLOW_ENABLED == 'true' &&
+      (
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+        github.event.workflow_run.conclusion == 'success'
+      )
     runs-on: ubuntu-latest
     permissions:
       contents: write
