@@ -113,3 +113,4 @@ If you run workflows on self-hosted runners, provide:
 - GitHub CLI (`gh`) for setup token validation
 
 For maintainers working in `reponomics-dashboard-dev`, local tooling supports Python `3.11+` and maintainer CI validates Python `3.11` and `3.12`.
+Dependency lock maintenance and automation are documented in [docs/MAINTAINER_DEPENDENCY_PROTOCOL.md](docs/MAINTAINER_DEPENDENCY_PROTOCOL.md).
