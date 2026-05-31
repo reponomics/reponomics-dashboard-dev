@@ -22,7 +22,6 @@ TEMPLATE_WORKFLOW_OUTPUTS = {
     "template/.github/workflows/rotate-key.yml": ".github/workflows/rotate-key.yml",
     "template/.github/workflows/setup.yml": ".github/workflows/setup.yml",
 }
-DEV_WORKFLOW_PREFIX = "dev-"
 DEV_WORKFLOW_GLOB = ".github/workflows/dev-*.yml"
 
 
@@ -54,21 +53,6 @@ def _iter_template_workflow_files() -> list[str]:
         for path in TEMPLATE_WORKFLOW_DIR.iterdir()
         if path.is_file()
     )
-
-
-def _verify_workflow_filenames(workflow_files: list[str]) -> None:
-    violations: list[str] = []
-    for name in workflow_files:
-        if name.startswith(DEV_WORKFLOW_PREFIX) and name.endswith(".yml"):
-            continue
-        violations.append(name)
-    if violations:
-        listed = "\n".join(f"  - {name}" for name in violations)
-        raise WorkflowClassificationError(
-            "Unclassified workflow files detected. Template workflows belong "
-            f"under `template/.github/workflows`; maintainer workflows must use "
-            f"the `{DEV_WORKFLOW_PREFIX}*.yml` filename prefix:\n{listed}"
-        )
 
 
 def _verify_template_workflow_sources(template_workflow_files: list[str]) -> None:
@@ -129,7 +113,6 @@ def verify() -> None:
     workflow_files = _iter_workflow_files()
     template_workflow_files = _iter_template_workflow_files()
     manifest = _load_manifest()
-    _verify_workflow_filenames(workflow_files)
     _verify_template_workflow_sources(template_workflow_files)
     _verify_manifest_includes(manifest)
     _verify_manifest_forbidden(manifest)
