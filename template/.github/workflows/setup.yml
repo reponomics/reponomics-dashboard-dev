@@ -238,11 +238,6 @@ jobs:
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
                   "GENERATE_HTML_DASHBOARD": os.environ["GENERATE_HTML_DASHBOARD"],
                   "GENERATE_README": os.environ["GENERATE_README"],
-                  "PUBLISH_WORKFLOW_ENABLED": (
-                      "true"
-                      if os.environ["PUBLISH_WORKFLOW"] == "enabled"
-                      else "false"
-                  ),
               },
           }
 
@@ -254,6 +249,18 @@ jobs:
                   text = re.sub(
                       rf'^  {key}: ".*"$',
                       f'  {key}: "{value}"',
+                      text,
+                      flags=re.MULTILINE,
+                  )
+              if workflow.name == "publish.yml":
+                  publish_enabled = (
+                      "true"
+                      if os.environ["PUBLISH_WORKFLOW"] == "enabled"
+                      else "false"
+                  )
+                  text = re.sub(
+                      r"^(\s*)fromJSON\('(true|false)'\) &&$",
+                      rf"\1fromJSON('{publish_enabled}') &&",
                       text,
                       flags=re.MULTILINE,
                   )

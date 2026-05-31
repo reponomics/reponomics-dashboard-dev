@@ -47,12 +47,17 @@ def _prepare_generated_workflows(output_dir: Path, temp_root: Path) -> Path:
     sandbox = temp_root / "generated-template"
     shutil.copytree(output_dir, sandbox)
     workflow_dir = sandbox / ".github" / "workflows"
+    # Backward-compatibility shim: legacy generated templates used
+    # .yml.disabled files for collect/publish. Current templates emit
+    # canonical .yml filenames and gate runtime behavior in-workflow.
     collect_disabled = workflow_dir / "collect.yml.disabled"
     publish_disabled = workflow_dir / "publish.yml.disabled"
     collect = workflow_dir / "collect.yml"
     publish = workflow_dir / "publish.yml"
-    shutil.copy2(collect_disabled, collect)
-    shutil.copy2(publish_disabled, publish)
+    if collect_disabled.exists() and not collect.exists():
+        shutil.copy2(collect_disabled, collect)
+    if publish_disabled.exists() and not publish.exists():
+        shutil.copy2(publish_disabled, publish)
     return workflow_dir
 
 

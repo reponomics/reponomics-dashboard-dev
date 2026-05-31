@@ -121,8 +121,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"]' in collect
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in collect
     assert "source_sha" in publish
-    assert 'PUBLISH_WORKFLOW_ENABLED: "false"' in publish
-    assert "env.PUBLISH_WORKFLOW_ENABLED == 'true'" in publish
+    assert "fromJSON('false') &&" in publish
     assert "workflow_run_id" in publish
     assert "action_sha" in publish
     assert (
