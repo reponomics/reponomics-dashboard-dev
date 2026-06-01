@@ -384,7 +384,8 @@ def test_template_community_docs_mark_generated_artifact_boundary(tmp_path):
     assert "generated artifact" in readme.lower()
     assert "does not accept direct pull requests" in readme.lower()
     assert "generated artifact produced by the [reponomics dashboard development repo]" in contributing.lower()
-    assert "reponomics/reponomics-dashboard" in contributing
+    assert "https://github.com/reponomics/reponomics-dashboard-dev" in contributing
+    assert "https://github.com/reponomics/reponomics-dashboard)" not in contributing
     assert "reponomics-dashboard-action" in contributing
     assert "not intended for public use" in support.lower()
     assert "provide information about how to obtain support" in support.lower()
