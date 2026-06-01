@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Template Source Repository
+    url: https://github.com/reponomics/reponomics-dashboard-dev/issues
+    about: Report template generation, workflow shell, or placeholder documentation issues.
+  - name: Runtime Action Repository
+    url: https://github.com/reponomics/reponomics-dashboard-action/issues
+    about: Report collect, publish, rotate-key, incident-reset, or docs-sync runtime issues.

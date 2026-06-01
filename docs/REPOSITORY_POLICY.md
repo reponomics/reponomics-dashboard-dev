@@ -7,7 +7,7 @@ This project uses a generated template repository instead of long-lived release 
 Human development happens in `reponomics-dashboard-dev`. This repository owns:
 
 - template workflow stubs
-- user-facing template docs
+- template-facing placeholder docs and community health file sources
 - `template-manifest.yml`
 - generated-output tests
 - publish tooling for `reponomics-dashboard`
@@ -23,7 +23,7 @@ The generated template is an onboarding shell. It should not contain runtime imp
 
 ## Runtime Action
 
-`reponomics-dashboard-action` is the versioned runtime artifact. It owns collection, artifact restore/upload, schema migration, encryption, README rendering, HTML dashboard rendering, CSV export packaging, update notices, and dashboard key rotation.
+`reponomics-dashboard-action` is the versioned runtime artifact. It owns collection, artifact restore/upload, schema migration, encryption, README rendering, HTML dashboard rendering, CSV export packaging, managed documentation sync, update notices, dashboard key rotation, and destructive incident reset.
 
 Generated workflows should call a pinned action ref instead of vendoring runtime internals into every user repository.
 
@@ -57,6 +57,10 @@ Workflow files in `reponomics-dashboard-dev` are split into two classes:
 - maintainer workflows use the `dev-*.yml` filename prefix
 
 `template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.
+
+Generated community health files and pre-release placeholder docs also come
+from `template/` sources. Root-level maintainer docs in this repository are not
+the generated template's user-facing documentation contract.
 
 ## Future Demo Repository
 

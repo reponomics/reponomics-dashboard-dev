@@ -37,21 +37,27 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     build_template.build_template(output)
 
     required = [
+        ".github/ISSUE_TEMPLATE/config.yml",
         ".github/workflows/collect.yml.disabled",
         ".github/workflows/incident-sentinel.yml.disabled",
         ".github/workflows/keepalive.yml.disabled",
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
+        ".github/workflows/README.md",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
         "README.md",
+        "SECURITY.md",
+        "SUPPORT.md",
         "config.yaml",
         "config.example.yaml",
         "docs/FAQ.md",
+        "docs/PRIVACY_CONFIGURATION_MATRIX.md",
         "docs/PROVENANCE.md",
         "docs/README.md",
         "docs/SECURE_DASHBOARD_KEY.md",
         "docs/TRUST_BOUNDARY.md",
-        "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
@@ -77,9 +83,30 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "docs/REPOSITORY_POLICY.md",
         "docs/archive",
         "docs/adr",
+        "docs/architecture",
     ]
     for relative_path in forbidden:
         assert not (output / relative_path).exists()
+
+
+def test_template_manifest_uses_template_owned_user_docs(tmp_path):
+    output = tmp_path / "template"
+
+    build_template.build_template(output)
+
+    readme = (output / "README.md").read_text(encoding="utf-8")
+    docs_index = (output / "docs" / "README.md").read_text(encoding="utf-8")
+    contributing = (output / "CONTRIBUTING.md").read_text(encoding="utf-8")
+    issue_config = (output / ".github" / "ISSUE_TEMPLATE" / "config.yml").read_text(
+        encoding="utf-8"
+    )
+
+    assert "Public pre-release placeholder" in readme
+    assert "docs/reponomics/" in readme
+    assert "Runtime-managed documentation" in docs_index
+    assert "accept direct feature" in contributing
+    assert "reponomics-dashboard-dev/issues" in issue_config
+    assert "Token Scope And Repository Owners" not in readme
 
 
 def test_template_workflows_delegate_to_reponomics_action(tmp_path):
@@ -101,6 +128,14 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     action_sha_env = f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"'
     html_env = 'GENERATE_HTML_DASHBOARD: "false"'
     assert "docs-sync:" in collect
+    assert "operation:" in collect
+    assert "incident-reset" in collect
+    assert "mode: incident-reset" in collect
+    assert "DASHBOARD_NEXT_SECRET" in collect
+    assert "actions: write" in collect
+    assert "INCIDENT_RESET_CONFIRMED" in collect
+    assert "PURGE_OLD_HISTORY_CONFIRMED" in collect
+    assert "IRREVERSIBLE_ACTION_CONFIRMED" in collect
     assert "mode: docs-sync" in collect
     assert "github-token: ${{ github.token }}" in collect
     assert "allow-docs-sync" not in collect
@@ -216,7 +251,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COLLECTION_APP_ID" in setup
     assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
     assert "docs/SECURE_DASHBOARD_KEY.md" in setup
-    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "docs/PRIVACY_CONFIGURATION_MATRIX.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (

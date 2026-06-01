@@ -42,7 +42,11 @@ The sentinel is intentionally a separate workflow (not folded into collect/publi
 - Outage resilience improves because canonical history can be kept alive during repeated collection failures without manual artifact handling.
 - The safeguard is format-agnostic: encrypted and plain artifacts are preserved byte-for-byte without decrypt/re-encrypt steps.
 - Operators still lose history if all source artifacts are already expired before sentinel runs.
-- Sentinel does not remediate compromised-history incidents; `incident-reset` remains required for secret exposure scenarios.
+- Sentinel does not remediate compromised-history incidents; `incident-reset`
+  remains required for secret exposure scenarios. In the generated template,
+  `incident-reset` is exposed from the collect workflow's manual dispatch path
+  so the runtime can delete prior runs and `dashboard-data` artifacts from the
+  same workflow that normally creates retained dashboard history.
 - Repeated upstream failures can produce additional maintenance runs, but each run is bounded and idempotent around the latest `dashboard-data` artifact name.
 
 ## Alternatives Considered

@@ -5,6 +5,27 @@ on:
     - cron: "0 6 * * *"
     - cron: "0 18 * * *"
   workflow_dispatch:
+    inputs:
+      operation:
+        description: "Operation to run"
+        type: choice
+        required: true
+        default: collect
+        options:
+          - collect
+          - incident-reset
+      incident_confirm_mode:
+        description: "For incident-reset only: type INCIDENT_RESET_CONFIRMED"
+        required: false
+        default: ""
+      incident_confirm_purge:
+        description: "For incident-reset only: type PURGE_OLD_HISTORY_CONFIRMED"
+        required: false
+        default: ""
+      incident_confirm_irreversible:
+        description: "For incident-reset only: type IRREVERSIBLE_ACTION_CONFIRMED"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -25,7 +46,9 @@ env:
 
 jobs:
   docs-sync:
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.operation != 'incident-reset')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -45,7 +68,9 @@ jobs:
 
   collect:
     needs: docs-sync
-    if: github.ref == 'refs/heads/main'
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      (github.event_name != 'workflow_dispatch' || github.event.inputs.operation != 'incident-reset')
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -170,3 +195,29 @@ jobs:
           path: reponomics-collect-provenance/collect-provenance.json
           retention-days: ${{ env.RETENTION_DAYS }}
           overwrite: true
+
+  # The reset path lives in this workflow so the action can purge previous
+  # collect workflow runs and their dashboard-data artifacts.
+  incident-reset:
+    if: >-
+      github.event_name == 'workflow_dispatch' &&
+      github.ref == 'refs/heads/main' &&
+      github.event.inputs.operation == 'incident-reset'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Reset compromised encrypted history
+        uses: reponomics/reponomics-dashboard-action@v0.17.0
+        with:
+          mode: incident-reset
+          github-token: ${{ github.token }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          dashboard-next-secret: ${{ secrets.DASHBOARD_NEXT_SECRET }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}
+          incident-confirm-mode: ${{ inputs.incident_confirm_mode }}
+          incident-confirm-purge: ${{ inputs.incident_confirm_purge }}
+          incident-confirm-irreversible: ${{ inputs.incident_confirm_irreversible }}

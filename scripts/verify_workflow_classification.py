@@ -51,7 +51,7 @@ def _iter_template_workflow_files() -> list[str]:
     return sorted(
         f"template/.github/workflows/{path.name}"
         for path in TEMPLATE_WORKFLOW_DIR.iterdir()
-        if path.is_file()
+        if path.is_file() and path.suffix in {".yml", ".yaml"}
     )
 
 
@@ -77,9 +77,14 @@ def _verify_manifest_includes(manifest: dict[str, Any]) -> None:
                 isinstance(source, str)
                 and isinstance(target, str)
                 and target.startswith(".github/workflows/")
+                and Path(target).suffix in {".yml", ".yaml", ".disabled"}
             ):
                 workflow_entries[source] = target
-        elif isinstance(entry, str) and entry.startswith(".github/workflows/"):
+        elif (
+            isinstance(entry, str)
+            and entry.startswith(".github/workflows/")
+            and Path(entry).suffix in {".yml", ".yaml"}
+        ):
             workflow_entries[entry] = entry
 
     if workflow_entries != TEMPLATE_WORKFLOW_OUTPUTS:

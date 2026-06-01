@@ -21,9 +21,11 @@ The generated template intentionally includes only:
 - workflow stubs for setup, collection, publication, scheduled workflow keepalive, incident response, and key rotation
 - `README.md`
 - `config.yaml`
-- user-facing docs under `docs/`
+- pre-release placeholder docs under `docs/`
 - Reponomics-managed local docs under `docs/reponomics/` after docs sync runs
 - repository metadata such as `.gitignore` and `LICENSE`
+- template-owned community health files such as `CONTRIBUTING.md`,
+  `SECURITY.md`, `SUPPORT.md`, and `CODE_OF_CONDUCT.md`
 
 It intentionally excludes maintainer scripts, tests, ADRs, archived planning docs, `dist/`, virtual environments, and runtime implementation files.
 
@@ -41,11 +43,14 @@ Collection also records the accepted action tag and resolved action commit SHA i
 
 The action input contract used by this template is:
 
-- `mode`: `collect`, `publish`, `rotate-key`, or `docs-sync`
+- `mode`: `collect`, `publish`, `rotate-key`, `incident-reset`, or `docs-sync`
 - `collection-token`
 - `github-token`
 - `dashboard-secret`
 - `dashboard-next-secret`
+- `incident-confirm-mode`
+- `incident-confirm-purge`
+- `incident-confirm-irreversible`
 - `privacy-mode`: `strong`, `casual`, or `plain`
 - `config-path`
 - `retention-days`
@@ -64,6 +69,9 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 - Automatic publish consumes collect provenance instead of the latest default branch action ref, so action upgrades cannot reinterpret an older collection artifact.
 - setup commits a static README; metric README output is committed only when `generate-readme` is true in a private repository.
 - `docs-sync` runs before collection and commits managed local documentation only under `docs/reponomics/`; missing write permission is advisory by default.
+- `incident-reset` is exposed as a manual branch of the collect workflow so it
+  can purge prior runs and `dashboard-data` artifacts belonging to that same
+  workflow after re-encrypting retained state with `DASHBOARD_NEXT_SECRET`.
 - CSV export is browser-local after encrypted dashboard unlock.
 
 No retained dashboard data CSV is committed to the generated repository.

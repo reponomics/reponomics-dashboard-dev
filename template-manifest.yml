@@ -6,6 +6,8 @@ description: >
   material.
 
 include:
+  - source: template/.github/ISSUE_TEMPLATE/config.yml
+    target: .github/ISSUE_TEMPLATE/config.yml
   - source: template/.github/workflows/collect.yml
     target: .github/workflows/collect.yml.disabled
   - source: template/.github/workflows/incident-sentinel.yml
@@ -18,17 +20,34 @@ include:
     target: .github/workflows/rotate-key.yml
   - source: template/.github/workflows/setup.yml
     target: .github/workflows/setup.yml
+  - source: template/.github/workflows/README.md
+    target: .github/workflows/README.md
   - .gitignore
+  - source: template/CODE_OF_CONDUCT.md
+    target: CODE_OF_CONDUCT.md
+  - source: template/CONTRIBUTING.md
+    target: CONTRIBUTING.md
   - LICENSE
-  - README.md
+  - source: template/README.md
+    target: README.md
+  - source: template/SECURITY.md
+    target: SECURITY.md
+  - source: template/SUPPORT.md
+    target: SUPPORT.md
   - config.yaml
   - config.example.yaml
-  - docs/FAQ.md
-  - docs/PROVENANCE.md
-  - docs/README.md
-  - docs/SECURE_DASHBOARD_KEY.md
-  - docs/TRUST_BOUNDARY.md
-  - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md
+  - source: template/docs/FAQ.md
+    target: docs/FAQ.md
+  - source: template/docs/PRIVACY_CONFIGURATION_MATRIX.md
+    target: docs/PRIVACY_CONFIGURATION_MATRIX.md
+  - source: template/docs/PROVENANCE.md
+    target: docs/PROVENANCE.md
+  - source: template/docs/README.md
+    target: docs/README.md
+  - source: template/docs/SECURE_DASHBOARD_KEY.md
+    target: docs/SECURE_DASHBOARD_KEY.md
+  - source: template/docs/TRUST_BOUNDARY.md
+    target: docs/TRUST_BOUNDARY.md
 
 forbidden:
   - .github/workflows/dev-*.yml
@@ -43,6 +62,7 @@ forbidden:
   - docs/LAUNCH_CHECKLIST.md
   - docs/REPOSITORY_POLICY.md
   - docs/adr
+  - docs/architecture
   - docs/archive
   - docs/privacy-model-explainer.html
   - maintainer.mk
