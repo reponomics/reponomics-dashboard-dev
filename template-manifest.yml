@@ -23,16 +23,16 @@ include:
   - source: template/.github/workflows/README.md
     target: .github/workflows/README.md
   - .gitignore
-  - source: template/CODE_OF_CONDUCT.template.md
+  - source: template/CODE_OF_CONDUCT.md
     target: CODE_OF_CONDUCT.md
-  - source: template/CONTRIBUTING.template.md
+  - source: template/CONTRIBUTING.md
     target: CONTRIBUTING.md
   - LICENSE
-  - source: template/README.template.md
+  - source: template/README.md
     target: README.md
-  - source: template/SECURITY.template.md
+  - source: template/SECURITY.md
     target: SECURITY.md
-  - source: template/SUPPORT.template.md
+  - source: template/SUPPORT.md
     target: SUPPORT.md
   - config.yaml
   - config.example.yaml
