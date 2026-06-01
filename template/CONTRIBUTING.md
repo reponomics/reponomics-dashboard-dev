@@ -4,11 +4,4 @@
 > Pre-release placeholder.
 > This template repository is not intended for public use.
 
-This repository is a generated artifact and not the contribution surface for runtime or template behavior changes.
-
-To request changes:
-
-- Open issues in [`reponomics/reponomics-dashboard-dev`](https://github.com/reponomics/reponomics-dashboard-dev) for template generation, workflow shells, and generated documentation behavior.
-- Open issues in [`reponomics/reponomics-dashboard-action`](https://github.com/reponomics/reponomics-dashboard-action) for runtime collection, artifact handling, encryption, rendering, and migration behavior.
-
-Direct pull requests to this generated template repository are not accepted.
+The Reponomics Dashboard is a template repository that collects traffic and growth metrics about your repositories across GitHub, and provides maintainers with an interactive analytics dashboard that they can host privately right on GitHub Pages. This template repository is a generated artifact produced by the [Reponomics Dashboard development repo](https://github.com/reponomics/reponomics-dashboard). It's mostly a thin shell for the [Reponomics Dashboard action](https://github.com/reponomics/reponomics-dashboard-action), which is responsible for collecting the data from the GitHub API, storing it in GitHub workflow artifacts, encrypting it using strong cryptographic protocols, and rendering the HTML dashboard site, as well as a markdown dashboard that can be displayed on the repository's README. If you're interested in learning more about the project, or would like to join the group of beta users, head over to the [Reponomics Dashboard Home](https://github.com/reponomics/reponomics-dashboard-home).
