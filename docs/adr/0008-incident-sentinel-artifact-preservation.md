@@ -11,7 +11,11 @@ The canonical analytics state for generated dashboard repositories is the `dashb
 
 A realistic outage class is repeated collection failure caused by token expiry, permission drift, or transient platform/API issues. If failures continue longer than artifact retention, the canonical retained history can expire even though repository workflows still exist.
 
-`incident-reset` in the action runtime addresses a different problem: compromised encryption history that requires destructive purge and re-encryption under a new key. It is not a passive continuity mechanism for ordinary collection outages.
+`incident-reset` in the action runtime addresses a different problem:
+compromised encryption history that requires destructive purge and
+re-encryption under a new key. It is not a passive continuity mechanism for
+ordinary collection outages, and it is not a substitute for data-loss
+prevention.
 
 We need an automated, low-friction safeguard that preserves the latest unexpired canonical artifact during collection outages without changing the privacy model or requiring decryption.
 
@@ -35,7 +39,10 @@ Permission model:
 - Top-level workflow permissions remain `contents: read`.
 - The preserve job elevates only what is required for artifact maintenance: `actions: write` plus `contents: read`.
 
-The sentinel is intentionally a separate workflow (not folded into collect/publish) to match the repository mental model: setup, collect, publish, rotate-key, and incident response are operationally distinct concerns.
+The sentinel is intentionally a separate workflow (not folded into
+collect/publish/reset) because it is non-destructive data-loss prevention.
+Destructive incident reset is a separate response to compromised encrypted
+history.
 
 ## Consequences
 
@@ -43,10 +50,12 @@ The sentinel is intentionally a separate workflow (not folded into collect/publi
 - The safeguard is format-agnostic: encrypted and plain artifacts are preserved byte-for-byte without decrypt/re-encrypt steps.
 - Operators still lose history if all source artifacts are already expired before sentinel runs.
 - Sentinel does not remediate compromised-history incidents; `incident-reset`
-  remains required for secret exposure scenarios. In the generated template,
-  `incident-reset` is exposed from the collect workflow's manual dispatch path
-  so the runtime can delete prior runs and `dashboard-data` artifacts from the
-  same workflow that normally creates retained dashboard history.
+  remains required for secret exposure scenarios. Conversely, `incident-reset`
+  is destructive and does not prevent ordinary collection-outage data loss. In
+  the generated template, `incident-reset` is exposed from the collect
+  workflow's manual dispatch path so the runtime can delete prior runs and
+  `dashboard-data` artifacts from the same workflow that normally creates
+  retained dashboard history.
 - Repeated upstream failures can produce additional maintenance runs, but each run is bounded and idempotent around the latest `dashboard-data` artifact name.
 
 ## Alternatives Considered

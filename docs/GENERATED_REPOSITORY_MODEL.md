@@ -18,7 +18,7 @@ This project treats repository boundaries as product boundaries.
 
 The generated template intentionally includes only:
 
-- workflow stubs for setup, collection, publication, scheduled workflow keepalive, incident response, and key rotation
+- workflow stubs for setup, collection, publication, scheduled workflow keepalive, non-destructive sentinel preservation, destructive incident reset, and key rotation
 - `README.md`
 - `config.yaml`
 - pre-release placeholder docs under `docs/`
@@ -69,6 +69,9 @@ Retained dashboard data lives in the `dashboard-data` GitHub Actions artifact.
 - Automatic publish consumes collect provenance instead of the latest default branch action ref, so action upgrades cannot reinterpret an older collection artifact.
 - setup commits a static README; metric README output is committed only when `generate-readme` is true in a private repository.
 - `docs-sync` runs before collection and commits managed local documentation only under `docs/reponomics/`; missing write permission is advisory by default.
+- `incident-sentinel` is non-destructive data-loss prevention. It preserves the
+  latest unexpired `dashboard-data` artifact with long retention when collection
+  fails, without decrypting, re-encrypting, or purging history.
 - `incident-reset` is exposed as a manual branch of the collect workflow so it
   can purge prior runs and `dashboard-data` artifacts belonging to that same
   workflow after re-encrypting retained state with `DASHBOARD_NEXT_SECRET`.

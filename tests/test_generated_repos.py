@@ -188,6 +188,9 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect
     assert "mode: publish" in publish
     assert "workflow_run:" in publish
+    workflow_readme = (workflows / "README.md").read_text(encoding="utf-8")
+    assert "non-destructive data-loss prevention backstop" in workflow_readme
+    assert "destructive rekey-and-purge path" in workflow_readme
     assert "Preserve Reponomics dashboard data artifact on outage" in sentinel
     assert 'workflows: ["Collect Reponomics Data"]' in sentinel
     assert "github.event.workflow_run.conclusion == 'failure'" in sentinel
