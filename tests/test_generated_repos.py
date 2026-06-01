@@ -188,6 +188,12 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect
     assert "mode: publish" in publish
     assert "workflow_run:" in publish
+    assert "Preserve Reponomics dashboard data artifact on outage" in sentinel
+    assert 'workflows: ["Collect Reponomics Data"]' in sentinel
+    assert "github.event.workflow_run.conclusion == 'failure'" in sentinel
+    assert "name=dashboard-data" in sentinel
+    assert "Upload preserved dashboard data artifact" in sentinel
+    assert "retention-days: ${{ env.OUTAGE_RETENTION_DAYS }}" in sentinel
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
     assert "60 days without repository activity" in keepalive
