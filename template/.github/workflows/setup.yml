@@ -123,8 +123,8 @@ jobs:
 
           token_url="https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
           app_url="https://github.com/settings/apps/new"
-          key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/SECURE_DASHBOARD_KEY.md"
-          privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/PRIVACY_CONFIGURATION_MATRIX.md"
+          key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/reponomics/SECURE_DASHBOARD_KEY.md"
+          privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/reponomics/PRIVACY_CONFIGURATION_MATRIX.md"
 
           collection_app_id="${COLLECTION_APP_ID_VAR:-}"
           if [ -z "$collection_app_id" ] && [ -n "${COLLECTION_APP_ID_SECRET:-}" ]; then

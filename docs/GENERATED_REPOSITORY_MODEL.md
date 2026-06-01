@@ -21,7 +21,7 @@ The generated template intentionally includes only:
 - workflow stubs for setup, collection, publication, scheduled workflow keepalive, non-destructive sentinel preservation, destructive incident reset, and key rotation
 - `README.md`
 - `config.yaml`
-- pre-release placeholder docs under `docs/`
+- pre-release placeholder docs under `docs/reponomics/`
 - Reponomics-managed local docs under `docs/reponomics/` after docs sync runs
 - repository metadata such as `.gitignore` and `LICENSE`
 - template-owned community health files such as `CONTRIBUTING.md`,

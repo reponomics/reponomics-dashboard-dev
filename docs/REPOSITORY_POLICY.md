@@ -59,8 +59,10 @@ Workflow files in `reponomics-dashboard-dev` are split into two classes:
 `template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.
 
 Generated community health files and pre-release placeholder docs also come
-from `template/` sources. Root-level maintainer docs in this repository are not
-the generated template's user-facing documentation contract.
+from `template/` sources. Placeholder user-facing docs ship only under
+`docs/reponomics/`, the mutable managed-docs namespace named by
+`allow_docs_sync`. Root-level maintainer docs in this repository are not the
+generated template's user-facing documentation contract.
 
 ## Future Demo Repository
 

@@ -36,18 +36,18 @@ include:
     target: SUPPORT.md
   - config.yaml
   - config.example.yaml
-  - source: template/docs/FAQ.md
-    target: docs/FAQ.md
-  - source: template/docs/PRIVACY_CONFIGURATION_MATRIX.md
-    target: docs/PRIVACY_CONFIGURATION_MATRIX.md
-  - source: template/docs/PROVENANCE.md
-    target: docs/PROVENANCE.md
-  - source: template/docs/README.md
-    target: docs/README.md
-  - source: template/docs/SECURE_DASHBOARD_KEY.md
-    target: docs/SECURE_DASHBOARD_KEY.md
-  - source: template/docs/TRUST_BOUNDARY.md
-    target: docs/TRUST_BOUNDARY.md
+  - source: template/docs/reponomics/FAQ.md
+    target: docs/reponomics/FAQ.md
+  - source: template/docs/reponomics/PRIVACY_CONFIGURATION_MATRIX.md
+    target: docs/reponomics/PRIVACY_CONFIGURATION_MATRIX.md
+  - source: template/docs/reponomics/PROVENANCE.md
+    target: docs/reponomics/PROVENANCE.md
+  - source: template/docs/reponomics/README.md
+    target: docs/reponomics/README.md
+  - source: template/docs/reponomics/SECURE_DASHBOARD_KEY.md
+    target: docs/reponomics/SECURE_DASHBOARD_KEY.md
+  - source: template/docs/reponomics/TRUST_BOUNDARY.md
+    target: docs/reponomics/TRUST_BOUNDARY.md
 
 forbidden:
   - .github/workflows/dev-*.yml

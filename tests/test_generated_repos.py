@@ -52,12 +52,12 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "SUPPORT.md",
         "config.yaml",
         "config.example.yaml",
-        "docs/FAQ.md",
-        "docs/PRIVACY_CONFIGURATION_MATRIX.md",
-        "docs/PROVENANCE.md",
-        "docs/README.md",
-        "docs/SECURE_DASHBOARD_KEY.md",
-        "docs/TRUST_BOUNDARY.md",
+        "docs/reponomics/FAQ.md",
+        "docs/reponomics/PRIVACY_CONFIGURATION_MATRIX.md",
+        "docs/reponomics/PROVENANCE.md",
+        "docs/reponomics/README.md",
+        "docs/reponomics/SECURE_DASHBOARD_KEY.md",
+        "docs/reponomics/TRUST_BOUNDARY.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
@@ -79,8 +79,14 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "vendor",
         "template",
         "template-action-release.yml",
+        "docs/FAQ.md",
         "docs/GENERATED_REPOSITORY_MODEL.md",
+        "docs/PRIVACY_CONFIGURATION_MATRIX.md",
+        "docs/PROVENANCE.md",
+        "docs/README.md",
         "docs/REPOSITORY_POLICY.md",
+        "docs/SECURE_DASHBOARD_KEY.md",
+        "docs/TRUST_BOUNDARY.md",
         "docs/archive",
         "docs/adr",
         "docs/architecture",
@@ -95,7 +101,9 @@ def test_template_manifest_uses_template_owned_user_docs(tmp_path):
     build_template.build_template(output)
 
     readme = (output / "README.md").read_text(encoding="utf-8")
-    docs_index = (output / "docs" / "README.md").read_text(encoding="utf-8")
+    docs_index = (output / "docs" / "reponomics" / "README.md").read_text(
+        encoding="utf-8"
+    )
     contributing = (output / "CONTRIBUTING.md").read_text(encoding="utf-8")
     issue_config = (output / ".github" / "ISSUE_TEMPLATE" / "config.yml").read_text(
         encoding="utf-8"
@@ -103,6 +111,7 @@ def test_template_manifest_uses_template_owned_user_docs(tmp_path):
 
     assert "Public pre-release placeholder" in readme
     assert "docs/reponomics/" in readme
+    assert re.search(r"mutable\s+Reponomics-managed documentation namespace", readme)
     assert "Runtime-managed documentation" in docs_index
     assert "accept direct feature" in contributing
     assert "reponomics-dashboard-dev/issues" in issue_config
@@ -259,8 +268,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COLLECTION_APP_PRIVATE_KEY" in setup
     assert "COLLECTION_APP_ID" in setup
     assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
-    assert "docs/SECURE_DASHBOARD_KEY.md" in setup
-    assert "docs/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "docs/reponomics/SECURE_DASHBOARD_KEY.md" in setup
+    assert "docs/reponomics/PRIVACY_CONFIGURATION_MATRIX.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (

@@ -20,6 +20,7 @@ Open template-source issues or runtime-action issues in the repositories above.
 
 ## Managed Docs
 
-Files under `docs/` are pre-release placeholders. The action writes managed
-runtime documentation under `docs/reponomics/` when docs sync runs in a
-generated dashboard repository.
+Files under `docs/reponomics/` are pre-release placeholders and are the mutable
+Reponomics-managed documentation namespace. The action may update that
+directory before collection when docs sync runs in a generated dashboard
+repository.
