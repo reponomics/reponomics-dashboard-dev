@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.2](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.1...v0.7.2) (2026-06-05)
+
+
+### Documentation
+
+* template readme ([#48](https://github.com/reponomics/reponomics-dashboard-dev/issues/48)) ([2e1b085](https://github.com/reponomics/reponomics-dashboard-dev/commit/2e1b0850e1cc51278364982a6b2a9cd9aa909167))
+
 ## [0.7.1](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.0...v0.7.1) (2026-06-05)
 
 
