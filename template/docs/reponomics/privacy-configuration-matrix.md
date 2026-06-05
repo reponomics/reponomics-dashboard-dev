@@ -1,6 +1,9 @@
 # Reponomics Privacy Configuration Matrix
 
-Status: current for action `v0.20.0`.
+> [!WARNING]
+> The Reponomics Dashboard template is currently in a pre-release public hardening phase. It is not intended for public use, and documentation in this managed-docs bundle should not be considered authoritative.
+
+Status: current for action `0.20.0`.
 
 Repository visibility and Reponomics privacy mode are separate concepts. Repository visibility controls who can read the repository. `privacy-mode` controls how retained artifacts and hosted dashboard output are stored.
 
@@ -20,7 +23,7 @@ Use `strong` as the default. It protects retained artifacts and hosted dashboard
 - publication timing
 - encrypted payload size
 - workflow metadata
-- metrics used in the private repository README dashboard
+- metrics included in a private repository's README dashboard
 
 `strong` is still a shared-secret model, not per-user authentication.
 

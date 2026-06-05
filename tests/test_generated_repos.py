@@ -1,5 +1,7 @@
 """Tests for generated Reponomics dashboard repository outputs."""
 
+import hashlib
+import json
 import re
 import sys
 from pathlib import Path
@@ -44,18 +46,78 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "SUPPORT.md",
         "README.md",
         "config.yaml",
         "config.example.yaml",
-        "docs/FAQ.md",
-        "docs/PROVENANCE.md",
-        "docs/README.md",
-        "docs/SECURE_DASHBOARD_KEY.md",
-        "docs/TRUST_BOUNDARY.md",
-        "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
+        "docs/reponomics/.manifest.json",
+        "docs/reponomics/README.md",
+        "docs/reponomics/configuration.md",
+        "docs/reponomics/privacy-and-artifacts.md",
+        "docs/reponomics/upgrade.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
+
+    generated_readme = (output / "README.md").read_text(encoding="utf-8")
+    assert generated_readme == Path("template/README.md").read_text(encoding="utf-8")
+    assert generated_readme != Path("README.md").read_text(encoding="utf-8")
+    assert "This is the setup README for your Reponomics dashboard repository." in (
+        generated_readme
+    )
+    assert "README.backup.md" in generated_readme
+
+
+def test_template_includes_initial_managed_docs_snapshot(tmp_path):
+    output = tmp_path / "template"
+
+    build_template.build_template(output)
+    release = sync_action_release.load_manifest()
+
+    docs_root = output / "docs" / "reponomics"
+    readme = (docs_root / "README.md").read_text(encoding="utf-8")
+    manifest = json.loads((docs_root / ".manifest.json").read_text(encoding="utf-8"))
+
+    assert "{{ACTION_VERSION}}" not in readme
+    assert f"Generated for Reponomics Dashboard Action {release.version}." in readme
+    assert manifest["managed_namespace"] == "docs/reponomics"
+    assert manifest["action_repository"] == release.repository
+    assert manifest["action_version"] == release.version
+    assert manifest["updated_at"] == release.published_at
+    expected_files = {
+        path.relative_to(docs_root).as_posix(): hashlib.sha256(
+            path.read_text(encoding="utf-8").encode("utf-8")
+        ).hexdigest()
+        for path in docs_root.rglob("*")
+        if path.is_file() and path.name != ".manifest.json"
+    }
+    assert "README.md" in expected_files
+    assert manifest["files"] == expected_files
+
+
+def test_template_community_docs_are_placeholders(tmp_path):
+    output = tmp_path / "template"
+
+    build_template.build_template(output)
+
+    generated_docs = [
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "SUPPORT.md",
+    ]
+    for relative_path in generated_docs:
+        text = (output / relative_path).read_text(encoding="utf-8")
+        assert "This is a placeholder document." in text
+        assert "not intended for public use" in text
+
+    for relative_path in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md"):
+        assert (output / relative_path).read_text(encoding="utf-8") != Path(
+            relative_path
+        ).read_text(encoding="utf-8")
 
 
 def test_template_manifest_excludes_action_owned_runtime(tmp_path):
@@ -75,7 +137,13 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "template",
         "template-action-release.yml",
         "docs/GENERATED_REPOSITORY_MODEL.md",
+        "docs/FAQ.md",
+        "docs/PROVENANCE.md",
         "docs/REPOSITORY_POLICY.md",
+        "docs/README.md",
+        "docs/SECURE_DASHBOARD_KEY.md",
+        "docs/TRUST_BOUNDARY.md",
+        "docs/architecture",
         "docs/archive",
         "docs/adr",
     ]
@@ -209,11 +277,15 @@ def test_setup_workflow_resolves_privacy_modes():
     assert '"GENERATE_README": os.environ["GENERATE_README"]' in setup
     assert 'echo "USE_GITHUB_APP=$USE_GITHUB_APP"' in setup
     assert "README dashboard generation is only supported for private repositories." in setup
+    assert "cp README.md README.backup.md" in setup
     assert "cat > README.md <<'MD'" in setup
+    assert setup.index("cp README.md README.backup.md") < setup.index(
+        "cat > README.md <<'MD'"
+    )
     assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
     assert "allow_docs_sync: false" in setup
     assert "Managed docs sync" in setup
-    assert "git add -A .github/workflows README.md" in setup
+    assert "git add -A .github/workflows README.md README.backup.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"PRIVACY_MODE": os.environ["PRIVACY_MODE"]' in setup
@@ -242,8 +314,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COLLECTION_APP_PRIVATE_KEY" in setup
     assert "COLLECTION_APP_ID" in setup
     assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
-    assert "docs/SECURE_DASHBOARD_KEY.md" in setup
-    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "docs/reponomics/secure-dashboard-key.md" in setup
+    assert "docs/reponomics/privacy-configuration-matrix.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (
@@ -261,13 +333,14 @@ def test_setup_workflow_resolves_privacy_modes():
 
 def test_docs_explain_multi_owner_token_fallback():
     readme = Path("README.md").read_text(encoding="utf-8")
+    template_readme = Path("template/README.md").read_text(encoding="utf-8")
     docs = Path("docs/README.md").read_text(encoding="utf-8")
 
     assert "Token Scope And Repository Owners" in readme
     assert "before choosing a token" in readme
     assert "Repository entries use full `owner/repo` names" in readme
 
-    for text in (readme, docs):
+    for text in (readme, template_readme, docs):
         assert "supports one collection credential" in text
         assert "Fine-grained personal access tokens are scoped to one GitHub resource owner" in text
         assert re.search(r"multiple users or\s+organizations", text)
@@ -339,6 +412,55 @@ def test_action_release_sync_rewrites_refs_and_status(tmp_path):
     assert sync_action_release.load_manifest(tmp_path).tag == "v0.16.0"
 
 
+def test_action_release_sync_writes_managed_docs_snapshot(tmp_path):
+    release = sync_action_release.ActionRelease(
+        repository=sync_action_release.ACTION_REPOSITORY,
+        tag="v0.16.0",
+        target_commitish="a" * 40,
+        release_url="https://github.com/reponomics/reponomics-dashboard-action/releases/tag/v0.16.0",
+        published_at="2026-05-31T05:19:33Z",
+    )
+    bundle = {
+        "README.md": "Generated for {{ACTION_VERSION}}.\n",
+        "nested/topic.md": "Action {{ACTION_VERSION}}\n",
+    }
+
+    sync_action_release.sync_release(
+        tmp_path,
+        release,
+        ACTION_YML_FIXTURE,
+        managed_docs_bundle=bundle,
+    )
+
+    docs_root = tmp_path / "template" / "docs" / "reponomics"
+    manifest = json.loads((docs_root / ".manifest.json").read_text(encoding="utf-8"))
+    assert (docs_root / "README.md").read_text(encoding="utf-8") == (
+        "Generated for 0.16.0.\n"
+    )
+    assert (docs_root / "nested" / "topic.md").read_text(encoding="utf-8") == (
+        "Action 0.16.0\n"
+    )
+    assert manifest["managed_namespace"] == "docs/reponomics"
+    assert manifest["action_version"] == "0.16.0"
+    assert manifest["updated_at"] == release.published_at
+    assert sorted(manifest["files"]) == ["README.md", "nested/topic.md"]
+
+    sync_action_release.verify_release(
+        tmp_path,
+        release,
+        ACTION_YML_FIXTURE,
+        managed_docs_bundle=bundle,
+    )
+    (docs_root / "README.md").write_text("stale\n", encoding="utf-8")
+    with pytest.raises(sync_action_release.ActionReleaseError, match="Managed docs snapshot"):
+        sync_action_release.verify_release(
+            tmp_path,
+            release,
+            ACTION_YML_FIXTURE,
+            managed_docs_bundle=bundle,
+        )
+
+
 def test_action_release_verify_rejects_stale_refs(tmp_path):
     release = sync_action_release.ActionRelease(
         repository=sync_action_release.ACTION_REPOSITORY,
@@ -387,6 +509,12 @@ def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
     assert "hesreallyhim" not in text
     assert "GENERATED_REPOSITORY_MODEL.md" not in text
     assert "REPOSITORY_POLICY.md" not in text
+    assert "docs/FAQ.md" not in text
+    assert "docs/PROVENANCE.md" not in text
+    assert "docs/README.md" not in text
+    assert "docs/SECURE_DASHBOARD_KEY.md" not in text
+    assert "docs/TRUST_BOUNDARY.md" not in text
+    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" not in text
 
 
 def test_template_verify_rejects_forbidden_paths(tmp_path):

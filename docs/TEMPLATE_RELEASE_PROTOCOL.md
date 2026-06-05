@@ -14,7 +14,7 @@ This document records the release cadence between `reponomics-dashboard-action`,
 
 ## Cadence
 
-An action release may open an action-sync PR in dashboard-dev. That PR updates `template-action-release.yml`, generated workflow action refs, provenance metadata, and action-version status text.
+An action release may open an action-sync PR in dashboard-dev. That PR updates `template-action-release.yml`, generated workflow action refs, provenance metadata, action-version status text, and the initial `template/docs/reponomics/` managed-docs snapshot.
 
 Merging an action-sync PR means dashboard-dev has accepted that action release for future template work. It does not by itself mean the generated template must be published immediately.
 
@@ -70,7 +70,7 @@ Before requesting a dashboard-dev release:
 
 - verify `template-action-release.yml` points at the intended accepted action tag and commit;
 - run or rely on passing dashboard-dev CI, including template smoke and template-consumer e2e when workflow behavior changed;
-- confirm whether managed docs changed and need to ship;
+- confirm whether managed docs changed and that `template/docs/reponomics/` was refreshed from the accepted action release;
 - choose the dashboard-dev semantic version bump based on template impact;
 - include `Release-As` only when publication is intentional.
 

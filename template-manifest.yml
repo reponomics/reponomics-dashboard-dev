@@ -19,16 +19,21 @@ include:
   - source: template/.github/workflows/setup.yml
     target: .github/workflows/setup.yml
   - .gitignore
+  - source: template/CODE_OF_CONDUCT.md
+    target: CODE_OF_CONDUCT.md
+  - source: template/CONTRIBUTING.md
+    target: CONTRIBUTING.md
   - LICENSE
-  - README.md
+  - source: template/README.md
+    target: README.md
+  - source: template/SECURITY.md
+    target: SECURITY.md
+  - source: template/SUPPORT.md
+    target: SUPPORT.md
   - config.yaml
   - config.example.yaml
-  - docs/FAQ.md
-  - docs/PROVENANCE.md
-  - docs/README.md
-  - docs/SECURE_DASHBOARD_KEY.md
-  - docs/TRUST_BOUNDARY.md
-  - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md
+  - source: template/docs/reponomics
+    target: docs/reponomics
 
 forbidden:
   - .github/workflows/dev-*.yml
@@ -40,10 +45,16 @@ forbidden:
   - dist
   - docs/BRANCH_MODEL.md
   - docs/GENERATED_REPOSITORY_MODEL.md
+  - docs/FAQ.md
   - docs/LAUNCH_CHECKLIST.md
+  - docs/PROVENANCE.md
   - docs/REPOSITORY_POLICY.md
+  - docs/README.md
+  - docs/SECURE_DASHBOARD_KEY.md
+  - docs/TRUST_BOUNDARY.md
   - docs/adr
   - docs/archive
+  - docs/architecture
   - docs/privacy-model-explainer.html
   - maintainer.mk
   - requirements.txt

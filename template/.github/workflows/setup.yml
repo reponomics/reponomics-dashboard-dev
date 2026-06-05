@@ -123,8 +123,8 @@ jobs:
 
           token_url="https://github.com/settings/personal-access-tokens/new?name=COLLECTION_TOKEN&description=Read%20repository%20data%20for%20Reponomics%20Dashboard&target_name=$GITHUB_REPOSITORY_OWNER&expires_in=366&administration=read"
           app_url="https://github.com/settings/apps/new"
-          key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/SECURE_DASHBOARD_KEY.md"
-          privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md"
+          key_doc_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/reponomics/secure-dashboard-key.md"
+          privacy_matrix_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/$GITHUB_SHA/docs/reponomics/privacy-configuration-matrix.md"
 
           collection_app_id="${COLLECTION_APP_ID_VAR:-}"
           if [ -z "$collection_app_id" ] && [ -n "${COLLECTION_APP_ID_SECRET:-}" ]; then
@@ -280,6 +280,10 @@ jobs:
         run: |
           set -euo pipefail
 
+          if [ ! -f README.backup.md ] && [ -f README.md ]; then
+            cp README.md README.backup.md
+          fi
+
           cat > README.md <<'MD'
           # Reponomics Dashboard
 
@@ -350,6 +354,6 @@ jobs:
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A .github/workflows README.md
+          git add -A .github/workflows README.md README.backup.md
           git diff --cached --quiet || git commit -m "chore: set up Reponomics dashboard [skip ci]"
           git push
