@@ -8,8 +8,8 @@ description: >
 include:
   - source: template/.github/workflows/collect.yml
     target: .github/workflows/collect.yml.disabled
-  - source: template/.github/workflows/incident-sentinel.yml
-    target: .github/workflows/incident-sentinel.yml.disabled
+  - source: template/.github/workflows/incident-reset.yml
+    target: .github/workflows/incident-reset.yml.disabled
   - source: template/.github/workflows/keepalive.yml
     target: .github/workflows/keepalive.yml.disabled
   - source: template/.github/workflows/publish.yml

@@ -23,7 +23,7 @@ The generated template is an onboarding shell. It should not contain runtime imp
 
 ## Runtime Action
 
-`reponomics-dashboard-action` is the versioned runtime artifact. It owns collection, artifact restore/upload, schema migration, encryption, README rendering, HTML dashboard rendering, CSV export packaging, update notices, and dashboard key rotation.
+`reponomics-dashboard-action` is the versioned runtime artifact. It owns collection, artifact restore/upload, schema migration, encryption, README rendering, HTML dashboard rendering, CSV export packaging, update notices, dashboard key rotation, and incident reset behavior.
 
 Generated workflows should call a pinned action ref instead of vendoring runtime internals into every user repository.
 
@@ -55,7 +55,7 @@ The maintainer release cadence is documented in [Template Release Protocol](TEMP
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
 
 - template workflow sources live under `template/.github/workflows` with normal `.yml` filenames
-- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-sentinel.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
+- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-reset.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
 `template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.

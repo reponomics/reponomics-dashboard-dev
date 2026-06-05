@@ -38,7 +38,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
 
     required = [
         ".github/workflows/collect.yml.disabled",
-        ".github/workflows/incident-sentinel.yml.disabled",
+        ".github/workflows/incident-reset.yml.disabled",
         ".github/workflows/keepalive.yml.disabled",
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
@@ -90,7 +90,9 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
 
     workflows = output / ".github" / "workflows"
     collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
-    sentinel = (workflows / "incident-sentinel.yml.disabled").read_text(encoding="utf-8")
+    incident_reset = (workflows / "incident-reset.yml.disabled").read_text(
+        encoding="utf-8"
+    )
     keepalive = (workflows / "keepalive.yml.disabled").read_text(encoding="utf-8")
     publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
@@ -105,6 +107,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "github-token: ${{ github.token }}" in collect
     assert "allow-docs-sync" not in collect
     assert action_ref in collect
+    assert action_ref in incident_reset
     assert action_ref_env in collect
     assert action_sha_env in collect
     assert html_env in collect
@@ -141,7 +144,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert action_ref not in setup
     assert action_ref in rotate
     assert "python scripts/" not in collect
-    assert "python scripts/" not in sentinel
+    assert "python scripts/" not in incident_reset
     assert "python scripts/" not in keepalive
     assert "python scripts/" not in publish
     assert "python scripts/" not in setup
@@ -152,6 +155,21 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}" in collect
     assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect
     assert "mode: publish" in publish
+    assert "mode: incident-reset" in incident_reset
+    assert "incident-confirm-mode: ${{ inputs.confirm_mode }}" in incident_reset
+    assert "incident-confirm-purge: ${{ inputs.confirm_purge }}" in incident_reset
+    assert "incident-confirm-irreversible: ${{ inputs.confirm_irreversible }}" in incident_reset
+    assert "incident-purge-max-runs" not in incident_reset
+    assert "timeout-minutes: 30" in incident_reset
+    assert "associated with prior" in incident_reset
+    assert "make this repository private" in incident_reset
+    assert "disable any published Pages dashboard" in incident_reset
+    assert re.search(r"^permissions:\n  contents: read$", incident_reset, flags=re.MULTILINE)
+    assert re.search(
+        r"^\s+permissions:\n\s+contents: read\n\s+actions: write$",
+        incident_reset,
+        flags=re.MULTILINE,
+    )
     assert "workflow_run:" in publish
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
@@ -190,7 +208,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "git add -A .github/workflows README.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
-    assert '"OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"]' in setup
+    assert '"PRIVACY_MODE": os.environ["PRIVACY_MODE"]' in setup
     assert "privacy_mode=plain" in setup
     assert "is only supported for private repositories." in setup
     assert "privacy_mode=strong" in setup
@@ -199,7 +217,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
     assert "actions: write" not in setup
     assert "DASHBOARD_NEXT_SECRET" not in setup
-    assert 'enable_workflow ".github/workflows/incident-sentinel.yml"' in setup
+    assert 'enable_workflow ".github/workflows/incident-reset.yml"' in setup
+    assert "outage-sentinel" not in setup
     assert 'enable_workflow ".github/workflows/keepalive.yml"' in setup
     assert "Scheduled workflow keepalive" in setup
     assert "60 days without repository activity" in setup

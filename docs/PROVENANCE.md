@@ -21,7 +21,7 @@ Start with the workflow files in your dashboard repository:
 - `.github/workflows/collect.yml`
 - `.github/workflows/publish.yml`
 - `.github/workflows/rotate-key.yml`
-- `.github/workflows/incident-sentinel.yml`
+- `.github/workflows/incident-reset.yml`
 - `.github/workflows/keepalive.yml`
 
 Check which action ref each workflow uses:

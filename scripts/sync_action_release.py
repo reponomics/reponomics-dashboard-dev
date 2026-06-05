@@ -50,6 +50,7 @@ MANAGED_TEXT_PATHS = [
     "docs/architecture/SUPPLY_CHAIN_ASSURANCE.md",
     "docs/architecture/VERSIONING_AND_UPDATES.md",
     "template/.github/workflows/collect.yml",
+    "template/.github/workflows/incident-reset.yml",
     "template/.github/workflows/publish.yml",
     "template/.github/workflows/rotate-key.yml",
     "tests/test_generated_repos.py",

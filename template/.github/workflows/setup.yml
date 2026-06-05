@@ -230,7 +230,7 @@ jobs:
           }
 
           enable_workflow ".github/workflows/collect.yml"
-          enable_workflow ".github/workflows/incident-sentinel.yml"
+          enable_workflow ".github/workflows/incident-reset.yml"
           enable_workflow ".github/workflows/keepalive.yml"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
@@ -250,8 +250,9 @@ jobs:
                   "GENERATE_README": os.environ["GENERATE_README"],
                   "USE_GITHUB_APP": os.environ["USE_GITHUB_APP"],
               },
-              Path(".github/workflows/incident-sentinel.yml"): {
-                  "OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"],
+              Path(".github/workflows/incident-reset.yml"): {
+                  "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
+                  "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
               },
               Path(".github/workflows/publish.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
@@ -301,7 +302,7 @@ jobs:
             echo "## Reponomics setup configured"
             echo
             echo "- Collection workflow: enabled"
-            echo "- Incident sentinel workflow: enabled"
+            echo "- Incident reset workflow: enabled"
             echo "- Scheduled workflow keepalive: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"
