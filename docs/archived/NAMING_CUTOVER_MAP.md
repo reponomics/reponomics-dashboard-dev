@@ -35,7 +35,7 @@ This document records the intended before/after mapping for the naming cutover. 
 | --- | --- | --- |
 | `Collect Reponomics traffic` | `Collect Reponomics Data` | Generated collection workflow name. |
 | `Collect GitHub Traffic` | `Collect Reponomics Data` | Older generated/demo workflow name. |
-| `github-traffic-release` | `reponomics-release` | Bot identity used by generated template publishing. |
+| `github-traffic-release` | `reponomics-dashboard[bot]` | GitHub App committer identity used by generated template publishing. |
 | `GitHub Traffic Report` | `Reponomics Dashboard` | Product-facing name. |
 | `github-traffic-report` | `reponomics-dashboard` | Slug-style product name where a repository or package slug is needed. |
 
