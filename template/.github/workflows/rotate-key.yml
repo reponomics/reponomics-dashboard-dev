@@ -79,7 +79,7 @@ jobs:
           PY
 
       - name: Rotate dashboard key
-        uses: reponomics/reponomics-dashboard-action@v0.19.0
+        uses: reponomics/reponomics-dashboard-action@v0.20.0
         with:
           mode: rotate-key
           github-token: ${{ github.token }}
