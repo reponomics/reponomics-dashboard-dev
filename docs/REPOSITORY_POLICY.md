@@ -48,6 +48,8 @@ Template releases should be generator-driven:
 
 Direct edits to `reponomics-dashboard` are emergency-only and must be backported to this repository before the next generated publication.
 
+The maintainer release cadence is documented in [Template Release Protocol](TEMPLATE_RELEASE_PROTOCOL.md). In short, accepting an action release into dashboard-dev and publishing a dashboard-dev/template release are separate decisions. Dashboard-dev releases use semantic versioning for the generated template, and intentional publications should be requested with an explicit `Release-As` trailer.
+
 ## Workflow Classification
 
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
