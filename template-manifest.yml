@@ -32,14 +32,8 @@ include:
     target: SUPPORT.md
   - config.yaml
   - config.example.yaml
-  - docs/FAQ.md
-  - docs/PROVENANCE.md
-  - docs/README.md
   - source: template/docs/reponomics
     target: docs/reponomics
-  - docs/SECURE_DASHBOARD_KEY.md
-  - docs/TRUST_BOUNDARY.md
-  - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md
 
 forbidden:
   - .github/workflows/dev-*.yml
@@ -51,10 +45,16 @@ forbidden:
   - dist
   - docs/BRANCH_MODEL.md
   - docs/GENERATED_REPOSITORY_MODEL.md
+  - docs/FAQ.md
   - docs/LAUNCH_CHECKLIST.md
+  - docs/PROVENANCE.md
   - docs/REPOSITORY_POLICY.md
+  - docs/README.md
+  - docs/SECURE_DASHBOARD_KEY.md
+  - docs/TRUST_BOUNDARY.md
   - docs/adr
   - docs/archive
+  - docs/architecture
   - docs/privacy-model-explainer.html
   - maintainer.mk
   - requirements.txt

@@ -16,7 +16,7 @@ uses: reponomics/reponomics-dashboard-action@v0.19.0
 1. Review `config.yaml` and decide which repositories this dashboard should track.
 2. Create a collection credential and store it as the repository secret `COLLECTION_TOKEN`. Most single-owner dashboards should use a fine-grained personal access token with repository `Administration: read`.
 3. Choose a privacy mode: `strong`, `casual`, or `plain`. Public repositories should normally use `strong`.
-4. For `strong` or `casual`, generate and save `DASHBOARD_SECRET_DO_NOT_REPLACE`, then add it as a repository secret. See [Secure Dashboard Key Generation](docs/SECURE_DASHBOARD_KEY.md).
+4. For `strong` or `casual`, generate and save `DASHBOARD_SECRET_DO_NOT_REPLACE`, then add it as a repository secret. See [Secure Dashboard Key Generation](docs/reponomics/secure-dashboard-key.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
 6. If setup enables hosted dashboard publication, open **Settings -> Pages** and set **Build and deployment -> Source** to **GitHub Actions**.
 
@@ -46,7 +46,7 @@ include_private: true
 allow_docs_sync: true
 ```
 
-If `include_only` is non-empty, Reponomics tracks exactly those repositories and ignores the automatic pool. For more detail, see [Dashboard repository documentation](docs/README.md).
+If `include_only` is non-empty, Reponomics tracks exactly those repositories and ignores the automatic pool. For more detail, see [Dashboard repository documentation](docs/reponomics/repository-guide.md).
 
 ### Token Scope And Repository Owners
 
@@ -65,7 +65,7 @@ The canonical store is the `dashboard-data` Actions artifact.
 - Hosted dashboard publication is optional and requires GitHub Pages to use GitHub Actions as the deployment source.
 - Metric README dashboard generation is only available in private repositories.
 
-For the full mode comparison, see [Privacy Configuration Matrix](docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md). For repository access implications, see [Repository Access And Trust Boundary](docs/TRUST_BOUNDARY.md). Common questions are answered in the [FAQ](docs/FAQ.md).
+For the full mode comparison, see [Privacy Configuration Matrix](docs/reponomics/privacy-configuration-matrix.md). For repository access implications, see [Repository Access And Trust Boundary](docs/reponomics/trust-boundary.md). Common questions are answered in the [FAQ](docs/reponomics/faq.md).
 
 ## Managed Docs
 

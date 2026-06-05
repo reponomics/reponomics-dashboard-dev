@@ -52,17 +52,11 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "README.md",
         "config.yaml",
         "config.example.yaml",
-        "docs/FAQ.md",
-        "docs/PROVENANCE.md",
-        "docs/README.md",
         "docs/reponomics/.manifest.json",
         "docs/reponomics/README.md",
         "docs/reponomics/configuration.md",
         "docs/reponomics/privacy-and-artifacts.md",
         "docs/reponomics/upgrade.md",
-        "docs/SECURE_DASHBOARD_KEY.md",
-        "docs/TRUST_BOUNDARY.md",
-        "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
@@ -139,7 +133,13 @@ def test_template_manifest_excludes_action_owned_runtime(tmp_path):
         "template",
         "template-action-release.yml",
         "docs/GENERATED_REPOSITORY_MODEL.md",
+        "docs/FAQ.md",
+        "docs/PROVENANCE.md",
         "docs/REPOSITORY_POLICY.md",
+        "docs/README.md",
+        "docs/SECURE_DASHBOARD_KEY.md",
+        "docs/TRUST_BOUNDARY.md",
+        "docs/architecture",
         "docs/archive",
         "docs/adr",
     ]
@@ -310,8 +310,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "COLLECTION_APP_PRIVATE_KEY" in setup
     assert "COLLECTION_APP_ID" in setup
     assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
-    assert "docs/SECURE_DASHBOARD_KEY.md" in setup
-    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" in setup
+    assert "docs/reponomics/secure-dashboard-key.md" in setup
+    assert "docs/reponomics/privacy-configuration-matrix.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
     assert "Casual privacy mode selected" not in setup
     casual_length_check = (
@@ -505,6 +505,12 @@ def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
     assert "hesreallyhim" not in text
     assert "GENERATED_REPOSITORY_MODEL.md" not in text
     assert "REPOSITORY_POLICY.md" not in text
+    assert "docs/FAQ.md" not in text
+    assert "docs/PROVENANCE.md" not in text
+    assert "docs/README.md" not in text
+    assert "docs/SECURE_DASHBOARD_KEY.md" not in text
+    assert "docs/TRUST_BOUNDARY.md" not in text
+    assert "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md" not in text
 
 
 def test_template_verify_rejects_forbidden_paths(tmp_path):
