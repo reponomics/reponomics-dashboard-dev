@@ -1,0 +1,13 @@
+{
+  "action_repository": "reponomics/reponomics-dashboard-action",
+  "action_version": "0.19.0",
+  "files": {
+    "README.md": "41fc2a178534317802104f89867fc64655871035330d03ac75a9d04c131afaf2",
+    "configuration.md": "dce69232024078bc6f03f19246cdfd3f1d1d8d6b86c47457f9f49d36df4860a5",
+    "privacy-and-artifacts.md": "a13c63c508b3b9c8a557db64e4a3bb5600e9152d0664b56e1526ae0a28948dcf",
+    "upgrade.md": "2b2e973cdf1600539bececce9f20cceee3ebe13411f340090cea208ebf81d36f"
+  },
+  "managed_namespace": "docs/reponomics",
+  "schema_version": 1,
+  "updated_at": "2026-06-05T09:58:57Z"
+}

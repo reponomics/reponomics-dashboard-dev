@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
@@ -67,6 +69,11 @@ SKIPPED_DIRS = {
 }
 REQUIRED_ACTION_INPUTS = {"allow-docs-sync"}
 REQUIRED_ACTION_OUTPUTS = {"docs-sync-state", "docs-action-version", "docs-updated-at"}
+MANAGED_DOCS_SOURCE_PREFIX = "dashboard_action/runtime/managed_docs"
+TEMPLATE_MANAGED_DOCS_PATH = Path("template/docs/reponomics")
+MANAGED_DOCS_NAMESPACE = "docs/reponomics"
+MANAGED_DOCS_MANIFEST_NAME = ".manifest.json"
+MANAGED_DOCS_MANIFEST_SCHEMA_VERSION = 1
 
 
 class ActionReleaseError(RuntimeError):
@@ -169,6 +176,147 @@ def fetch_release(repository: str, tag: str) -> ActionRelease:
 def fetch_action_yml(release: ActionRelease) -> str:
     return _request_text(
         f"https://raw.githubusercontent.com/{release.repository}/{release.tag}/action.yml"
+    )
+
+
+def _validate_managed_docs_relative_path(relative: str) -> None:
+    path = Path(relative)
+    if (
+        not relative
+        or path.is_absolute()
+        or relative == MANAGED_DOCS_MANIFEST_NAME
+        or any(part in {"", ".", ".."} for part in path.parts)
+    ):
+        raise ActionReleaseError(f"Invalid managed docs path from action release: {relative!r}")
+
+
+def fetch_managed_docs_bundle(release: ActionRelease) -> dict[str, str]:
+    tree_url = (
+        f"{GITHUB_API}/repos/{release.repository}/git/trees/"
+        f"{release.target_commitish}?recursive=1"
+    )
+    payload = _request_json(tree_url)
+    tree = payload.get("tree")
+    if not isinstance(tree, list):
+        raise ActionReleaseError(f"Expected tree list from {tree_url}")
+
+    source_prefix = f"{MANAGED_DOCS_SOURCE_PREFIX}/"
+    bundle_paths: list[tuple[str, str]] = []
+    for entry in tree:
+        if not isinstance(entry, dict) or entry.get("type") != "blob":
+            continue
+        source_path = str(entry.get("path") or "")
+        if not source_path.startswith(source_prefix):
+            continue
+        relative = source_path.removeprefix(source_prefix)
+        _validate_managed_docs_relative_path(relative)
+        bundle_paths.append((relative, source_path))
+
+    if not bundle_paths:
+        raise ActionReleaseError(
+            f"{release.repository}@{release.tag} does not contain managed docs"
+        )
+
+    bundle: dict[str, str] = {}
+    for relative, source_path in sorted(bundle_paths):
+        quoted_path = urllib.parse.quote(source_path, safe="/")
+        bundle[relative] = _request_text(
+            f"https://raw.githubusercontent.com/"
+            f"{release.repository}/{release.target_commitish}/{quoted_path}"
+        )
+    return bundle
+
+
+def _sha_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def render_managed_docs_snapshot(
+    release: ActionRelease,
+    bundle: dict[str, str],
+) -> dict[str, str]:
+    validate_release(release)
+    if not bundle:
+        raise ActionReleaseError("Managed docs bundle is empty")
+
+    rendered: dict[str, str] = {}
+    for relative, text in sorted(bundle.items()):
+        _validate_managed_docs_relative_path(relative)
+        rendered[relative] = text.replace("{{ACTION_VERSION}}", release.version)
+
+    hashes = {relative: _sha_text(text) for relative, text in sorted(rendered.items())}
+    manifest = {
+        "schema_version": MANAGED_DOCS_MANIFEST_SCHEMA_VERSION,
+        "managed_namespace": MANAGED_DOCS_NAMESPACE,
+        "action_repository": release.repository,
+        "action_version": release.version,
+        "updated_at": release.published_at,
+        "files": dict(sorted(hashes.items())),
+    }
+    rendered[MANAGED_DOCS_MANIFEST_NAME] = json.dumps(
+        manifest,
+        indent=2,
+        sort_keys=True,
+    ) + "\n"
+    return dict(sorted(rendered.items()))
+
+
+def _managed_docs_snapshot_files(root: Path) -> dict[str, str]:
+    target = root / TEMPLATE_MANAGED_DOCS_PATH
+    if not target.exists():
+        return {}
+    files: dict[str, str] = {}
+    for path in sorted(target.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(target).as_posix()
+        if relative != MANAGED_DOCS_MANIFEST_NAME:
+            _validate_managed_docs_relative_path(relative)
+        files[relative] = path.read_text(encoding="utf-8")
+    return files
+
+
+def write_managed_docs_snapshot(
+    root: Path,
+    release: ActionRelease,
+    bundle: dict[str, str],
+) -> None:
+    expected = render_managed_docs_snapshot(release, bundle)
+    target = root / TEMPLATE_MANAGED_DOCS_PATH
+    if target.exists():
+        for path in sorted((item for item in target.rglob("*") if item.is_file()), reverse=True):
+            path.unlink()
+        for path in sorted((item for item in target.rglob("*") if item.is_dir()), reverse=True):
+            path.rmdir()
+    target.mkdir(parents=True, exist_ok=True)
+    for relative, text in expected.items():
+        path = target / relative
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(text, encoding="utf-8")
+
+
+def verify_managed_docs_snapshot(
+    root: Path,
+    release: ActionRelease,
+    bundle: dict[str, str],
+) -> None:
+    expected = render_managed_docs_snapshot(release, bundle)
+    actual = _managed_docs_snapshot_files(root)
+    if actual == expected:
+        return
+
+    expected_paths = set(expected)
+    actual_paths = set(actual)
+    missing = sorted(expected_paths - actual_paths)
+    extra = sorted(actual_paths - expected_paths)
+    changed = sorted(path for path in expected_paths & actual_paths if expected[path] != actual[path])
+    details: list[str] = []
+    details.extend(f"missing: {path}" for path in missing)
+    details.extend(f"extra: {path}" for path in extra)
+    details.extend(f"changed: {path}" for path in changed)
+    formatted = "\n".join(f"  - {detail}" for detail in details)
+    raise ActionReleaseError(
+        "Managed docs snapshot does not match accepted action release:\n" + formatted
     )
 
 
@@ -275,7 +423,13 @@ def _replace_action_release_env(text: str, release: ActionRelease) -> str:
     return "".join(lines)
 
 
-def sync_release(root: Path, release: ActionRelease, action_yml: str) -> None:
+def sync_release(
+    root: Path,
+    release: ActionRelease,
+    action_yml: str,
+    *,
+    managed_docs_bundle: dict[str, str] | None = None,
+) -> None:
     validate_release(release)
     validate_action_metadata(action_yml)
     write_manifest(release, root)
@@ -289,12 +443,17 @@ def sync_release(root: Path, release: ActionRelease, action_yml: str) -> None:
         text = _replace_status_versions(text, release.tag)
         text = _replace_action_release_env(text, release)
         path.write_text(text, encoding="utf-8")
+    if managed_docs_bundle is not None:
+        write_managed_docs_snapshot(root, release, managed_docs_bundle)
 
 
 def _iter_text_files(root: Path) -> list[Path]:
     files: list[Path] = []
     for path in root.rglob("*"):
-        if any(part in SKIPPED_DIRS for part in path.relative_to(root).parts):
+        relative = path.relative_to(root)
+        if any(part in SKIPPED_DIRS for part in relative.parts):
+            continue
+        if relative == TEMPLATE_MANAGED_DOCS_PATH or TEMPLATE_MANAGED_DOCS_PATH in relative.parents:
             continue
         if path.is_file():
             files.append(path)
@@ -308,7 +467,13 @@ def _read_text_if_possible(path: Path) -> str:
         return ""
 
 
-def verify_release(root: Path, release: ActionRelease, action_yml: str) -> None:
+def verify_release(
+    root: Path,
+    release: ActionRelease,
+    action_yml: str,
+    *,
+    managed_docs_bundle: dict[str, str] | None = None,
+) -> None:
     validate_release(release)
     validate_action_metadata(action_yml)
     expected_ref = f"{release.repository}@{release.tag}"
@@ -333,6 +498,8 @@ def verify_release(root: Path, release: ActionRelease, action_yml: str) -> None:
     if stale:
         formatted = "\n".join(f"  - {entry}" for entry in stale)
         raise ActionReleaseError(f"Stale action release references found:\n{formatted}")
+    if managed_docs_bundle is not None:
+        verify_managed_docs_snapshot(root, release, managed_docs_bundle)
 
 
 def _payload_release(path: Path) -> ActionRelease:
@@ -373,14 +540,26 @@ def _sync(args: argparse.Namespace) -> None:
             f"Release URL did not match dispatch payload: {release.release_url} != {args.expected_release_url}"
         )
     action_yml = _load_action_yml(args.action_yml, release)
-    sync_release(args.root, release, action_yml)
+    managed_docs_bundle = fetch_managed_docs_bundle(release)
+    sync_release(
+        args.root,
+        release,
+        action_yml,
+        managed_docs_bundle=managed_docs_bundle,
+    )
     print(f"Synchronized {release.repository}@{release.tag}")
 
 
 def _verify(args: argparse.Namespace) -> None:
     release = load_manifest(args.root)
     action_yml = _load_action_yml(args.action_yml, release)
-    verify_release(args.root, release, action_yml)
+    managed_docs_bundle = fetch_managed_docs_bundle(release)
+    verify_release(
+        args.root,
+        release,
+        action_yml,
+        managed_docs_bundle=managed_docs_bundle,
+    )
     print(f"Verified {release.repository}@{release.tag}")
 
 

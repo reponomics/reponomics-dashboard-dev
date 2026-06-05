@@ -34,6 +34,8 @@ include:
   - docs/FAQ.md
   - docs/PROVENANCE.md
   - docs/README.md
+  - source: template/docs/reponomics
+    target: docs/reponomics
   - docs/SECURE_DASHBOARD_KEY.md
   - docs/TRUST_BOUNDARY.md
   - docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md

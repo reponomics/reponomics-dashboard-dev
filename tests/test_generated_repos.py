@@ -1,5 +1,6 @@
 """Tests for generated Reponomics dashboard repository outputs."""
 
+import json
 import re
 import sys
 from pathlib import Path
@@ -54,12 +55,41 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "docs/FAQ.md",
         "docs/PROVENANCE.md",
         "docs/README.md",
+        "docs/reponomics/.manifest.json",
+        "docs/reponomics/README.md",
+        "docs/reponomics/configuration.md",
+        "docs/reponomics/privacy-and-artifacts.md",
+        "docs/reponomics/upgrade.md",
         "docs/SECURE_DASHBOARD_KEY.md",
         "docs/TRUST_BOUNDARY.md",
         "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
+
+
+def test_template_includes_initial_managed_docs_snapshot(tmp_path):
+    output = tmp_path / "template"
+
+    build_template.build_template(output)
+    release = sync_action_release.load_manifest()
+
+    docs_root = output / "docs" / "reponomics"
+    readme = (docs_root / "README.md").read_text(encoding="utf-8")
+    manifest = json.loads((docs_root / ".manifest.json").read_text(encoding="utf-8"))
+
+    assert "{{ACTION_VERSION}}" not in readme
+    assert f"Generated for Reponomics Dashboard Action {release.version}." in readme
+    assert manifest["managed_namespace"] == "docs/reponomics"
+    assert manifest["action_repository"] == release.repository
+    assert manifest["action_version"] == release.version
+    assert manifest["updated_at"] == release.published_at
+    assert sorted(manifest["files"]) == [
+        "README.md",
+        "configuration.md",
+        "privacy-and-artifacts.md",
+        "upgrade.md",
+    ]
 
 
 def test_template_community_docs_are_placeholders(tmp_path):
@@ -363,6 +393,55 @@ def test_action_release_sync_rewrites_refs_and_status(tmp_path):
         encoding="utf-8"
     )
     assert sync_action_release.load_manifest(tmp_path).tag == "v0.16.0"
+
+
+def test_action_release_sync_writes_managed_docs_snapshot(tmp_path):
+    release = sync_action_release.ActionRelease(
+        repository=sync_action_release.ACTION_REPOSITORY,
+        tag="v0.16.0",
+        target_commitish="a" * 40,
+        release_url="https://github.com/reponomics/reponomics-dashboard-action/releases/tag/v0.16.0",
+        published_at="2026-05-31T05:19:33Z",
+    )
+    bundle = {
+        "README.md": "Generated for {{ACTION_VERSION}}.\n",
+        "nested/topic.md": "Action {{ACTION_VERSION}}\n",
+    }
+
+    sync_action_release.sync_release(
+        tmp_path,
+        release,
+        ACTION_YML_FIXTURE,
+        managed_docs_bundle=bundle,
+    )
+
+    docs_root = tmp_path / "template" / "docs" / "reponomics"
+    manifest = json.loads((docs_root / ".manifest.json").read_text(encoding="utf-8"))
+    assert (docs_root / "README.md").read_text(encoding="utf-8") == (
+        "Generated for 0.16.0.\n"
+    )
+    assert (docs_root / "nested" / "topic.md").read_text(encoding="utf-8") == (
+        "Action 0.16.0\n"
+    )
+    assert manifest["managed_namespace"] == "docs/reponomics"
+    assert manifest["action_version"] == "0.16.0"
+    assert manifest["updated_at"] == release.published_at
+    assert sorted(manifest["files"]) == ["README.md", "nested/topic.md"]
+
+    sync_action_release.verify_release(
+        tmp_path,
+        release,
+        ACTION_YML_FIXTURE,
+        managed_docs_bundle=bundle,
+    )
+    (docs_root / "README.md").write_text("stale\n", encoding="utf-8")
+    with pytest.raises(sync_action_release.ActionReleaseError, match="Managed docs snapshot"):
+        sync_action_release.verify_release(
+            tmp_path,
+            release,
+            ACTION_YML_FIXTURE,
+            managed_docs_bundle=bundle,
+        )
 
 
 def test_action_release_verify_rejects_stale_refs(tmp_path):
