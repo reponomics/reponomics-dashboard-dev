@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.1](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.0...v0.7.1) (2026-06-05)
+
+
+### deps
+
+* **action:** bump reponomics-dashboard-action to v0.20.0 ([#49](https://github.com/reponomics/reponomics-dashboard-dev/issues/49)) ([5d37172](https://github.com/reponomics/reponomics-dashboard-dev/commit/5d3717224d797a43021718cae0adb70cec5d8092))
+
 ## [0.7.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.6.0...v0.7.0) (2026-06-05)
 
 
