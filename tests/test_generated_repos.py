@@ -366,6 +366,14 @@ def test_action_release_manifest_and_metadata_contract():
     sync_action_release.validate_action_metadata(ACTION_YML_FIXTURE)
 
 
+def test_action_release_sync_does_not_manage_decision_records():
+    adr_path = "docs/adr/0003-generated-template-and-demo-repositories.md"
+    adr_text = Path(adr_path).read_text(encoding="utf-8")
+
+    assert adr_path not in sync_action_release.MANAGED_TEXT_PATHS
+    assert "reponomics/reponomics-dashboard-action@v" not in adr_text
+
+
 def test_action_release_sync_workflow_can_update_existing_branch():
     workflow = Path(".github/workflows/dev-sync-action-release.yml").read_text(
         encoding="utf-8"

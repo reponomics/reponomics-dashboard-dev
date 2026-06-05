@@ -127,7 +127,7 @@ Current hardening is focused on the action/template pair:
 
 - `reponomics-dashboard-dev` owns the generated-template source and docs.
 - `reponomics-dashboard` remains the generated template target.
-- `reponomics-dashboard-action` owns runtime behavior and is currently pinned by the template at `reponomics/reponomics-dashboard-action@v0.20.0`.
+- Runtime behavior is owned by the accepted `reponomics-dashboard-action` release recorded in `template-action-release.yml`.
 - `template-action-release.yml` records the accepted action release tag and target commit used to generate template workflow refs.
 
 The separate generated demo repository remains deferred until a staging consumer validates setup, collection, encrypted publish, CSV export, and key rotation against the released action.
