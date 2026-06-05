@@ -73,6 +73,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     assert "This is the setup README for your Reponomics dashboard repository." in (
         generated_readme
     )
+    assert "README.backup.md" in generated_readme
 
 
 def test_template_includes_initial_managed_docs_snapshot(tmp_path):
@@ -272,11 +273,15 @@ def test_setup_workflow_resolves_privacy_modes():
     assert '"GENERATE_README": os.environ["GENERATE_README"]' in setup
     assert 'echo "USE_GITHUB_APP=$USE_GITHUB_APP"' in setup
     assert "README dashboard generation is only supported for private repositories." in setup
+    assert "cp README.md README.backup.md" in setup
     assert "cat > README.md <<'MD'" in setup
+    assert setup.index("cp README.md README.backup.md") < setup.index(
+        "cat > README.md <<'MD'"
+    )
     assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
     assert "allow_docs_sync: false" in setup
     assert "Managed docs sync" in setup
-    assert "git add -A .github/workflows README.md" in setup
+    assert "git add -A .github/workflows README.md README.backup.md" in setup
     assert 'RETENTION_DAYS: "90"' in setup
     assert "retention_days:" not in setup
     assert '"PRIVACY_MODE": os.environ["PRIVACY_MODE"]' in setup
