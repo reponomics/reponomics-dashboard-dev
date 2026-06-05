@@ -150,6 +150,13 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
     assert "mode: collect" in collect
+    assert re.search(r"^permissions:\n  contents: read$", collect, flags=re.MULTILINE)
+    assert re.search(
+        r"^\s+permissions:\n\s+contents: read\n\s+actions: write$",
+        collect,
+        flags=re.MULTILINE,
+    )
+    assert "github-token: ${{ github.token }}" in collect
     assert 'USE_GITHUB_APP: "false"' in collect
     assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect
     assert "app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}" in collect
