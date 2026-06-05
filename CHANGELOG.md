@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.6.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.5.2...v0.6.0) (2026-06-05)
+
+
+### Features
+
+* add incident reset workflow and remove outage sentinel ([#40](https://github.com/reponomics/reponomics-dashboard-dev/issues/40)) ([b12271d](https://github.com/reponomics/reponomics-dashboard-dev/commit/b12271da2b0d0cae1b3e36c601df1ec8b2f6346b))
+
 ## [0.5.2](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.5.1...v0.5.2) (2026-06-05)
 
 
