@@ -22,6 +22,16 @@ A dashboard-dev release is a separate maintainer decision. It is required when t
 
 This separation gives maintainers a safety cushion: action releases can be accepted and tested in dashboard-dev without forcing a generated-template publication before the template surface is ready.
 
+## Release Ordering
+
+Treat the dashboard-dev release as the publication boundary for `reponomics-dashboard`. Before requesting a dashboard-dev release, check whether there are open PRs that intentionally change the generated template surface. This includes template workflows, `template-manifest.yml`, top-level template docs, `template/README.md`, setup behavior, or the initial `template/docs/reponomics/` managed-docs snapshot.
+
+If a pending template-surface PR is intended to ship with an accepted action release, merge the template-surface PR before requesting the dashboard-dev release. Otherwise the release publishes an intermediate template state, even if that state is internally valid.
+
+If an intermediate state is released accidentally, do not edit `reponomics-dashboard` directly. Merge the missing dashboard-dev PR, verify the generated template state, and publish the next dashboard-dev patch release if the missing change should reach the generated template.
+
+An action-sync PR is generated from the dashboard-dev `main` branch that exists at sync time. If new sync behavior or template seeding logic is still open in another PR, the action-sync PR cannot include that behavior. After that supporting PR merges, rerun action release sync against the currently accepted action tag when the PR's generated docs snapshot or action-version references are stale.
+
 ## When To Release Dashboard-Dev
 
 Publish a dashboard-dev release when a change should reach the generated template. Common cases:
@@ -69,6 +79,7 @@ Release Please then opens the normal release PR. Merging that release PR cuts th
 Before requesting a dashboard-dev release:
 
 - verify `template-action-release.yml` points at the intended accepted action tag and commit;
+- check open dashboard-dev PRs for template-surface changes that should ship in the same generated-template publication;
 - run or rely on passing dashboard-dev CI, including template smoke and template-consumer e2e when workflow behavior changed;
 - confirm whether managed docs changed and that `template/docs/reponomics/` was refreshed from the accepted action release;
 - choose the dashboard-dev semantic version bump based on template impact;
