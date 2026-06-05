@@ -1,5 +1,6 @@
 """Tests for generated Reponomics dashboard repository outputs."""
 
+import hashlib
 import json
 import re
 import sys
@@ -86,12 +87,15 @@ def test_template_includes_initial_managed_docs_snapshot(tmp_path):
     assert manifest["action_repository"] == release.repository
     assert manifest["action_version"] == release.version
     assert manifest["updated_at"] == release.published_at
-    assert sorted(manifest["files"]) == [
-        "README.md",
-        "configuration.md",
-        "privacy-and-artifacts.md",
-        "upgrade.md",
-    ]
+    expected_files = {
+        path.relative_to(docs_root).as_posix(): hashlib.sha256(
+            path.read_text(encoding="utf-8").encode("utf-8")
+        ).hexdigest()
+        for path in docs_root.rglob("*")
+        if path.is_file() and path.name != ".manifest.json"
+    }
+    assert "README.md" in expected_files
+    assert manifest["files"] == expected_files
 
 
 def test_template_community_docs_are_placeholders(tmp_path):
