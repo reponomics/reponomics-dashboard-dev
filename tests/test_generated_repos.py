@@ -44,6 +44,10 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         ".github/workflows/publish.yml.disabled",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "SUPPORT.md",
         "README.md",
         "config.yaml",
         "config.example.yaml",
@@ -56,6 +60,28 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     ]
     for relative_path in required:
         assert (output / relative_path).exists()
+
+
+def test_template_community_docs_are_placeholders(tmp_path):
+    output = tmp_path / "template"
+
+    build_template.build_template(output)
+
+    generated_docs = [
+        "CODE_OF_CONDUCT.md",
+        "CONTRIBUTING.md",
+        "SECURITY.md",
+        "SUPPORT.md",
+    ]
+    for relative_path in generated_docs:
+        text = (output / relative_path).read_text(encoding="utf-8")
+        assert "This is a placeholder document." in text
+        assert "not intended for public use" in text
+
+    for relative_path in ("CODE_OF_CONDUCT.md", "CONTRIBUTING.md", "SECURITY.md"):
+        assert (output / relative_path).read_text(encoding="utf-8") != Path(
+            relative_path
+        ).read_text(encoding="utf-8")
 
 
 def test_template_manifest_excludes_action_owned_runtime(tmp_path):
