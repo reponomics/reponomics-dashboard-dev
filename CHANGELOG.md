@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.6.0...v0.7.0) (2026-06-05)
+
+
+### deps
+
+* **action:** bump reponomics-dashboard-action to v0.19.0 ([#46](https://github.com/reponomics/reponomics-dashboard-dev/issues/46)) ([0b72207](https://github.com/reponomics/reponomics-dashboard-dev/commit/0b72207c4057e967ce5cd8ab4f8c770364d40751))
+
+
+### Bug Fixes
+
+* grant collect artifact cleanup permission ([#45](https://github.com/reponomics/reponomics-dashboard-dev/issues/45)) ([050fbb5](https://github.com/reponomics/reponomics-dashboard-dev/commit/050fbb529cdbd0382070a9c0dfd23421c35b07dd))
+
 ## [0.6.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.5.2...v0.6.0) (2026-06-05)
 
 
