@@ -72,7 +72,6 @@ The canonical data store is the `dashboard-data` GitHub Actions artifact.
 - `publish` downloads that provenance for automatic runs, restores the `dashboard-data` artifact from the recorded collect run, renders dashboard output with the recorded action commit, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual` only when hosted dashboard publication is enabled. Otherwise, it uploads a downloadable dashboard artifact.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 - `incident-reset` is a manual emergency workflow for suspected dashboard-key exposure. Make the dashboard repository private and disable any exposed Pages dashboard first. The action restores retained state, decrypts it with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, uploads the new retained artifact, then deletes old workflow runs associated with prior `dashboard-data` artifacts.
-- `outage-sentinel` preserves the newest unexpired `dashboard-data` artifact during collection outages without decrypting or changing its contents.
 - `docs-sync` runs before collection and writes the action-bundled managed documentation to `docs/reponomics/` when enabled.
 - `keepalive` runs monthly, updates `.reponomics/keepalive.md`, and tries to create a persistent data safety reminder issue so scheduled collection is less likely to be silently disabled.
 
@@ -86,7 +85,7 @@ GitHub documents that scheduled workflows in public repositories may be disabled
 
 ## Incident Response And Outage Preservation
 
-`outage-sentinel` handles ordinary collection outages. It runs after failed collection workflows, finds the newest unexpired `dashboard-data` artifact on `main`, and re-uploads that artifact without decrypting or changing its contents.
+Ordinary collection outages are handled by artifact retention and active supersession rather than a separate preservation workflow. Collection uploads a successor `dashboard-data` artifact before older superseded artifacts are cleaned up. If collection fails, no successor is uploaded and no cleanup is attempted, so the previous unexpired artifact remains the recovery point.
 
 `incident-reset` handles suspected dashboard-key exposure. For serious exposure, make the dashboard repository private and disable any published Pages dashboard first. Then set `DASHBOARD_NEXT_SECRET`, run **Actions -> Reset Reponomics dashboard incident history**, and enter the required confirmation strings. The reset restores retained state, decrypts it with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts it with `DASHBOARD_NEXT_SECRET`, uploads the fresh retained artifact, then deletes old workflow runs associated with prior `dashboard-data` artifacts. The generated workflow has a 30-minute timeout. After the run succeeds, promote `DASHBOARD_NEXT_SECRET` into `DASHBOARD_SECRET_DO_NOT_REPLACE`, then delete `DASHBOARD_NEXT_SECRET`.
 

@@ -211,7 +211,6 @@ def _copy_template(template_dir: Path, consumer_dir: Path) -> None:
         "collect.yml",
         "publish.yml",
         "incident-reset.yml",
-        "outage-sentinel.yml",
         "keepalive.yml",
     ):
         disabled = workflow_dir / f"{workflow_name}.disabled"

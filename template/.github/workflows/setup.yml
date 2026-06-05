@@ -231,7 +231,6 @@ jobs:
 
           enable_workflow ".github/workflows/collect.yml"
           enable_workflow ".github/workflows/incident-reset.yml"
-          enable_workflow ".github/workflows/outage-sentinel.yml"
           enable_workflow ".github/workflows/keepalive.yml"
 
           if [ "$PUBLISH_WORKFLOW" = "enabled" ]; then
@@ -254,9 +253,6 @@ jobs:
               Path(".github/workflows/incident-reset.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
                   "RETENTION_DAYS": os.environ["RETENTION_DAYS"],
-              },
-              Path(".github/workflows/outage-sentinel.yml"): {
-                  "OUTAGE_RETENTION_DAYS": os.environ["RETENTION_DAYS"],
               },
               Path(".github/workflows/publish.yml"): {
                   "PRIVACY_MODE": os.environ["PRIVACY_MODE"],
@@ -307,7 +303,6 @@ jobs:
             echo
             echo "- Collection workflow: enabled"
             echo "- Incident reset workflow: enabled"
-            echo "- Outage sentinel workflow: enabled"
             echo "- Scheduled workflow keepalive: enabled"
             echo "- Publish workflow: $PUBLISH_WORKFLOW"
             echo "- Privacy mode: \`$PRIVACY_MODE\`"

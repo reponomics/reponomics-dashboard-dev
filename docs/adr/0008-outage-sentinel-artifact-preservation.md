@@ -1,9 +1,17 @@
 # ADR 0008: Outage Sentinel Artifact Preservation Workflow
 
-- Status: Proposed
+- Status: Superseded
 - Date: 2026-05-25
 - Complements: [ADR 0001](0001-encrypted-pages-mode.md), [ADR 0006](0006-template-repository-testing-strategy.md)
 - Related action ADR: [ADR 005](https://github.com/reponomics/reponomics-dashboard-action/blob/main/docs/adr/005-incident-reset-rekey-and-history-purge.md)
+- Superseded by: [reponomics-dashboard-action ADR 014](https://github.com/reponomics/reponomics-dashboard-action/blob/main/docs/adr/014-canonical-artifact-lineage-and-active-retention.md)
+
+## Supersession Note
+
+This dedicated outage-sentinel workflow model has been superseded by canonical
+artifact lineage and active retention. The generated template no longer ships a
+separate outage-sentinel workflow. Ordinary collection outages are handled by
+long artifact expiration plus cleanup only after a successful successor upload.
 
 ## Context
 

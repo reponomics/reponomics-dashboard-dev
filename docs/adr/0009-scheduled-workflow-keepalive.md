@@ -2,13 +2,13 @@
 
 - Status: Proposed
 - Date: 2026-05-27
-- Complements: [ADR 0008](0008-outage-sentinel-artifact-preservation.md)
+- Complements: active artifact retention in `reponomics-dashboard-action`
 
 ## Context
 
 The dashboard depends on scheduled GitHub Actions workflows for collection and publication. GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, but it does not precisely define the activity criteria for that policy. Inactive scheduled workflows are an operational risk for dashboard repositories regardless of visibility, because artifact expiry and missed collection windows have the same product impact.
 
-This creates a separate operational risk from collection failure. `outage-sentinel` can preserve the latest unexpired `dashboard-data` artifact when collection fails, but it cannot run if GitHub silently disables scheduled workflow triggers.
+This creates a separate operational risk from collection failure. Active artifact retention can preserve the latest unexpired `dashboard-data` artifact during ordinary collection failures because cleanup only follows a successful successor upload, but it cannot help if GitHub silently disables scheduled workflow triggers.
 
 Users also need an explicit reminder that the retained artifact is the canonical data store and should be downloaded before expiry if workflow scheduling fails in a way our safeguards do not catch.
 
@@ -16,7 +16,7 @@ Users also need an explicit reminder that the retained artifact is the canonical
 
 Add a dedicated template workflow: `.github/workflows/keepalive.yml.disabled`.
 
-The setup workflow enables this keepalive workflow alongside `collect` and `outage-sentinel` so generated repositories receive it automatically.
+The setup workflow enables this keepalive workflow alongside `collect` so generated repositories receive it automatically.
 
 Keepalive behavior:
 
@@ -37,7 +37,7 @@ Permission model:
 - Users see a durable warning in the repository issue tracker when Issues are enabled.
 - The safeguard is still best-effort because GitHub does not define whether every workflow-authored activity counts for this policy.
 - The workflow creates intentional commit history noise: one small keepalive commit per month in public dashboard repositories.
-- The workflow does not replace outage-sentinel; keepalive is scheduler liveness, while outage-sentinel is artifact preservation during known collection outages.
+- The workflow does not replace active artifact retention; keepalive is scheduler liveness, while active retention is artifact preservation during known collection outages.
 
 ## Alternatives Considered
 
