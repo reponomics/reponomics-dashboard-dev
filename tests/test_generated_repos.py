@@ -5,6 +5,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import yaml
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
@@ -97,6 +98,8 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
+    collect_workflow = yaml.safe_load(collect)
+    incident_reset_workflow = yaml.safe_load(incident_reset)
 
     action_ref = f"uses: {release.repository}@{release.tag}"
     action_ref_env = f'REPONOMICS_ACTION_REF: "{release.tag}"'
@@ -150,12 +153,11 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
     assert "mode: collect" in collect
-    assert re.search(r"^permissions:\n  contents: read$", collect, flags=re.MULTILINE)
-    assert re.search(
-        r"^\s+permissions:\n\s+contents: read\n\s+actions: write$",
-        collect,
-        flags=re.MULTILINE,
-    )
+    assert collect_workflow["permissions"] == {"contents": "read"}
+    assert collect_workflow["jobs"]["collect"]["permissions"] == {
+        "contents": "read",
+        "actions": "write",
+    }
     assert "github-token: ${{ github.token }}" in collect
     assert 'USE_GITHUB_APP: "false"' in collect
     assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect
@@ -171,12 +173,11 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "associated with prior" in incident_reset
     assert "make this repository private" in incident_reset
     assert "disable any published Pages dashboard" in incident_reset
-    assert re.search(r"^permissions:\n  contents: read$", incident_reset, flags=re.MULTILINE)
-    assert re.search(
-        r"^\s+permissions:\n\s+contents: read\n\s+actions: write$",
-        incident_reset,
-        flags=re.MULTILINE,
-    )
+    assert incident_reset_workflow["permissions"] == {"contents": "read"}
+    assert incident_reset_workflow["jobs"]["reset"]["permissions"] == {
+        "contents": "read",
+        "actions": "write",
+    }
     assert "workflow_run:" in publish
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
