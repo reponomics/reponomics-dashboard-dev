@@ -2,7 +2,7 @@
 
 The Reponomics Dashboard is a GitHub-native repository traffic and growth dashboard. It collects views, clones, top referrers, popular paths, and repository growth counters, then renders static dashboard output during the `publish` workflow.
 
-This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.17.0`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, dashboard key rotation, and managed local documentation sync.
+This generated repository is intentionally thin. The workflows call `reponomics/reponomics-dashboard-action@v0.17.0`, which owns collection, artifact restore/upload, schema migration, encryption, README rendering, dashboard rendering, CSV export packaging, dashboard key rotation, incident reset behavior, and managed local documentation sync.
 
 Template repositories do not require local Python for normal use. Workflows run in GitHub Actions and delegate runtime behavior to `reponomics/reponomics-dashboard-action`.
 
@@ -71,6 +71,8 @@ The canonical data store is the `dashboard-data` GitHub Actions artifact.
 - `collect` also uploads a `reponomics-collect-provenance` artifact when publishing is enabled. That artifact records the collected repository revision, accepted action tag, and accepted action commit SHA.
 - `publish` downloads that provenance for automatic runs, restores the `dashboard-data` artifact from the recorded collect run, renders dashboard output with the recorded action commit, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual` only when hosted dashboard publication is enabled. Otherwise, it uploads a downloadable dashboard artifact.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
+- `incident-reset` is a manual emergency workflow for suspected dashboard-key exposure. Make the dashboard repository private and disable any exposed Pages dashboard first. The action restores retained state, decrypts it with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, uploads the new retained artifact, then deletes prior same-workflow runs within the configured purge budget.
+- `outage-sentinel` preserves the newest unexpired `dashboard-data` artifact during collection outages without decrypting or changing its contents.
 - `docs-sync` runs before collection and writes the action-bundled managed documentation to `docs/reponomics/` when enabled.
 - `keepalive` runs monthly, updates `.reponomics/keepalive.md`, and tries to create a persistent data safety reminder issue so scheduled collection is less likely to be silently disabled.
 
@@ -81,6 +83,12 @@ The template keeps GitHub Actions artifact retention at the default 90 days, whi
 ## Scheduled Workflow Liveness
 
 GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. The generated repository enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria, and GitHub can still change platform behavior. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires, then re-enable workflows from the Actions tab.
+
+## Incident Response And Outage Preservation
+
+`outage-sentinel` handles ordinary collection outages. It runs after failed collection workflows, finds the newest unexpired `dashboard-data` artifact on `main`, and re-uploads that artifact without decrypting or changing its contents.
+
+`incident-reset` handles suspected dashboard-key exposure. For serious exposure, make the dashboard repository private and disable any published Pages dashboard first. Then set `DASHBOARD_NEXT_SECRET`, run **Actions -> Reset Reponomics dashboard incident history**, and enter the required confirmation strings. The reset restores retained state, decrypts it with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts it with `DASHBOARD_NEXT_SECRET`, uploads the fresh retained artifact, then deletes prior runs from the same workflow within the configured purge budget. After the run succeeds, promote `DASHBOARD_NEXT_SECRET` into `DASHBOARD_SECRET_DO_NOT_REPLACE`, then delete `DASHBOARD_NEXT_SECRET`.
 
 ## CSV Export
 

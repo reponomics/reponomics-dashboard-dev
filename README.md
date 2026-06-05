@@ -2,7 +2,7 @@
 
 The Reponomics Dashboard provides GitHub maintainers with a convenient and cost-free way to collect and analyze GitHub traffic data beyond GitHub's rolling traffic window, as well as other growth metrics, and renders a GitHub-native dashboard that can be hosted privately in encrypted form via GitHub Pages. A repository created from this template collects views, clones, top referrers, popular paths, and repository growth counters into retained GitHub Actions artifacts. The HTML dashboard is rendered during the publish workflow; it is deployed to GitHub Pages only when hosted dashboard publication is enabled, and otherwise remains a downloadable workflow artifact. Retained dashboard data is not committed to the repository, unless the user opts in to a more lightweight dashboard that is rendered to their README. This is only available for private repos.
 
-The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, key rotation, and managed local documentation sync are owned by the versioned action:
+The template is intentionally thin. Collection, artifact handling, schema migration, encryption, dashboard rendering, CSV export, key rotation, incident reset behavior, and managed local documentation sync are owned by the versioned action:
 
 ```yaml
 uses: reponomics/reponomics-dashboard-action@v0.17.0
@@ -26,7 +26,7 @@ uses: reponomics/reponomics-dashboard-action@v0.17.0
 > [!NOTE]
 > We chose the deliberately outlandish name `DASHBOARD_SECRET_DO_NOT_REPLACE` because the Actions > Secrets UI does not provide another affordance where we can warn users that if they want to rotate their secret, simply overwriting the existing secret is not the correct way to do so, and will in fact result in permanent data loss if the previous secret was not retained by the user.
 
-Setup enables the collection workflow, the incident sentinel, and a scheduled workflow keepalive, writes a static post-setup README, and leaves hosted Pages publication disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; when publishing or README generation is enabled, collection uploads a small provenance artifact and the separate publish workflow renders from that exact collect run's dashboard-data artifact, repository revision, and action commit. Publish is latest-wins on `main`: a newer publish cancels an older pending or running publish so obsolete renders do not overwrite newer collection results. The publish workflow can also be run manually against the current template revision.
+Setup enables the collection workflow, the outage sentinel, the manual incident reset workflow, and a scheduled workflow keepalive, writes a static post-setup README, and leaves hosted Pages publication disabled unless `generate_html_dashboard` is enabled during setup. Metric README dashboard generation is private-repository only and disabled unless `generate_readme` is enabled during setup. Setup does not collect traffic immediately. Collection runs twice daily on `main`; when publishing or README generation is enabled, collection uploads a small provenance artifact and the separate publish workflow renders from that exact collect run's dashboard-data artifact, repository revision, and action commit. Publish is latest-wins on `main`: a newer publish cancels an older pending or running publish so obsolete renders do not overwrite newer collection results. The publish workflow can also be run manually against the current template revision.
 
 ## Configuration
 
@@ -90,6 +90,12 @@ For release, dependency, vendored-asset, and generated-artifact verification, se
 ## Scheduled Workflow Liveness
 
 GitHub documents that scheduled workflows in public repositories may be disabled automatically after 60 days without repository activity, and inactive scheduled workflows are an operational risk for any dashboard repository. Setup enables a monthly keepalive workflow across repository visibility modes. It uses only the repository `GITHUB_TOKEN`, commits `.reponomics/keepalive.md`, and tries to create one persistent data safety reminder issue. This is a best-effort safeguard because GitHub does not precisely define the activity criteria. If scheduled workflows stop unexpectedly, download the latest `dashboard-data` artifact before it expires and re-enable workflows from the Actions tab.
+
+## Incident Response And Outage Preservation
+
+`outage-sentinel` is a passive preservation workflow. When collection fails, it finds the newest unexpired `dashboard-data` artifact on `main` and re-uploads it without decrypting or changing its contents.
+
+`incident-reset` is a separate manual workflow for suspected dashboard-key exposure. For serious exposure, make the dashboard repository private and disable any published Pages dashboard before running it. Then set `DASHBOARD_NEXT_SECRET`, run **Actions -> Reset Reponomics dashboard incident history**, and enter all three confirmation strings. After the run succeeds, promote `DASHBOARD_NEXT_SECRET` into `DASHBOARD_SECRET_DO_NOT_REPLACE`, then delete `DASHBOARD_NEXT_SECRET`.
 
 ### Advanced: User-Owned GitHub App Collection Token
 

@@ -1,0 +1,66 @@
+name: Reset Reponomics dashboard incident history
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_mode:
+        description: "Type INCIDENT_RESET_CONFIRMED"
+        type: string
+        required: true
+      confirm_purge:
+        description: "Type PURGE_OLD_HISTORY_CONFIRMED"
+        type: string
+        required: true
+      confirm_irreversible:
+        description: "Type IRREVERSIBLE_ACTION_CONFIRMED"
+        type: string
+        required: true
+      incident_purge_max_runs:
+        description: "Maximum prior workflow runs to delete in this reset pass"
+        type: number
+        required: true
+        default: 30
+
+permissions:
+  contents: read
+
+env:
+  PRIVACY_MODE: "strong"
+  RETENTION_DAYS: "90"
+
+jobs:
+  reset:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+
+    steps:
+      - name: Write incident reset warning
+        run: |
+          {
+            echo "## Incident reset"
+            echo
+            echo "Before relying on this purge for a serious dashboard-key exposure,"
+            echo "make this repository private and disable any published Pages dashboard."
+            echo
+            echo "This workflow re-encrypts retained dashboard data with"
+            echo "\`DASHBOARD_NEXT_SECRET\`, uploads a fresh \`dashboard-data\` artifact,"
+            echo "then deletes prior workflow runs from this same workflow up to the"
+            echo "configured deletion budget."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Reset dashboard incident history
+        uses: reponomics/reponomics-dashboard-action@v0.17.0
+        with:
+          mode: incident-reset
+          github-token: ${{ github.token }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          dashboard-next-secret: ${{ secrets.DASHBOARD_NEXT_SECRET }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}
+          incident-confirm-mode: ${{ inputs.confirm_mode }}
+          incident-confirm-purge: ${{ inputs.confirm_purge }}
+          incident-confirm-irreversible: ${{ inputs.confirm_irreversible }}
+          incident-purge-max-runs: ${{ inputs.incident_purge_max_runs }}

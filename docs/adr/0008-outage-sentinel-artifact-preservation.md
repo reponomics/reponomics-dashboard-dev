@@ -1,4 +1,4 @@
-# ADR 0008: Incident Sentinel Artifact Preservation Workflow
+# ADR 0008: Outage Sentinel Artifact Preservation Workflow
 
 - Status: Proposed
 - Date: 2026-05-25
@@ -17,7 +17,7 @@ We need an automated, low-friction safeguard that preserves the latest unexpired
 
 ## Decision
 
-Add a dedicated template workflow: `.github/workflows/incident-sentinel.yml.disabled`.
+Add a dedicated template workflow: `.github/workflows/outage-sentinel.yml.disabled`.
 
 The setup workflow enables this sentinel workflow alongside `collect` so generated repositories receive it automatically.
 
