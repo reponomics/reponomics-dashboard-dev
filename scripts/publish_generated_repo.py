@@ -130,8 +130,16 @@ def publish(
         worktree = Path(tmp) / "repo"
         shutil.copytree(output_dir, worktree)
         _run(["git", "init", "-b", branch], worktree)
-        _run(["git", "config", "user.name", "reponomics-release"], worktree)
-        _run(["git", "config", "user.email", "reponomics-release@users.noreply.github.com"], worktree)
+        _run(["git", "config", "user.name", "reponomics-dashboard[bot]"], worktree)
+        _run(
+            [
+                "git",
+                "config",
+                "user.email",
+                "286571062+reponomics-dashboard[bot]@users.noreply.github.com",
+            ],
+            worktree,
+        )
         _run(["git", "add", "-A"], worktree)
         _run(["git", "commit", "-m", _commit_message(message, source_commit)], worktree)
         _run(["git", "remote", "add", "target", remote_url], worktree)
