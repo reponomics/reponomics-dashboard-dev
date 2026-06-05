@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.2](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.5.1...v0.5.2) (2026-06-05)
+
+
+### Documentation
+
+* document template release protocol ([#42](https://github.com/reponomics/reponomics-dashboard-dev/issues/42)) ([b186e74](https://github.com/reponomics/reponomics-dashboard-dev/commit/b186e7419d44e5399a501048bd17061bb033c651))
+
 ## [0.5.1](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.5.0...v0.5.1) (2026-05-31)
 
 
