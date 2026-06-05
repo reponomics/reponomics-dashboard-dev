@@ -45,7 +45,6 @@ MANAGED_TEXT_PATHS = [
     "README.md",
     "docs/GENERATED_REPOSITORY_MODEL.md",
     "docs/README.md",
-    "docs/adr/0003-generated-template-and-demo-repositories.md",
     "docs/architecture/ENCRYPTED_PAYLOAD_SIZE_AND_SIDE_CHANNELS.md",
     "docs/architecture/PRIVACY_CONFIGURATION_MATRIX.md",
     "docs/architecture/README.md",
