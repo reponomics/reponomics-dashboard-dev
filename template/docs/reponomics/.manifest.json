@@ -1,13 +1,21 @@
 {
   "action_repository": "reponomics/reponomics-dashboard-action",
-  "action_version": "0.19.0",
+  "action_version": "0.20.0",
   "files": {
-    "README.md": "41fc2a178534317802104f89867fc64655871035330d03ac75a9d04c131afaf2",
-    "configuration.md": "dce69232024078bc6f03f19246cdfd3f1d1d8d6b86c47457f9f49d36df4860a5",
-    "privacy-and-artifacts.md": "a13c63c508b3b9c8a557db64e4a3bb5600e9152d0664b56e1526ae0a28948dcf",
-    "upgrade.md": "2b2e973cdf1600539bececce9f20cceee3ebe13411f340090cea208ebf81d36f"
+    "README.md": "dba6c1a3a90946040424112ac2c36b53fb51a89128e08e146970e66bd22ce6b3",
+    "configuration.md": "0700ce86a8fcf73dcbdff221b9a1601de287f3d816bebd34c02d0428f48b0803",
+    "faq.md": "17d8e4ac6a5a8fcb44ccf35abb3486e60a85d6648838769e17b067a1f1683643",
+    "privacy-and-artifacts.md": "cc2224429970f5189fb8f205bb887b34ea411de930e21163edf1e59d9a39a49b",
+    "privacy-configuration-matrix.md": "802dc22f237c4189c5ed67cf664fed8777c5184d4fa7cd73d55ce1da3868e856",
+    "provenance.md": "9dc75345cdca290953ab5fcaa66f0ffc93881bcde1e47b6c37d3a7c462889487",
+    "repository-guide.md": "af77392a8b8522965a748d820652724f8f2f4b5f161475a3e347ceba9eeccb80",
+    "secure-dashboard-key.md": "9eef0bba9735212f656a00188c3dfff73e0eaec045a24ff7d0d0f49e210e56ba",
+    "security.md": "bb33b2152d93f2967a08da35b01f1b0dc34b3903bcff6e4b485352c188605462",
+    "support.md": "b4be664591c9fdf5473fc9f176f7de4334106ca686c3a6cd2ac013fe1bf396cf",
+    "trust-boundary.md": "075aa272e1aacc70d6952d8931bd91b628730a6a0af56cb571c17359cfa81b9a",
+    "upgrade.md": "5122c31e82204bef43641f68802f188f4f79501559078be978dcecdf90bb31fd"
   },
   "managed_namespace": "docs/reponomics",
   "schema_version": 1,
-  "updated_at": "2026-06-05T09:58:57Z"
+  "updated_at": "2026-06-05T16:11:06Z"
 }
