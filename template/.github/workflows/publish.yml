@@ -20,8 +20,8 @@ env:
   GENERATE_HTML_DASHBOARD: "false"
   GENERATE_README: "false"
   REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
-  REPONOMICS_ACTION_REF: "v0.18.0"
-  REPONOMICS_ACTION_SHA: "4eb1579ceeaeae1e3afe03e35ee136578f1f3e9f"
+  REPONOMICS_ACTION_REF: "v0.19.0"
+  REPONOMICS_ACTION_SHA: "f8df76c235d507c581dda8b1a7a810e2873021ee"
 
 jobs:
   publish:

@@ -14,7 +14,7 @@ This repository publishes a generated template shell. Runtime behavior is delive
 The strongest user-impacting trust boundary is the action reference in template workflows:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.18.0
+uses: reponomics/reponomics-dashboard-action@v0.19.0
 ```
 
 Recommended policy:
