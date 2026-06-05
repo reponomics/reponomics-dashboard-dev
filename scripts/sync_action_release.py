@@ -51,6 +51,7 @@ MANAGED_TEXT_PATHS = [
     "docs/architecture/README.md",
     "docs/architecture/SUPPLY_CHAIN_ASSURANCE.md",
     "docs/architecture/VERSIONING_AND_UPDATES.md",
+    "template/README.md",
     "template/.github/workflows/collect.yml",
     "template/.github/workflows/incident-reset.yml",
     "template/.github/workflows/publish.yml",

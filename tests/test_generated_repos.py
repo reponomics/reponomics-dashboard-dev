@@ -67,6 +67,13 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     for relative_path in required:
         assert (output / relative_path).exists()
 
+    generated_readme = (output / "README.md").read_text(encoding="utf-8")
+    assert generated_readme == Path("template/README.md").read_text(encoding="utf-8")
+    assert generated_readme != Path("README.md").read_text(encoding="utf-8")
+    assert "This is the setup README for your Reponomics dashboard repository." in (
+        generated_readme
+    )
+
 
 def test_template_includes_initial_managed_docs_snapshot(tmp_path):
     output = tmp_path / "template"
@@ -317,13 +324,14 @@ def test_setup_workflow_resolves_privacy_modes():
 
 def test_docs_explain_multi_owner_token_fallback():
     readme = Path("README.md").read_text(encoding="utf-8")
+    template_readme = Path("template/README.md").read_text(encoding="utf-8")
     docs = Path("docs/README.md").read_text(encoding="utf-8")
 
     assert "Token Scope And Repository Owners" in readme
     assert "before choosing a token" in readme
     assert "Repository entries use full `owner/repo` names" in readme
 
-    for text in (readme, docs):
+    for text in (readme, template_readme, docs):
         assert "supports one collection credential" in text
         assert "Fine-grained personal access tokens are scoped to one GitHub resource owner" in text
         assert re.search(r"multiple users or\s+organizations", text)

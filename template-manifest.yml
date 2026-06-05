@@ -24,7 +24,8 @@ include:
   - source: template/CONTRIBUTING.md
     target: CONTRIBUTING.md
   - LICENSE
-  - README.md
+  - source: template/README.md
+    target: README.md
   - source: template/SECURITY.md
     target: SECURITY.md
   - source: template/SUPPORT.md
