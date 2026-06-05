@@ -164,7 +164,9 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "incident-confirm-mode: ${{ inputs.confirm_mode }}" in incident_reset
     assert "incident-confirm-purge: ${{ inputs.confirm_purge }}" in incident_reset
     assert "incident-confirm-irreversible: ${{ inputs.confirm_irreversible }}" in incident_reset
-    assert "incident-purge-max-runs: ${{ inputs.incident_purge_max_runs }}" in incident_reset
+    assert "incident-purge-max-runs" not in incident_reset
+    assert "timeout-minutes: 30" in incident_reset
+    assert "associated with prior" in incident_reset
     assert "make this repository private" in incident_reset
     assert "disable any published Pages dashboard" in incident_reset
     assert re.search(r"^permissions:\n  contents: read$", incident_reset, flags=re.MULTILINE)
