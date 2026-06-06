@@ -59,7 +59,7 @@ The maintainer release cadence is documented in [Template Release Protocol](TEMP
 Workflow files in `reponomics-dashboard-dev` are split into two classes:
 
 - template workflow sources live under `template/.github/workflows` with normal `.yml` filenames
-- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml.disabled`, `incident-reset.yml.disabled`, `keepalive.yml.disabled`, `publish.yml.disabled`, `rotate-key.yml`
+- generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml`, `incident-reset.yml`, `keepalive.yml`, `publish.yml`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
 `template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.

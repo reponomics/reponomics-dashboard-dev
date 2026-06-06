@@ -7,13 +7,15 @@ description: >
 
 include:
   - source: template/.github/workflows/collect.yml
-    target: .github/workflows/collect.yml.disabled
+    target: .github/workflows/collect.yml
   - source: template/.github/workflows/incident-reset.yml
-    target: .github/workflows/incident-reset.yml.disabled
+    target: .github/workflows/incident-reset.yml
   - source: template/.github/workflows/keepalive.yml
-    target: .github/workflows/keepalive.yml.disabled
+    target: .github/workflows/keepalive.yml
   - source: template/.github/workflows/publish.yml
-    target: .github/workflows/publish.yml.disabled
+    target: .github/workflows/publish.yml
+  - source: template/.github/scripts/resolve-reponomics-config.py
+    target: .github/scripts/resolve-reponomics-config.py
   - source: template/.github/workflows/rotate-key.yml
     target: .github/workflows/rotate-key.yml
   - source: template/.github/workflows/setup.yml

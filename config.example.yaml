@@ -6,6 +6,17 @@
 # Compatible action releases may add new optional keys here. If your config.yaml
 # does not mention an optional key, the runtime uses its documented default.
 
+# Setup and output behavior ---------------------------------------------------
+#
+# These keys are written by the setup workflow and may be edited afterward.
+# Public repositories may not use plain privacy mode or README dashboard output.
+
+privacy_mode: strong
+retention_days: 90
+generate_html_dashboard: false
+generate_readme: false
+use_github_app: false
+
 # Repository selection -------------------------------------------------------
 
 # Maximum number of repositories to track.

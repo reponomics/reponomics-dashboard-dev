@@ -33,7 +33,16 @@ jobs:
       actions: write
 
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: main
+
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
       - name: Write incident reset warning
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         run: |
           {
             echo "## Incident reset"
@@ -48,6 +57,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Reset dashboard incident history
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.20.2
         with:
           mode: incident-reset

@@ -37,7 +37,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
       - name: Sync managed Reponomics docs
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.20.2
         with:
           mode: docs-sync
@@ -57,7 +61,11 @@ jobs:
         with:
           ref: main
 
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
       - name: Refuse incomplete key rotation
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         env:
           DASHBOARD_NEXT_SECRET: ${{ secrets.DASHBOARD_NEXT_SECRET }}
         run: |
@@ -76,7 +84,7 @@ jobs:
 
       - name: Mint GitHub App installation token (advanced)
         id: collection_app_token
-        if: ${{ env.USE_GITHUB_APP == 'true' }}
+        if: ${{ env.REPONOMICS_SETUP_COMPLETE == 'true' && env.USE_GITHUB_APP == 'true' }}
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}
@@ -85,6 +93,7 @@ jobs:
 
       - name: Resolve collection token
         id: resolve_collection_token
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         env:
           USE_GITHUB_APP: ${{ env.USE_GITHUB_APP }}
           COLLECTION_TOKEN: ${{ secrets.COLLECTION_TOKEN }}
@@ -118,6 +127,7 @@ jobs:
           echo "collection_token=$COLLECTION_TOKEN" >> "$GITHUB_OUTPUT"
 
       - name: Collect retained dashboard data
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.20.2
         with:
           mode: collect
@@ -129,7 +139,7 @@ jobs:
           retention-days: ${{ env.RETENTION_DAYS }}
 
       - name: Write collect provenance for publish
-        if: env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true'
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         run: |
           set -euo pipefail
 
@@ -163,7 +173,7 @@ jobs:
           PY
 
       - name: Upload collect provenance for publish
-        if: env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true'
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: reponomics-collect-provenance
