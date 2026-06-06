@@ -8,7 +8,7 @@ This is the setup README for your Reponomics dashboard repository. It helps you 
 The dashboard collects GitHub traffic and growth data, stores retained state in GitHub Actions artifacts, and renders optional dashboard outputs through GitHub Actions. The repository stays intentionally thin: collection, encryption, rendering, key rotation, incident reset behavior, CSV export, and managed docs sync are owned by the versioned action:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.20.0
+uses: reponomics/reponomics-dashboard-action@v0.20.1
 ```
 
 ## Get Started

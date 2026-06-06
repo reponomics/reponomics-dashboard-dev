@@ -1,6 +1,6 @@
 # Encrypted Payload Size And Side Channels
 
-Status: current for action `v0.20.0`.
+Status: current for action `v0.20.1`.
 
 Encrypted hosted dashboards protect dashboard contents from viewers without `DASHBOARD_SECRET_DO_NOT_REPLACE`, but they do not make the publication opaque.
 
