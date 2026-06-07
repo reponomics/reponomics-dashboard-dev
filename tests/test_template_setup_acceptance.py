@@ -26,6 +26,14 @@ NONINTERACTIVE_ENV = {
 }
 
 
+def _timeout_output(value: str | bytes | None) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bytes):
+        return value.decode("utf-8", errors="replace")
+    return value
+
+
 def _run(command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(
@@ -41,13 +49,13 @@ def _run(command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.Compl
     except subprocess.TimeoutExpired as exc:
         raise AssertionError(
             f"command timed out after {COMMAND_TIMEOUT_SECONDS}s: {' '.join(command)}\n"
-            f"stdout:\n{exc.stdout or ''}\n"
-            f"stderr:\n{exc.stderr or ''}"
+            f"stdout:\n{_timeout_output(exc.stdout)}\n"
+            f"stderr:\n{_timeout_output(exc.stderr)}"
         ) from exc
 
 
 def _read_env_file(path: Path) -> dict[str, str]:
-    values = {}
+    values: dict[str, str] = {}
     if not path.exists():
         return values
     for line in path.read_text(encoding="utf-8").splitlines():
@@ -137,8 +145,8 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
         except subprocess.TimeoutExpired as exc:
             raise AssertionError(
                 f"setup step timed out after {COMMAND_TIMEOUT_SECONDS}s: {step['name']}\n"
-                f"stdout:\n{exc.stdout or ''}\n"
-                f"stderr:\n{exc.stderr or ''}"
+                f"stdout:\n{_timeout_output(exc.stdout)}\n"
+                f"stderr:\n{_timeout_output(exc.stderr)}"
             ) from exc
         assert result.returncode == 0, (
             f"setup step failed: {step['name']}\n"
