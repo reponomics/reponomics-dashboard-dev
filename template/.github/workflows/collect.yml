@@ -20,8 +20,8 @@ env:
   GENERATE_README: "false"
   USE_GITHUB_APP: "false"
   REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
-  REPONOMICS_ACTION_REF: "v0.20.2"
-  REPONOMICS_ACTION_SHA: "6078cc3441f65f8aecc0d7b80613c588b5204e3c"
+  REPONOMICS_ACTION_REF: "v0.20.3"
+  REPONOMICS_ACTION_SHA: "dfa65dac00aa04e4628bfbe50c221413ab47b8fd"
 
 jobs:
   docs-sync:
@@ -42,7 +42,7 @@ jobs:
 
       - name: Sync managed Reponomics docs
         if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        uses: reponomics/reponomics-dashboard-action@v0.20.2
+        uses: reponomics/reponomics-dashboard-action@v0.20.3
         with:
           mode: docs-sync
           github-token: ${{ github.token }}
@@ -128,7 +128,7 @@ jobs:
 
       - name: Collect retained dashboard data
         if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        uses: reponomics/reponomics-dashboard-action@v0.20.2
+        uses: reponomics/reponomics-dashboard-action@v0.20.3
         with:
           mode: collect
           collection-token: ${{ steps.resolve_collection_token.outputs.collection_token }}
