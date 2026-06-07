@@ -206,17 +206,6 @@ def _copy_template(template_dir: Path, consumer_dir: Path) -> None:
     if not template_dir.exists():
         raise TemplateConsumerE2EError(f"Template directory does not exist: {template_dir}")
     shutil.copytree(template_dir, consumer_dir)
-    workflow_dir = consumer_dir / ".github" / "workflows"
-    for workflow_name in (
-        "collect.yml",
-        "publish.yml",
-        "incident-reset.yml",
-        "keepalive.yml",
-    ):
-        disabled = workflow_dir / f"{workflow_name}.disabled"
-        enabled = workflow_dir / workflow_name
-        if disabled.exists():
-            disabled.rename(enabled)
 
 
 def _init_consumer_git_repo(consumer_dir: Path, remote_dir: Path) -> None:

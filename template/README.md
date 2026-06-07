@@ -18,9 +18,9 @@ uses: reponomics/reponomics-dashboard-action@v0.20.2
 3. Choose a privacy mode: `strong`, `casual`, or `plain`. Public repositories should normally use `strong`.
 4. For `strong` or `casual`, generate and save `DASHBOARD_SECRET_DO_NOT_REPLACE`, then add it as a repository secret. See [Secure Dashboard Key Generation](docs/reponomics/secure-dashboard-key.md).
 5. Run **Actions -> Set up Reponomics dashboard -> Run workflow**.
-6. If setup enables hosted dashboard publication, open **Settings -> Pages** and set **Build and deployment -> Source** to **GitHub Actions**.
+6. If you enable hosted dashboard publication, open **Settings -> Pages** and set **Build and deployment -> Source** to **GitHub Actions**.
 
-Setup enables the collection workflow, the manual incident reset workflow, and the scheduled workflow keepalive. It does not collect traffic immediately. Collection runs on the configured schedule and stores retained data in the `dashboard-data` Actions artifact.
+Setup writes your selected options to `config.yaml`, creates the empty `.reponomics/setup-complete` marker, and replaces this README. Operational workflows are present before setup but do no work until that marker exists. Setup does not collect traffic immediately. Collection runs on the configured schedule and stores retained data in the `dashboard-data` Actions artifact.
 
 ## Configuration
 

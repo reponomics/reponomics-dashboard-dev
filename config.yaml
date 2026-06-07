@@ -1,5 +1,15 @@
 # Reponomics dashboard configuration
 #
+# Setup and output behavior ---------------------------------------------------
+
+privacy_mode: strong
+retention_days: 90
+generate_html_dashboard: false
+generate_readme: false
+use_github_app: false
+
+# Repository selection --------------------------------------------------------
+#
 # By default, Reponomics auto-discovers up to 50 eligible repositories visible
 # to COLLECTION_TOKEN and fills the tracked set from newest to oldest by creation
 # date.

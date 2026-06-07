@@ -24,8 +24,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
       - name: Update keepalive marker
         id: marker
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         run: |
           set -euo pipefail
 
@@ -45,6 +49,7 @@ jobs:
 
       - name: Commit keepalive marker
         id: commit
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         run: |
           set -euo pipefail
 
@@ -64,6 +69,7 @@ jobs:
 
       - name: Create data safety reminder issue
         id: reminder
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         env:
           GITHUB_TOKEN: ${{ github.token }}
           KEEPALIVE_TIMESTAMP: ${{ steps.marker.outputs.timestamp }}
@@ -151,6 +157,7 @@ jobs:
           PY
 
       - name: Write keepalive summary
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         run: |
           set -euo pipefail
 

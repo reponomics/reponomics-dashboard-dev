@@ -46,14 +46,7 @@ def _create_ephemeral_remote() -> tuple[str, Path]:
 def _prepare_generated_workflows(output_dir: Path, temp_root: Path) -> Path:
     sandbox = temp_root / "generated-template"
     shutil.copytree(output_dir, sandbox)
-    workflow_dir = sandbox / ".github" / "workflows"
-    collect_disabled = workflow_dir / "collect.yml.disabled"
-    publish_disabled = workflow_dir / "publish.yml.disabled"
-    collect = workflow_dir / "collect.yml"
-    publish = workflow_dir / "publish.yml"
-    shutil.copy2(collect_disabled, collect)
-    shutil.copy2(publish_disabled, publish)
-    return workflow_dir
+    return sandbox / ".github" / "workflows"
 
 
 def _ephemeral_publish(output_dir: Path, remote_path: str) -> None:
@@ -85,9 +78,7 @@ def _run_actionlint(workflow_dir: Path) -> None:
     actionlint = Path.home() / "go" / "bin" / "actionlint"
     if not actionlint.exists():
         raise SmokeTestError("actionlint binary was not installed")
-    workflow_files = sorted(workflow_dir.glob("*.yml")) + sorted(
-        workflow_dir.glob("*.yml.disabled")
-    )
+    workflow_files = sorted(workflow_dir.glob("*.yml"))
     if not workflow_files:
         raise SmokeTestError(f"No workflow files found in {workflow_dir}")
     _run(

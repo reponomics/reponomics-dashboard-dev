@@ -40,10 +40,11 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     build_template.build_template(output)
 
     required = [
-        ".github/workflows/collect.yml.disabled",
-        ".github/workflows/incident-reset.yml.disabled",
-        ".github/workflows/keepalive.yml.disabled",
-        ".github/workflows/publish.yml.disabled",
+        ".github/scripts/resolve-reponomics-config.py",
+        ".github/workflows/collect.yml",
+        ".github/workflows/incident-reset.yml",
+        ".github/workflows/keepalive.yml",
+        ".github/workflows/publish.yml",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
         "CODE_OF_CONDUCT.md",
@@ -158,14 +159,15 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     release = sync_action_release.load_manifest()
 
     workflows = output / ".github" / "workflows"
-    collect = (workflows / "collect.yml.disabled").read_text(encoding="utf-8")
-    incident_reset = (workflows / "incident-reset.yml.disabled").read_text(
-        encoding="utf-8"
-    )
-    keepalive = (workflows / "keepalive.yml.disabled").read_text(encoding="utf-8")
-    publish = (workflows / "publish.yml.disabled").read_text(encoding="utf-8")
+    collect = (workflows / "collect.yml").read_text(encoding="utf-8")
+    incident_reset = (workflows / "incident-reset.yml").read_text(encoding="utf-8")
+    keepalive = (workflows / "keepalive.yml").read_text(encoding="utf-8")
+    publish = (workflows / "publish.yml").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
+    resolver = (
+        output / ".github" / "scripts" / "resolve-reponomics-config.py"
+    ).read_text(encoding="utf-8")
     collect_workflow = yaml.safe_load(collect)
     incident_reset_workflow = yaml.safe_load(incident_reset)
 
@@ -174,6 +176,8 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     action_sha_env = f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"'
     html_env = 'GENERATE_HTML_DASHBOARD: "false"'
     assert "docs-sync:" in collect
+    assert "resolve-reponomics-config.py --require-setup" in collect
+    assert "REPONOMICS_SETUP_COMPLETE == 'true'" in collect
     assert "mode: docs-sync" in collect
     assert "github-token: ${{ github.token }}" in collect
     assert "allow-docs-sync" not in collect
@@ -186,6 +190,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"]' in collect
     assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in collect
     assert "source_sha" in publish
+    assert "resolve-reponomics-config.py --require-setup" in publish
     assert "workflow_run_id" in publish
     assert "action_sha" in publish
     assert (
@@ -199,7 +204,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "Repair the generated workflow action metadata" in publish
     assert "generate_html_dashboard" in publish
     assert "uses: ./reponomics-dashboard-action" in publish
-    assert "if: steps.provenance.outputs.generate_html_dashboard == 'true'" in publish
+    assert "steps.provenance.outputs.generate_html_dashboard == 'true'" in publish
     assert "Render README and downloadable dashboard without Pages deployment" in publish
     assert "Upload plain downloadable dashboard" in publish
     assert "Upload encrypted downloadable dashboard" in publish
@@ -249,7 +254,10 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "workflow_run:" in publish
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
+    assert "resolve-reponomics-config.py --require-setup" in keepalive
     assert "60 days without repository activity" in keepalive
+    assert ".reponomics/setup-complete" in resolver
+    assert '"generate_readme": "GENERATE_README"' in resolver
 
 
 def test_setup_workflow_resolves_privacy_modes():
@@ -273,8 +281,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert 'echo "PRIVACY_MODE=$resolved_privacy_mode"' in setup
     assert 'echo "GENERATE_HTML_DASHBOARD=$GENERATE_HTML_DASHBOARD"' in setup
     assert 'echo "GENERATE_README=$GENERATE_README"' in setup
-    assert '"GENERATE_HTML_DASHBOARD": os.environ["GENERATE_HTML_DASHBOARD"]' in setup
-    assert '"GENERATE_README": os.environ["GENERATE_README"]' in setup
+    assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"].lower()' in setup
+    assert '"generate_readme": os.environ["GENERATE_README"].lower()' in setup
     assert 'echo "USE_GITHUB_APP=$USE_GITHUB_APP"' in setup
     assert "README dashboard generation is only supported for private repositories." in setup
     assert "cp README.md README.backup.md" in setup
@@ -285,10 +293,10 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "This repository was generated from the [Reponomics Dashboard template repo]" in setup
     assert "allow_docs_sync: false" in setup
     assert "Managed docs sync" in setup
-    assert "git add -A .github/workflows README.md README.backup.md" in setup
-    assert 'RETENTION_DAYS: "90"' in setup
-    assert "retention_days:" not in setup
-    assert '"PRIVACY_MODE": os.environ["PRIVACY_MODE"]' in setup
+    assert ": > .reponomics/setup-complete" in setup
+    assert "git add README.md README.backup.md config.yaml .reponomics/setup-complete" in setup
+    assert '"privacy_mode": os.environ["PRIVACY_MODE"]' in setup
+    assert '"retention_days": os.environ["RETENTION_DAYS"]' in setup
     assert "privacy_mode=plain" in setup
     assert "is only supported for private repositories." in setup
     assert "privacy_mode=strong" in setup
@@ -297,9 +305,8 @@ def test_setup_workflow_resolves_privacy_modes():
     assert re.search(r"^\s+permissions:\n\s+contents: write$", setup, flags=re.MULTILINE)
     assert "actions: write" not in setup
     assert "DASHBOARD_NEXT_SECRET" not in setup
-    assert 'enable_workflow ".github/workflows/incident-reset.yml"' in setup
+    assert "enable_workflow" not in setup
     assert "outage-sentinel" not in setup
-    assert 'enable_workflow ".github/workflows/keepalive.yml"' in setup
     assert "Scheduled workflow keepalive" in setup
     assert "60 days without repository activity" in setup
     assert "token: ${{ secrets.COLLECTION_TOKEN" not in setup
@@ -313,7 +320,7 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "keep \\`config.yaml\\` within" in setup
     assert "COLLECTION_APP_PRIVATE_KEY" in setup
     assert "COLLECTION_APP_ID" in setup
-    assert '"USE_GITHUB_APP": os.environ["USE_GITHUB_APP"]' in setup
+    assert '"use_github_app": os.environ["USE_GITHUB_APP"].lower()' in setup
     assert "docs/reponomics/secure-dashboard-key.md" in setup
     assert "docs/reponomics/privacy-configuration-matrix.md" in setup
     assert "not strong enough for \\`privacy_mode=strong\\`" in setup
@@ -329,6 +336,24 @@ def test_setup_workflow_resolves_privacy_modes():
     assert "skip them" in setup
     assert "repos/$GITHUB_REPOSITORY/pages" not in setup
     assert "PAGES_PUBLICATION" not in setup
+
+
+def test_setup_workflow_does_not_commit_workflow_file_changes(tmp_path):
+    """Setup must not require workflow write permission in generated repos."""
+    output = tmp_path / "template"
+    build_template.build_template(output)
+
+    setup_workflows = {
+        "source template": Path("template/.github/workflows/setup.yml"),
+        "generated template": output / ".github" / "workflows" / "setup.yml",
+    }
+    for label, setup_path in setup_workflows.items():
+        setup = setup_path.read_text(encoding="utf-8")
+
+        assert "git add -A .github/workflows" not in setup, label
+        assert re.search(r"^\s*git add .*\.github/workflows", setup, flags=re.MULTILINE) is None, label
+        assert re.search(r"^\s*mv .*\.github/workflows", setup, flags=re.MULTILINE) is None, label
+        assert 'Path(".github/workflows/' not in setup, label
 
 
 def test_docs_explain_multi_owner_token_fallback():

@@ -26,7 +26,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v6
 
-      - name: Load collection modes
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
+      - name: Validate rotation request
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         env:
           CONFIRM_ROTATION: ${{ inputs.confirm_rotation }}
         run: |
@@ -37,48 +41,8 @@ jobs:
             exit 1
           fi
 
-          if [ ! -f ".github/workflows/collect.yml" ]; then
-            {
-              echo "## Rotation stopped"
-              echo
-              echo "Run setup before rotating the dashboard key."
-            } >> "$GITHUB_STEP_SUMMARY"
-            exit 1
-          fi
-
-          python - <<'PY'
-          import os
-          import re
-          from pathlib import Path
-
-          text = Path(".github/workflows/collect.yml").read_text(encoding="utf-8")
-
-          def env_value(name, default=""):
-              match = re.search(rf'^  {name}: "([^"]*)"$', text, flags=re.MULTILINE)
-              return match.group(1) if match else default
-
-          values = {
-              "PRIVACY_MODE": env_value("PRIVACY_MODE", "strong"),
-              "RETENTION_DAYS": env_value("RETENTION_DAYS", "90"),
-          }
-
-          publish_workflow = Path(".github/workflows/publish.yml")
-          if publish_workflow.exists():
-              publish_text = publish_workflow.read_text(encoding="utf-8")
-              values["GENERATE_README"] = re.search(
-                  r'^  GENERATE_README: "([^"]*)"$',
-                  publish_text,
-                  flags=re.MULTILINE,
-              ).group(1)
-          else:
-              values["GENERATE_README"] = "false"
-
-          with open(os.environ["GITHUB_ENV"], "a", encoding="utf-8") as env_file:
-              for key, value in values.items():
-                  env_file.write(f"{key}={value}\n")
-          PY
-
       - name: Rotate dashboard key
+        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: reponomics/reponomics-dashboard-action@v0.20.2
         with:
           mode: rotate-key
