@@ -72,6 +72,35 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     assert "README.backup.md" in generated_readme
 
 
+def test_template_manifest_strips_template_prefix_by_default():
+    manifest = {
+        "include": [
+            "template",
+            "template/README.md",
+            "template/docs/reponomics",
+            "LICENSE",
+            {"source": "template/SUPPORT.md", "target": "SUPPORT-CUSTOM.md"},
+        ]
+    }
+
+    assert build_template.iter_include_entries(manifest) == [
+        (Path("template"), Path(".")),
+        (Path("template/README.md"), Path("README.md")),
+        (Path("template/docs/reponomics"), Path("docs/reponomics")),
+        (Path("LICENSE"), Path("LICENSE")),
+        (Path("template/SUPPORT.md"), Path("SUPPORT-CUSTOM.md")),
+    ]
+
+
+def test_template_manifest_expands_directory_file_entries():
+    entries = build_template.iter_include_file_entries({"include": ["template/.github"]})
+
+    assert (
+        Path("template/.github/workflows/collect.yml"),
+        Path(".github/workflows/collect.yml"),
+    ) in entries
+
+
 def test_template_includes_initial_managed_docs_snapshot(tmp_path):
     output = tmp_path / "template"
 
@@ -374,8 +403,8 @@ def test_docs_explain_multi_owner_token_fallback():
 
 
 def test_config_documents_managed_docs_opt_out():
-    config_example = Path("config.example.yaml").read_text(encoding="utf-8")
-    config = Path("config.yaml").read_text(encoding="utf-8")
+    config_example = Path("template/config.example.yaml").read_text(encoding="utf-8")
+    config = Path("template/config.yaml").read_text(encoding="utf-8")
 
     for text in (config_example, config):
         assert "allow_docs_sync: true" in text

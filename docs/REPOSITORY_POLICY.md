@@ -17,7 +17,7 @@ Maintainer automation targets Python `3.11` as the baseline runtime.
 
 ## Generated Template
 
-`reponomics-dashboard` is the shipped template artifact. It should be generated from this repository and contain only the files listed in `template-manifest.yml`.
+`reponomics-dashboard` is the shipped template artifact. It should be generated from this repository and contain only files sourced through `template-manifest.yml`. The template source tree lives under `template/`; generated paths strip that leading prefix unless an explicit `source`/`target` mapping is used.
 
 The generated template is an onboarding shell. It should not contain runtime implementation files, maintainer tests, archived planning docs, virtual environments, or generated local outputs.
 
@@ -62,7 +62,7 @@ Workflow files in `reponomics-dashboard-dev` are split into two classes:
 - generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml`, `incident-reset.yml`, `keepalive.yml`, `publish.yml`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
-`template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.
+`template-manifest.yml` maps template workflow sources into the generated workflow surface, normally by stripping the leading `template/` prefix. Maintainer workflows must stay out of the generated template surface.
 
 ## Future Demo Repository
 

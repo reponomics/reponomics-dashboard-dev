@@ -15,6 +15,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "template-manifest.yml"
 DEFAULT_OUTPUT = ROOT / "dist" / "template"
+TEMPLATE_SOURCE_PREFIX = Path("template")
 
 
 class TemplateBuildError(RuntimeError):
@@ -30,12 +31,24 @@ def _manifest_path(value: Any, *, field: str) -> Path:
     return path
 
 
+def _default_target_for_source(source: Path) -> Path:
+    if source.parts and source.parts[0] == TEMPLATE_SOURCE_PREFIX.name:
+        try:
+            target = source.relative_to(TEMPLATE_SOURCE_PREFIX)
+        except ValueError as exc:
+            raise TemplateBuildError(
+                f"Manifest include source cannot target outside template prefix: {source}"
+            ) from exc
+        return target
+    return source
+
+
 def iter_include_entries(manifest: dict[str, Any]) -> list[tuple[Path, Path]]:
     entries: list[tuple[Path, Path]] = []
     for raw_entry in manifest.get("include", []):
         if isinstance(raw_entry, str):
             path = _manifest_path(raw_entry, field="path")
-            entries.append((path, path))
+            entries.append((path, _default_target_for_source(path)))
             continue
         if isinstance(raw_entry, dict):
             source = _manifest_path(raw_entry.get("source"), field="source")
@@ -75,10 +88,31 @@ def _copy_path(source: Path, destination: Path) -> None:
     if not source.exists():
         raise TemplateBuildError(f"Manifest includes missing path: {source}")
     if source.is_dir():
-        shutil.copytree(source, destination)
+        if destination.exists():
+            if not destination.is_dir():
+                raise TemplateBuildError(
+                    f"Cannot copy directory {source} onto file {destination}"
+                )
+            for child in sorted(source.iterdir()):
+                _copy_path(child, destination / child.name)
+        else:
+            shutil.copytree(source, destination)
     else:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
+
+
+def iter_include_file_entries(manifest: dict[str, Any]) -> list[tuple[Path, Path]]:
+    files: list[tuple[Path, Path]] = []
+    for source, target in iter_include_entries(manifest):
+        source_root = ROOT / source
+        if source_root.is_dir():
+            for source_file in sorted(path for path in source_root.rglob("*") if path.is_file()):
+                relative = source_file.relative_to(source_root)
+                files.append((source / relative, target / relative))
+        else:
+            files.append((source, target))
+    return files
 
 
 def _git_value(*args: str) -> str:
