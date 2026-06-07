@@ -15,16 +15,35 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 import build_template
 
 
+COMMAND_TIMEOUT_SECONDS = 15
+NONINTERACTIVE_ENV = {
+    "CI": "true",
+    "GH_PROMPT_DISABLED": "1",
+    "GIT_ASKPASS": "/bin/echo",
+    "GIT_TERMINAL_PROMPT": "0",
+    "GCM_INTERACTIVE": "never",
+    "SSH_ASKPASS": "/bin/echo",
+}
+
+
 def _run(command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        cwd=cwd,
-        env=env,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=True,
-    )
+    try:
+        return subprocess.run(
+            command,
+            cwd=cwd,
+            env={**env, **NONINTERACTIVE_ENV},
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+            timeout=COMMAND_TIMEOUT_SECONDS,
+        )
+    except subprocess.TimeoutExpired as exc:
+        raise AssertionError(
+            f"command timed out after {COMMAND_TIMEOUT_SECONDS}s: {' '.join(command)}\n"
+            f"stdout:\n{exc.stdout or ''}\n"
+            f"stderr:\n{exc.stderr or ''}"
+        ) from exc
 
 
 def _read_env_file(path: Path) -> dict[str, str]:
@@ -92,6 +111,7 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
     workflow_env = {key: str(value) for key, value in workflow.get("env", {}).items()}
     base_env = {
         **os.environ,
+        **NONINTERACTIVE_ENV,
         **workflow_env,
         "GITHUB_ENV": str(env_file),
         "GITHUB_STEP_SUMMARY": str(summary_file),
@@ -104,14 +124,22 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
     for step in run_steps:
         base_env.update(_read_env_file(env_file))
         env = _setup_step_env(step["name"], base_env)
-        result = subprocess.run(
-            ["bash", "-euo", "pipefail", "-c", step["run"]],
-            cwd=repo,
-            env=env,
-            text=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-        )
+        try:
+            result = subprocess.run(
+                ["bash", "-euo", "pipefail", "-c", step["run"]],
+                cwd=repo,
+                env=env,
+                text=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                timeout=COMMAND_TIMEOUT_SECONDS,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise AssertionError(
+                f"setup step timed out after {COMMAND_TIMEOUT_SECONDS}s: {step['name']}\n"
+                f"stdout:\n{exc.stdout or ''}\n"
+                f"stderr:\n{exc.stderr or ''}"
+            ) from exc
         assert result.returncode == 0, (
             f"setup step failed: {step['name']}\n"
             f"stdout:\n{result.stdout}\n"
