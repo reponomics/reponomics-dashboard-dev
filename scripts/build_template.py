@@ -15,6 +15,8 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = ROOT / "template-manifest.yml"
 DEFAULT_OUTPUT = ROOT / "dist" / "template"
+TEMPLATE_SOURCE_PREFIX = Path("template")
+TEMPLATE_NAME_MARKER = ".template"
 
 
 class TemplateBuildError(RuntimeError):
@@ -30,12 +32,34 @@ def _manifest_path(value: Any, *, field: str) -> Path:
     return path
 
 
+def _strip_template_name_marker(path: Path) -> Path:
+    if path.name.endswith(TEMPLATE_NAME_MARKER):
+        return path.with_name(path.name.removesuffix(TEMPLATE_NAME_MARKER))
+    if path.stem.endswith(TEMPLATE_NAME_MARKER):
+        return path.with_name(
+            f"{path.stem.removesuffix(TEMPLATE_NAME_MARKER)}{path.suffix}"
+        )
+    return path
+
+
+def _default_target_for_source(source: Path) -> Path:
+    if source.parts and source.parts[0] == TEMPLATE_SOURCE_PREFIX.name:
+        try:
+            target = source.relative_to(TEMPLATE_SOURCE_PREFIX)
+        except ValueError as exc:
+            raise TemplateBuildError(
+                f"Manifest include source cannot target outside template prefix: {source}"
+            ) from exc
+        return _strip_template_name_marker(target)
+    return source
+
+
 def iter_include_entries(manifest: dict[str, Any]) -> list[tuple[Path, Path]]:
     entries: list[tuple[Path, Path]] = []
     for raw_entry in manifest.get("include", []):
         if isinstance(raw_entry, str):
             path = _manifest_path(raw_entry, field="path")
-            entries.append((path, path))
+            entries.append((path, _default_target_for_source(path)))
             continue
         if isinstance(raw_entry, dict):
             source = _manifest_path(raw_entry.get("source"), field="source")
@@ -75,10 +99,37 @@ def _copy_path(source: Path, destination: Path) -> None:
     if not source.exists():
         raise TemplateBuildError(f"Manifest includes missing path: {source}")
     if source.is_dir():
-        shutil.copytree(source, destination)
+        if destination.exists():
+            if not destination.is_dir():
+                raise TemplateBuildError(
+                    f"Cannot copy directory {source} onto file {destination}"
+                )
+            for child in sorted(source.iterdir()):
+                _copy_path(child, destination / child.name)
+        else:
+            shutil.copytree(source, destination)
     else:
         destination.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source, destination)
+
+
+def iter_include_file_entries(manifest: dict[str, Any]) -> list[tuple[Path, Path]]:
+    files: list[tuple[Path, Path]] = []
+    for source, target in iter_include_entries(manifest):
+        source_root = ROOT / source
+        if source_root.is_dir():
+            default_target = _default_target_for_source(source)
+            for source_file in sorted(path for path in source_root.rglob("*") if path.is_file()):
+                relative = source_file.relative_to(source_root)
+                source_relative = source / relative
+                if target == default_target:
+                    target_relative = _default_target_for_source(source_relative)
+                else:
+                    target_relative = target / _strip_template_name_marker(relative)
+                files.append((source_relative, target_relative))
+        else:
+            files.append((source, target))
+    return files
 
 
 def _git_value(*args: str) -> str:
@@ -109,7 +160,7 @@ def build_template(
         shutil.rmtree(output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    for source, target in iter_include_entries(manifest):
+    for source, target in iter_include_file_entries(manifest):
         _copy_path(ROOT / source, output_dir / target)
 
     verify_template(output_dir, manifest_path)
@@ -134,13 +185,13 @@ def verify_template(
         raise TemplateBuildError(f"Template output does not exist: {output_dir}")
 
     files = iter_files(output_dir)
-    for source_path, target_path in iter_include_entries(manifest):
+    for source_path, target_path in iter_include_file_entries(manifest):
         source = ROOT / source_path
         target = output_dir / target_path
-        if source.is_file() and not target.is_file():
+        if not source.is_file():
+            raise TemplateBuildError(f"Expanded manifest include is not a file: {source_path}")
+        if not target.is_file():
             raise TemplateBuildError(f"Required file missing from output: {target_path}")
-        if source.is_dir() and not target.exists():
-            raise TemplateBuildError(f"Required directory missing from output: {target_path}")
 
     forbidden = manifest.get("forbidden", [])
     leaks = [

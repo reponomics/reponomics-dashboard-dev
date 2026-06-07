@@ -8,6 +8,8 @@ from typing import Any
 
 import yaml
 
+import build_template
+
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW_DIR = ROOT / ".github" / "workflows"
@@ -67,20 +69,12 @@ def _verify_template_workflow_sources(template_workflow_files: list[str]) -> Non
 
 
 def _verify_manifest_includes(manifest: dict[str, Any]) -> None:
-    include = manifest.get("include", [])
     workflow_entries: dict[str, str] = {}
-    for entry in include:
-        if isinstance(entry, dict):
-            source = entry.get("source")
-            target = entry.get("target")
-            if (
-                isinstance(source, str)
-                and isinstance(target, str)
-                and target.startswith(".github/workflows/")
-            ):
-                workflow_entries[source] = target
-        elif isinstance(entry, str) and entry.startswith(".github/workflows/"):
-            workflow_entries[entry] = entry
+    for source, target in build_template.iter_include_file_entries(manifest):
+        source_text = source.as_posix()
+        target_text = target.as_posix()
+        if target_text.startswith(".github/workflows/"):
+            workflow_entries[source_text] = target_text
 
     if workflow_entries != TEMPLATE_WORKFLOW_OUTPUTS:
         expected = "\n".join(

@@ -17,11 +17,11 @@ Maintainer automation targets Python `3.11` as the baseline runtime.
 
 ## Generated Template
 
-`reponomics-dashboard` is the shipped template artifact. It should be generated from this repository and contain only the files listed in `template-manifest.yml`.
+`reponomics-dashboard` is the shipped template artifact. It should be generated from this repository and contain only files sourced through `template-manifest.yml`. The template source tree lives under `template/`; generated paths strip that leading prefix unless an explicit `source`/`target` mapping is used.
 
 The generated template is an onboarding shell. It should not contain runtime implementation files, maintainer tests, archived planning docs, virtual environments, or generated local outputs.
 
-Top-level community-health files such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, and `SUPPORT.md` are template-owned generated files. They should be sourced from `template/` and mapped through `template-manifest.yml`, not copied from this development repository's own community docs. Action managed docs sync has a narrower boundary: it writes only `docs/reponomics/` in generated repositories.
+Top-level community-health files such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md` are template-owned generated files. They should be sourced from `template/` and mapped through `template-manifest.yml`, not copied from this development repository's own community docs. Support information belongs in managed docs under `docs/reponomics/`, not in a generated root `SUPPORT.md` placeholder. Action managed docs sync has a narrower boundary: it writes only `docs/reponomics/` in generated repositories.
 
 The generated template should also ship an initial `docs/reponomics/` snapshot from the accepted `reponomics-dashboard-action` release. That snapshot belongs under `template/docs/reponomics/` in this repository and should be refreshed by action-release sync, not by direct commits to `reponomics-dashboard`.
 
@@ -62,7 +62,7 @@ Workflow files in `reponomics-dashboard-dev` are split into two classes:
 - generated template workflows use canonical user-facing filenames: `setup.yml`, `collect.yml`, `incident-reset.yml`, `keepalive.yml`, `publish.yml`, `rotate-key.yml`
 - maintainer workflows use the `dev-*.yml` filename prefix
 
-`template-manifest.yml` maps template workflow sources into the generated workflow surface. Maintainer workflows must stay out of the generated template surface.
+`template-manifest.yml` maps template workflow sources into the generated workflow surface, normally by stripping the leading `template/` prefix. Maintainer workflows must stay out of the generated template surface.
 
 ## Future Demo Repository
 

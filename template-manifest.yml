@@ -2,49 +2,34 @@ version: 1
 
 description: >
   Files copied into the generated Reponomics dashboard template repository.
-  Anything not listed here is maintainer, demo, cache, or internal source
-  material.
+  The template/ source tree is copied to the generated repository root. String
+  entries under template/ are copied to the same relative path with the leading
+  template/ prefix stripped. Source filenames carrying the .template marker
+  project without that marker so generated root metadata is visibly
+  non-authoritative in this development repository. String entries outside
+  template/ are copied to the same relative path. Use source/target mappings only
+  for true outliers. Anything not listed here is maintainer, demo, cache, or
+  internal source material.
 
 include:
-  - source: template/.github/workflows/collect.yml
-    target: .github/workflows/collect.yml
-  - source: template/.github/workflows/incident-reset.yml
-    target: .github/workflows/incident-reset.yml
-  - source: template/.github/workflows/keepalive.yml
-    target: .github/workflows/keepalive.yml
-  - source: template/.github/workflows/publish.yml
-    target: .github/workflows/publish.yml
-  - source: template/.github/scripts/resolve-reponomics-config.py
-    target: .github/scripts/resolve-reponomics-config.py
-  - source: template/.github/workflows/rotate-key.yml
-    target: .github/workflows/rotate-key.yml
-  - source: template/.github/workflows/setup.yml
-    target: .github/workflows/setup.yml
-  - .gitignore
-  - source: template/CODE_OF_CONDUCT.md
-    target: CODE_OF_CONDUCT.md
-  - source: template/CONTRIBUTING.md
-    target: CONTRIBUTING.md
-  - LICENSE
-  - source: template/README.md
-    target: README.md
-  - source: template/SECURITY.md
-    target: SECURITY.md
-  - source: template/SUPPORT.md
-    target: SUPPORT.md
-  - config.yaml
-  - config.example.yaml
-  - source: template/docs/reponomics
-    target: docs/reponomics
+  - template
 
 forbidden:
+  - .DS_Store
+  - .coverage
+  - .coverage.*
+  - .dashboard-data-artifact
+  - .env
+  - .pytest_cache
   - .github/workflows/dev-*.yml
   - AGENTS.md
   - __INTERNAL__
   - Makefile
+  - __pycache__
   - data
   - demo-data
   - dist
+  - "*.log"
   - docs/BRANCH_MODEL.md
   - docs/GENERATED_REPOSITORY_MODEL.md
   - docs/FAQ.md
