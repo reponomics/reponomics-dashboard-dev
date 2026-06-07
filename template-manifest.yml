@@ -4,9 +4,12 @@ description: >
   Files copied into the generated Reponomics dashboard template repository.
   The template/ source tree is copied to the generated repository root. String
   entries under template/ are copied to the same relative path with the leading
-  template/ prefix stripped. String entries outside template/ are copied to the
-  same relative path. Use source/target mappings only for true outliers. Anything
-  not listed here is maintainer, demo, cache, or internal source material.
+  template/ prefix stripped. Source filenames carrying the .template marker
+  project without that marker so generated root metadata is visibly
+  non-authoritative in this development repository. String entries outside
+  template/ are copied to the same relative path. Use source/target mappings only
+  for true outliers. Anything not listed here is maintainer, demo, cache, or
+  internal source material.
 
 include:
   - template

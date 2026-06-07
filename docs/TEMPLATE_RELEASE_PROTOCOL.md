@@ -24,7 +24,7 @@ This separation gives maintainers a safety cushion: action releases can be accep
 
 ## Release Ordering
 
-Treat the dashboard-dev release as the publication boundary for `reponomics-dashboard`. Before requesting a dashboard-dev release, check whether there are open PRs that intentionally change the generated template surface. This includes template workflows, `template-manifest.yml`, top-level template docs, `template/README.md`, setup behavior, or the initial `template/docs/reponomics/` managed-docs snapshot.
+Treat the dashboard-dev release as the publication boundary for `reponomics-dashboard`. Before requesting a dashboard-dev release, check whether there are open PRs that intentionally change the generated template surface. This includes template workflows, `template-manifest.yml`, top-level template docs such as `template/README.template.md`, setup behavior, or the initial `template/docs/reponomics/` managed-docs snapshot.
 
 If a pending template-surface PR is intended to ship with an accepted action release, merge the template-surface PR before requesting the dashboard-dev release. Otherwise the release publishes an intermediate template state, even if that state is internally valid.
 

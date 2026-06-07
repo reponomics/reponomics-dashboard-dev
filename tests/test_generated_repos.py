@@ -64,7 +64,9 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         assert (output / relative_path).exists()
 
     generated_readme = (output / "README.md").read_text(encoding="utf-8")
-    assert generated_readme == Path("template/README.md").read_text(encoding="utf-8")
+    assert generated_readme == Path("template/README.template.md").read_text(
+        encoding="utf-8"
+    )
     assert generated_readme != Path("README.md").read_text(encoding="utf-8")
     assert "This is the setup README for your Reponomics dashboard repository." in (
         generated_readme
@@ -76,19 +78,21 @@ def test_template_manifest_strips_template_prefix_by_default():
     manifest = {
         "include": [
             "template",
-            "template/README.md",
+            "template/README.template.md",
+            "template/SECURITY.template.md",
             "template/docs/reponomics",
-            "LICENSE",
-            {"source": "template/SUPPORT.md", "target": "SUPPORT-CUSTOM.md"},
+            "template/LICENSE.template",
+            {"source": "template/SUPPORT.template.md", "target": "SUPPORT-CUSTOM.md"},
         ]
     }
 
     assert build_template.iter_include_entries(manifest) == [
         (Path("template"), Path(".")),
-        (Path("template/README.md"), Path("README.md")),
+        (Path("template/README.template.md"), Path("README.md")),
+        (Path("template/SECURITY.template.md"), Path("SECURITY.md")),
         (Path("template/docs/reponomics"), Path("docs/reponomics")),
-        (Path("LICENSE"), Path("LICENSE")),
-        (Path("template/SUPPORT.md"), Path("SUPPORT-CUSTOM.md")),
+        (Path("template/LICENSE.template"), Path("LICENSE")),
+        (Path("template/SUPPORT.template.md"), Path("SUPPORT-CUSTOM.md")),
     ]
 
 
@@ -99,6 +103,12 @@ def test_template_manifest_expands_directory_file_entries():
         Path("template/.github/workflows/collect.yml"),
         Path(".github/workflows/collect.yml"),
     ) in entries
+
+    root_entries = build_template.iter_include_file_entries({"include": ["template"]})
+    assert (Path("template/README.template.md"), Path("README.md")) in root_entries
+    assert (Path("template/SECURITY.template.md"), Path("SECURITY.md")) in root_entries
+    assert (Path("template/LICENSE.template"), Path("LICENSE")) in root_entries
+    assert all(".template" not in target.name for _, target in root_entries)
 
 
 def test_template_includes_initial_managed_docs_snapshot(tmp_path):
@@ -387,7 +397,7 @@ def test_setup_workflow_does_not_commit_workflow_file_changes(tmp_path):
 
 def test_docs_explain_multi_owner_token_fallback():
     readme = Path("README.md").read_text(encoding="utf-8")
-    template_readme = Path("template/README.md").read_text(encoding="utf-8")
+    template_readme = Path("template/README.template.md").read_text(encoding="utf-8")
     docs = Path("docs/README.md").read_text(encoding="utf-8")
 
     assert "Token Scope And Repository Owners" in readme
