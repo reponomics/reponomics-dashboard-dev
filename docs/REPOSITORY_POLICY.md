@@ -21,7 +21,7 @@ Maintainer automation targets Python `3.11` as the baseline runtime.
 
 The generated template is an onboarding shell. It should not contain runtime implementation files, maintainer tests, archived planning docs, virtual environments, or generated local outputs.
 
-Top-level community-health files such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, and `SUPPORT.md` are template-owned generated files. They should be sourced from `template/` and mapped through `template-manifest.yml`, not copied from this development repository's own community docs. Action managed docs sync has a narrower boundary: it writes only `docs/reponomics/` in generated repositories.
+Top-level community-health files such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md` are template-owned generated files. They should be sourced from `template/` and mapped through `template-manifest.yml`, not copied from this development repository's own community docs. Support information belongs in managed docs under `docs/reponomics/`, not in a generated root `SUPPORT.md` placeholder. Action managed docs sync has a narrower boundary: it writes only `docs/reponomics/` in generated repositories.
 
 The generated template should also ship an initial `docs/reponomics/` snapshot from the accepted `reponomics-dashboard-action` release. That snapshot belongs under `template/docs/reponomics/` in this repository and should be refreshed by action-release sync, not by direct commits to `reponomics-dashboard`.
 

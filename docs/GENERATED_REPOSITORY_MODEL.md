@@ -22,7 +22,7 @@ The generated template intentionally includes only:
 - `README.md`
 - `config.yaml`
 - user-facing docs under `docs/`
-- top-level community-health placeholder docs such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, `SECURITY.md`, and `SUPPORT.md`
+- top-level community-health placeholder docs such as `CODE_OF_CONDUCT.md`, `CONTRIBUTING.md`, and `SECURITY.md`
 - an initial Reponomics-managed local docs snapshot under `docs/reponomics/`, generated from the accepted action release and updated after docs sync runs
 - repository metadata such as `.gitignore` and `LICENSE`
 
@@ -30,7 +30,7 @@ It intentionally excludes maintainer scripts, tests, ADRs, archived planning doc
 
 Template workflow sources live under `template/.github/workflows` so this repository's live `.github/workflows` directory contains only maintainer workflows. `template-manifest.yml` is the source-to-template contract; by default it maps `template/...` paths into the generated tree by stripping the leading `template/` prefix. Changes to the generated surface should be made by updating the manifest and tests, then building the generated output.
 
-Top-level community-health files are template-owned shipped files. They are generated from sources in `template/` and may intentionally differ from this development repository's own community docs. Action-owned managed docs sync is a separate mechanism: it may write only `docs/reponomics/` in generated repositories, and it should not be expanded into a top-level community-health-file updater without a new design decision.
+Top-level community-health files are template-owned shipped files. They are generated from sources in `template/` and may intentionally differ from this development repository's own community docs. Action-owned managed docs sync is a separate mechanism: it may write only `docs/reponomics/` in generated repositories, and it should not be expanded into a top-level community-health-file updater without a new design decision. Support information belongs in the managed docs namespace rather than a generated root `SUPPORT.md` placeholder.
 
 The `template/docs/reponomics/` source directory is a generated snapshot of the accepted `reponomics-dashboard-action` managed-docs bundle. Action-release sync refreshes that snapshot from `template-action-release.yml` so the public template is browseable before any workflow runs. Runtime `docs-sync` remains the owner of later updates in generated/user repositories.
 

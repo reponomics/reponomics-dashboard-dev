@@ -50,7 +50,6 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
         "CODE_OF_CONDUCT.md",
         "CONTRIBUTING.md",
         "SECURITY.md",
-        "SUPPORT.md",
         "README.md",
         "config.yaml",
         "config.example.yaml",
@@ -82,7 +81,7 @@ def test_template_manifest_strips_template_prefix_by_default():
             "template/SECURITY.template.md",
             "template/docs/reponomics",
             "template/LICENSE.template",
-            {"source": "template/SUPPORT.template.md", "target": "SUPPORT-CUSTOM.md"},
+            {"source": "template/EXAMPLE.template.md", "target": "EXAMPLE-CUSTOM.md"},
         ]
     }
 
@@ -92,7 +91,7 @@ def test_template_manifest_strips_template_prefix_by_default():
         (Path("template/SECURITY.template.md"), Path("SECURITY.md")),
         (Path("template/docs/reponomics"), Path("docs/reponomics")),
         (Path("template/LICENSE.template"), Path("LICENSE")),
-        (Path("template/SUPPORT.template.md"), Path("SUPPORT-CUSTOM.md")),
+        (Path("template/EXAMPLE.template.md"), Path("EXAMPLE-CUSTOM.md")),
     ]
 
 
@@ -147,7 +146,6 @@ def test_template_community_docs_are_placeholders(tmp_path):
         "CODE_OF_CONDUCT.md",
         "CONTRIBUTING.md",
         "SECURITY.md",
-        "SUPPORT.md",
     ]
     for relative_path in generated_docs:
         text = (output / relative_path).read_text(encoding="utf-8")
