@@ -1,6 +1,6 @@
 -r requirements.txt
 mypy>=2.1.0
-pip-tools>=7.5
+pip-tools>=7.5.3
 pygments>=2.20.0
 pytest>=9.0.3
 pytest-cov>=7.1.0
