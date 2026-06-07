@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.4...v0.7.5) (2026-06-07)
+
+
+### Bug Fixes
+
+* generated setup workflow permissions ([#58](https://github.com/reponomics/reponomics-dashboard-dev/issues/58)) ([4420d90](https://github.com/reponomics/reponomics-dashboard-dev/commit/4420d90367172db1766f5c76f13c57de6f4e2486))
+
 ## [0.7.4](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.3...v0.7.4) (2026-06-06)
 
 
