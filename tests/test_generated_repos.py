@@ -41,10 +41,9 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
 
     required = [
         ".github/scripts/resolve-reponomics-config.py",
-        ".github/workflows/collect.yml",
+        ".github/workflows/collect-and-publish.yml",
         ".github/workflows/incident-reset.yml",
         ".github/workflows/keepalive.yml",
-        ".github/workflows/publish.yml",
         ".github/workflows/setup.yml",
         ".github/workflows/rotate-key.yml",
         "CODE_OF_CONDUCT.md",
@@ -99,8 +98,8 @@ def test_template_manifest_expands_directory_file_entries():
     entries = build_template.iter_include_file_entries({"include": ["template/.github"]})
 
     assert (
-        Path("template/.github/workflows/collect.yml"),
-        Path(".github/workflows/collect.yml"),
+        Path("template/.github/workflows/collect-and-publish.yml"),
+        Path(".github/workflows/collect-and-publish.yml"),
     ) in entries
 
     root_entries = build_template.iter_include_file_entries({"include": ["template"]})
@@ -196,84 +195,76 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     release = sync_action_release.load_manifest()
 
     workflows = output / ".github" / "workflows"
-    collect = (workflows / "collect.yml").read_text(encoding="utf-8")
+    collect_publish = (workflows / "collect-and-publish.yml").read_text(encoding="utf-8")
     incident_reset = (workflows / "incident-reset.yml").read_text(encoding="utf-8")
     keepalive = (workflows / "keepalive.yml").read_text(encoding="utf-8")
-    publish = (workflows / "publish.yml").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
     rotate = (workflows / "rotate-key.yml").read_text(encoding="utf-8")
     resolver = (
         output / ".github" / "scripts" / "resolve-reponomics-config.py"
     ).read_text(encoding="utf-8")
-    collect_workflow = yaml.safe_load(collect)
+    collect_publish_workflow = yaml.safe_load(collect_publish)
     incident_reset_workflow = yaml.safe_load(incident_reset)
 
-    action_ref = f"uses: {release.repository}@{release.tag}"
-    action_ref_env = f'REPONOMICS_ACTION_REF: "{release.tag}"'
-    action_sha_env = f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"'
+    action_ref = f"uses: {release.repository}@{release.major_tag}"
     html_env = 'GENERATE_HTML_DASHBOARD: "false"'
-    assert "docs-sync:" in collect
-    assert "resolve-reponomics-config.py --require-setup" in collect
-    assert "REPONOMICS_SETUP_COMPLETE == 'true'" in collect
-    assert "mode: docs-sync" in collect
-    assert "github-token: ${{ github.token }}" in collect
-    assert "allow-docs-sync" not in collect
-    assert action_ref in collect
+    assert "skip_collect:" in collect_publish
+    assert "docs-sync:" in collect_publish
+    assert "resolve-reponomics-config.py --require-setup" in collect_publish
+    assert "REPONOMICS_SETUP_COMPLETE == 'true'" in collect_publish
+    assert "mode: docs-sync" in collect_publish
+    assert "github-token: ${{ github.token }}" in collect_publish
+    assert "allow-docs-sync" not in collect_publish
+    assert action_ref in collect_publish
     assert action_ref in incident_reset
-    assert action_ref_env in collect
-    assert action_sha_env in collect
-    assert html_env in collect
-    assert "reponomics-collect-provenance" in collect
-    assert '"generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"]' in collect
-    assert "actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a" in collect
-    assert "source_sha" in publish
-    assert "resolve-reponomics-config.py --require-setup" in publish
-    assert "workflow_run_id" in publish
-    assert "action_sha" in publish
-    assert (
-        "EXPECTED_WORKFLOW_RUN_ID: ${{ github.event.workflow_run.id || '' }}"
-        in publish
-    )
-    assert "resolve_action_ref(expected_repository, action_ref)" in publish
-    assert "Publish stopped: action release provenance is inconsistent" in publish
-    assert "Publish stopped: collect provenance does not match this publish trigger" in publish
-    assert "Do not rerun publish. Run `Collect Reponomics Data` again" in publish
-    assert "Repair the generated workflow action metadata" in publish
-    assert "generate_html_dashboard" in publish
-    assert "uses: ./reponomics-dashboard-action" in publish
-    assert "steps.provenance.outputs.generate_html_dashboard == 'true'" in publish
-    assert "Render README and downloadable dashboard without Pages deployment" in publish
-    assert "Upload plain downloadable dashboard" in publish
-    assert "Upload encrypted downloadable dashboard" in publish
-    assert "actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405" in publish
-    assert "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in publish
-    assert "repository: ${{ steps.provenance.outputs.action_repository }}" in publish
-    assert "ref: ${{ steps.provenance.outputs.action_sha }}" in publish
-    assert "mode: docs-sync" not in publish
-    assert "allow-docs-sync" not in publish
-    assert html_env in publish
-    assert action_ref_env in publish
-    assert action_sha_env in publish
+    assert 'REPONOMICS_ACTION_REF: "' not in collect_publish
+    assert 'REPONOMICS_ACTION_SHA: "' not in collect_publish
+    assert html_env in collect_publish
+    assert "reponomics-collect-provenance" not in collect_publish
+    assert "source_sha" not in collect_publish
+    assert "workflow_run_id" not in collect_publish
+    assert "resolve_action_ref(" not in collect_publish
+    assert "uses: ./reponomics-dashboard-action" not in collect_publish
+    assert "actions/download-artifact@" not in collect_publish
+    assert "mode: publish" in collect_publish
+    assert "artifact-run-id: ${{ github.run_id }}" in collect_publish
+    assert 'require-collect-provenance: "true"' in collect_publish
+    assert "Republish dashboard outputs" in collect_publish
+    assert "mode: docs-sync" in collect_publish
+    assert "allow-docs-sync" not in collect_publish
     assert action_ref not in setup
     assert action_ref in rotate
-    assert "python scripts/" not in collect
+    assert "python scripts/" not in collect_publish
     assert "python scripts/" not in incident_reset
     assert "python scripts/" not in keepalive
-    assert "python scripts/" not in publish
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
-    assert "mode: collect" in collect
-    assert collect_workflow["permissions"] == {"contents": "read"}
-    assert collect_workflow["jobs"]["collect"]["permissions"] == {
+    assert "mode: collect" in collect_publish
+    assert collect_publish_workflow["permissions"] == {"contents": "read"}
+    assert "workflow_run:" not in collect_publish
+    assert "workflow_dispatch:" in collect_publish
+    assert "skip_collect:" in collect_publish
+    assert collect_publish_workflow["jobs"]["collect"]["permissions"] == {
         "contents": "read",
         "actions": "write",
     }
-    assert "github-token: ${{ github.token }}" in collect
-    assert 'USE_GITHUB_APP: "false"' in collect
-    assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect
-    assert "app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}" in collect
-    assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect
-    assert "mode: publish" in publish
+    assert collect_publish_workflow["jobs"]["publish"]["permissions"] == {
+        "contents": "write",
+        "actions": "read",
+        "pages": "write",
+        "id-token": "write",
+    }
+    assert collect_publish_workflow["jobs"]["republish"]["permissions"] == {
+        "contents": "write",
+        "actions": "read",
+        "pages": "write",
+        "id-token": "write",
+    }
+    assert "github-token: ${{ github.token }}" in collect_publish
+    assert 'USE_GITHUB_APP: "false"' in collect_publish
+    assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect_publish
+    assert "app-id: ${{ vars.COLLECTION_APP_ID || secrets.COLLECTION_APP_ID }}" in collect_publish
+    assert "use-github-app: ${{ env.USE_GITHUB_APP }}" in collect_publish
     assert "mode: incident-reset" in incident_reset
     assert "incident-confirm-mode: ${{ inputs.confirm_mode }}" in incident_reset
     assert "incident-confirm-purge: ${{ inputs.confirm_purge }}" in incident_reset
@@ -288,7 +279,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
         "contents": "read",
         "actions": "write",
     }
-    assert "workflow_run:" in publish
+    assert "workflow_run:" not in collect_publish
     assert "COLLECTION_TOKEN" not in keepalive
     assert "DASHBOARD_SECRET_DO_NOT_REPLACE" not in keepalive
     assert "resolve-reponomics-config.py --require-setup" in keepalive
@@ -474,7 +465,8 @@ def test_action_release_sync_rewrites_refs_and_status(tmp_path):
     sync_action_release.sync_release(tmp_path, release, ACTION_YML_FIXTURE)
 
     assert old_tag not in readme.read_text(encoding="utf-8")
-    assert "reponomics-dashboard-action@v0.16.0" in readme.read_text(encoding="utf-8")
+    assert "reponomics-dashboard-action@v0" in readme.read_text(encoding="utf-8")
+    assert "reponomics-dashboard-action@v0.16.0" not in readme.read_text(encoding="utf-8")
     assert 'REPONOMICS_ACTION_REF: "v0.16.0"' in readme.read_text(encoding="utf-8")
     assert f'REPONOMICS_ACTION_SHA: "{release.target_commitish}"' in readme.read_text(
         encoding="utf-8"

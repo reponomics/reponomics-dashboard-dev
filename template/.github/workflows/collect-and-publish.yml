@@ -1,16 +1,22 @@
-name: Collect Reponomics Data
+name: Collect And Publish Reponomics Dashboard
 
 on:
   schedule:
     - cron: "0 6 * * *"
     - cron: "0 18 * * *"
   workflow_dispatch:
+    inputs:
+      skip_collect:
+        description: "Republish existing retained data without collecting"
+        type: boolean
+        required: true
+        default: false
 
 permissions:
   contents: read
 
 concurrency:
-  group: reponomics-collect-${{ github.ref }}
+  group: reponomics-collect-publish-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -19,13 +25,10 @@ env:
   GENERATE_HTML_DASHBOARD: "false"
   GENERATE_README: "false"
   USE_GITHUB_APP: "false"
-  REPONOMICS_ACTION_REPOSITORY: "reponomics/reponomics-dashboard-action"
-  REPONOMICS_ACTION_REF: "v0.20.5"
-  REPONOMICS_ACTION_SHA: "1be6b717ba92995f9654dfa8294d5b13e1ab8766"
 
 jobs:
   docs-sync:
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || !inputs.skip_collect) }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,21 +38,21 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
 
       - name: Resolve Reponomics configuration
         run: python .github/scripts/resolve-reponomics-config.py --require-setup
 
       - name: Sync managed Reponomics docs
         if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        uses: reponomics/reponomics-dashboard-action@v0.20.5
+        uses: reponomics/reponomics-dashboard-action@v0
         with:
           mode: docs-sync
           github-token: ${{ github.token }}
 
   collect:
     needs: docs-sync
-    if: github.ref == 'refs/heads/main'
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || !inputs.skip_collect) }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -57,7 +60,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           ref: main
 
@@ -128,7 +131,7 @@ jobs:
 
       - name: Collect retained dashboard data
         if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        uses: reponomics/reponomics-dashboard-action@v0.20.5
+        uses: reponomics/reponomics-dashboard-action@v0
         with:
           mode: collect
           collection-token: ${{ steps.resolve_collection_token.outputs.collection_token }}
@@ -137,46 +140,72 @@ jobs:
           dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
           privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
+          publish-pages: ${{ env.GENERATE_HTML_DASHBOARD }}
+          generate-readme: ${{ env.GENERATE_README }}
 
-      - name: Write collect provenance for publish
-        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        run: |
-          set -euo pipefail
+  publish:
+    needs: collect
+    if: ${{ github.ref == 'refs/heads/main' && (github.event_name != 'workflow_dispatch' || !inputs.skip_collect) }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pages: write
+      id-token: write
 
-          mkdir -p reponomics-collect-provenance
-          SOURCE_SHA="$(git rev-parse HEAD)"
-          export SOURCE_SHA
-
-          python - <<'PY'
-          import json
-          import os
-          from pathlib import Path
-
-          payload = {
-              "schema_version": 1,
-              "source_repository": os.environ["GITHUB_REPOSITORY"],
-              "source_sha": os.environ["SOURCE_SHA"],
-              "workflow_run_id": os.environ["GITHUB_RUN_ID"],
-              "workflow_run_attempt": os.environ["GITHUB_RUN_ATTEMPT"],
-              "action_repository": os.environ["REPONOMICS_ACTION_REPOSITORY"],
-              "action_ref": os.environ["REPONOMICS_ACTION_REF"],
-              "action_sha": os.environ["REPONOMICS_ACTION_SHA"],
-              "privacy_mode": os.environ["PRIVACY_MODE"],
-              "retention_days": os.environ["RETENTION_DAYS"],
-              "generate_html_dashboard": os.environ["GENERATE_HTML_DASHBOARD"],
-              "generate_readme": os.environ["GENERATE_README"],
-          }
-          Path("reponomics-collect-provenance/collect-provenance.json").write_text(
-              json.dumps(payload, indent=2) + "\n",
-              encoding="utf-8",
-          )
-          PY
-
-      - name: Upload collect provenance for publish
-        if: env.REPONOMICS_SETUP_COMPLETE == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
-          name: reponomics-collect-provenance
-          path: reponomics-collect-provenance/collect-provenance.json
+          ref: main
+
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
+      - name: Publish dashboard outputs
+        if: >-
+          env.REPONOMICS_SETUP_COMPLETE == 'true' &&
+          (env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true')
+        uses: reponomics/reponomics-dashboard-action@v0
+        with:
+          mode: publish
+          artifact-run-id: ${{ github.run_id }}
+          github-token: ${{ github.token }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
           retention-days: ${{ env.RETENTION_DAYS }}
-          overwrite: true
+          publish-pages: ${{ env.GENERATE_HTML_DASHBOARD }}
+          generate-readme: ${{ env.GENERATE_README }}
+
+  republish:
+    if: ${{ github.ref == 'refs/heads/main' && github.event_name == 'workflow_dispatch' && inputs.skip_collect }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+      pages: write
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          ref: main
+
+      - name: Resolve Reponomics configuration
+        run: python .github/scripts/resolve-reponomics-config.py --require-setup
+
+      - name: Republish dashboard outputs
+        if: >-
+          env.REPONOMICS_SETUP_COMPLETE == 'true' &&
+          (env.GENERATE_HTML_DASHBOARD == 'true' || env.GENERATE_README == 'true')
+        uses: reponomics/reponomics-dashboard-action@v0
+        with:
+          mode: publish
+          require-collect-provenance: "true"
+          github-token: ${{ github.token }}
+          dashboard-secret: ${{ secrets.DASHBOARD_SECRET_DO_NOT_REPLACE }}
+          privacy-mode: ${{ env.PRIVACY_MODE }}
+          retention-days: ${{ env.RETENTION_DAYS }}
+          publish-pages: ${{ env.GENERATE_HTML_DASHBOARD }}
+          generate-readme: ${{ env.GENERATE_README }}

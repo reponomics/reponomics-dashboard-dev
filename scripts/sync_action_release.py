@@ -25,7 +25,8 @@ REQUEST_TIMEOUT_SECONDS = 20
 SEMVER_TAG_RE = re.compile(r"^v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$")
 SHA_RE = re.compile(r"^[0-9a-f]{40}$")
 ACTION_REF_RE = re.compile(
-    r"reponomics/reponomics-dashboard-action@v(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)"
+    r"reponomics/reponomics-dashboard-action@v(0|[1-9]\d*)"
+    r"(?:\.(0|[1-9]\d*)\.(0|[1-9]\d*))?"
 )
 ACTION_REF_ENV_RE = re.compile(
     r'^(?P<prefix>\s+REPONOMICS_ACTION_REF: ")'
@@ -51,9 +52,8 @@ MANAGED_TEXT_PATHS = [
     "docs/architecture/SUPPLY_CHAIN_ASSURANCE.md",
     "docs/architecture/VERSIONING_AND_UPDATES.md",
     "template/README.template.md",
-    "template/.github/workflows/collect.yml",
+    "template/.github/workflows/collect-and-publish.yml",
     "template/.github/workflows/incident-reset.yml",
-    "template/.github/workflows/publish.yml",
     "template/.github/workflows/rotate-key.yml",
     "tests/test_generated_repos.py",
 ]
@@ -91,6 +91,10 @@ class ActionRelease:
     @property
     def version(self) -> str:
         return self.tag.removeprefix("v")
+
+    @property
+    def major_tag(self) -> str:
+        return f"v{self.version.split('.', 1)[0]}"
 
 
 def _request_json(url: str) -> dict[str, Any]:
@@ -433,7 +437,7 @@ def sync_release(
     validate_release(release)
     validate_action_metadata(action_yml)
     write_manifest(release, root)
-    replacement = f"{release.repository}@{release.tag}"
+    replacement = f"{release.repository}@{release.major_tag}"
     for relative in MANAGED_TEXT_PATHS:
         path = root / relative
         if not path.exists():
@@ -476,7 +480,7 @@ def verify_release(
 ) -> None:
     validate_release(release)
     validate_action_metadata(action_yml)
-    expected_ref = f"{release.repository}@{release.tag}"
+    expected_ref = f"{release.repository}@{release.major_tag}"
     stale: list[str] = []
     for path in _iter_text_files(root):
         text = _read_text_if_possible(path)

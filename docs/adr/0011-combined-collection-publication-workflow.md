@@ -61,14 +61,14 @@ Publication in the same workflow run may use the freshly collected artifact dire
 After the stable public contract exists, generated workflows should default to the supported major line:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v1
+uses: reponomics/reponomics-dashboard-action@v0
 ```
 
 This default optimizes for ordinary users who expect compatible fixes, managed documentation updates, schema migrations, rendering improvements, and additive collection support to arrive automatically. Exact release tags and full commit SHAs remain supported for users who prefer frozen runtime behavior.
 
 Pinned users should receive clear status notices in generated dashboard surfaces and workflow summaries. The notice should explain the consequence, not merely report version numbers: compatible fixes, rendering changes, documentation updates, and additive collection support will not run until the pinned ref is updated.
 
-Pre-v1 hardening may use a floating pre-release ref for internal validation if maintainers choose, but public documentation should switch to `@v1` when the stable contract is accepted.
+Pre-v1 hardening uses the current floating major ref for internal validation; public documentation should advance the default major when the stable contract is accepted.
 
 ## Template Boundary
 
@@ -138,7 +138,7 @@ jobs:
         with:
           ref: main
 
-      - uses: reponomics/reponomics-dashboard-action@v1
+      - uses: reponomics/reponomics-dashboard-action@v0
         with:
           mode: collect
           config-path: config.yaml
@@ -160,7 +160,7 @@ jobs:
         with:
           ref: main
 
-      - uses: reponomics/reponomics-dashboard-action@v1
+      - uses: reponomics/reponomics-dashboard-action@v0
         with:
           mode: publish
           config-path: config.yaml
@@ -181,7 +181,7 @@ jobs:
         with:
           ref: main
 
-      - uses: reponomics/reponomics-dashboard-action@v1
+      - uses: reponomics/reponomics-dashboard-action@v0
         with:
           mode: publish
           config-path: config.yaml

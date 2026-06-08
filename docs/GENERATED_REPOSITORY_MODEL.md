@@ -39,10 +39,10 @@ The `template/docs/reponomics/` source directory is a generated snapshot of the 
 Generated workflows delegate to:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.20.5
+uses: reponomics/reponomics-dashboard-action@v0
 ```
 
-Collection also records the accepted action tag and resolved action commit SHA in a `reponomics-collect-provenance` artifact when publication is enabled. The automatic publish workflow downloads that artifact, restores `dashboard-data` from the recorded collect workflow run, checks out the recorded repository SHA, checks out `reponomics-dashboard-action` at the recorded commit, and runs the action as a local action. This keeps automatic publish locked to the same action/data contract as the collect run that produced the retained artifact.
+Collection records the requested action ref, resolved action commit SHA, runtime version, repository SHA, and publication settings in a `reponomics-collect-provenance` artifact. The combined collect-and-publish workflow publishes from the same run's `dashboard-data` and provenance artifacts. Manual `skip_collect` republish restores the latest retained data and requires collect provenance so retained data is not rendered silently across runtime epochs.
 
 The action input contract used by this template is:
 
