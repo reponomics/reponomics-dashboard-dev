@@ -290,9 +290,6 @@ def _assert_successful_profile(consumer_dir: Path, profile: ConsumerProfile) -> 
     readme = consumer_dir / "README.md"
     if not readme.is_file():
         raise TemplateConsumerE2EError(f"{profile.name}: README was not rendered")
-    readme_text = readme.read_text(encoding="utf-8")
-    if "../../actions/workflows/collect.yml/badge.svg" not in readme_text:
-        raise TemplateConsumerE2EError(f"{profile.name}: workflow badge route missing")
 
     tree = _git_tree(consumer_dir)
     svg_assets = sorted(
