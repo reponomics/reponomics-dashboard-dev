@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.7.8](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.7...v0.7.8) (2026-06-08)
+
+
+### deps
+
+* **action:** bump reponomics-dashboard-action to v0.20.5 ([f962f81](https://github.com/reponomics/reponomics-dashboard-dev/commit/f962f81f945c5ef1fe1251b2bec16ea76d422a12))
+
+
+### Features
+
+* combine collect and publish template workflow ([1d88a28](https://github.com/reponomics/reponomics-dashboard-dev/commit/1d88a28d1b8fc97d133edce6f65cb1e15e73fc0d))
+
 ## [0.7.7](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.6...v0.7.7) (2026-06-07)
 
 
