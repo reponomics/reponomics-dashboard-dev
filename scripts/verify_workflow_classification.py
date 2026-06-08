@@ -17,10 +17,9 @@ TEMPLATE_WORKFLOW_DIR = ROOT / "template" / ".github" / "workflows"
 MANIFEST_PATH = ROOT / "template-manifest.yml"
 
 TEMPLATE_WORKFLOW_OUTPUTS = {
-    "template/.github/workflows/collect.yml": ".github/workflows/collect.yml",
+    "template/.github/workflows/collect-and-publish.yml": ".github/workflows/collect-and-publish.yml",
     "template/.github/workflows/incident-reset.yml": ".github/workflows/incident-reset.yml",
     "template/.github/workflows/keepalive.yml": ".github/workflows/keepalive.yml",
-    "template/.github/workflows/publish.yml": ".github/workflows/publish.yml",
     "template/.github/workflows/rotate-key.yml": ".github/workflows/rotate-key.yml",
     "template/.github/workflows/setup.yml": ".github/workflows/setup.yml",
 }

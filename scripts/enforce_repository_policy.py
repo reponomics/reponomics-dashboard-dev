@@ -98,7 +98,7 @@ POLICIES = {
         repo="reponomics-dashboard-demo",
         allow_squash_merge=True,
         workflows_disable=(
-            "Collect Reponomics Data",
+            "Collect And Publish Reponomics Dashboard",
             "Set up Reponomics dashboard",
             "Rotate Reponomics dashboard key",
         ),

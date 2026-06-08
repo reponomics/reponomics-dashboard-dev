@@ -14,12 +14,12 @@ The action is the main update channel for existing user repositories. The genera
 Before `v1`, generated workflows should pin an explicit accepted release such as:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.20.5
+uses: reponomics/reponomics-dashboard-action@v0
 ```
 
-Dashboard-dev records the accepted template action release in `template-action-release.yml`. Template workflow refs, generated docs, and tests are synchronized from that single source of truth.
+Dashboard-dev records the accepted template action release in `template-action-release.yml`. Generated workflow defaults use the accepted release's major tag, while generated docs, tests, and release-status text are synchronized from the exact accepted release.
 
-The generated collect workflow also embeds the accepted action tag and resolved action commit SHA as workflow environment. When publishing is enabled, collect uploads those values with the collected repository SHA in a `reponomics-collect-provenance` artifact. The separate publish workflow consumes that artifact, restores `dashboard-data` from the recorded collect workflow run, and checks out the recorded action commit as a local action before rendering, so a later collect or template action bump cannot publish an older retained artifact under a newer action/data contract.
+The generated collect-and-publish workflow lets the action write collect provenance after successful collection. That provenance records the requested action ref, resolved action commit SHA, runtime version, collected repository SHA, and publication settings. Same-run publication restores the fresh artifact from the current run; manual `skip_collect` republish restores latest retained data but requires collect provenance so the action can fail closed rather than silently rendering across runtime epochs.
 
 Pre-v1 releases may change inputs, retained artifact schema, generated dashboard structure, migration behavior, or docs. Users should review release notes before changing pre-v1 refs.
 
