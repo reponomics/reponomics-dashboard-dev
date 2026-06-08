@@ -1,6 +1,6 @@
 # Reponomics Versioning And Update Policy
 
-Status: current for action `v0.20.4` and pre-v1 template hardening.
+Status: current for action `v0.20.5` and pre-v1 template hardening.
 
 Reponomics has two update channels:
 
@@ -14,7 +14,7 @@ The action is the main update channel for existing user repositories. The genera
 Before `v1`, generated workflows should pin an explicit accepted release such as:
 
 ```yaml
-uses: reponomics/reponomics-dashboard-action@v0.20.4
+uses: reponomics/reponomics-dashboard-action@v0.20.5
 ```
 
 Dashboard-dev records the accepted template action release in `template-action-release.yml`. Template workflow refs, generated docs, and tests are synchronized from that single source of truth.
