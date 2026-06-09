@@ -91,7 +91,7 @@ Ordinary collection outages are handled by artifact retention and active superse
 
 ## CSV Export
 
-Encrypted hosted dashboards contain an encrypted summary plus per-repository encrypted chunks and include an `Export CSV` control after unlock. The browser decrypts repo chunks as they are selected for display. CSV export downloads an encrypted export asset, decrypts it locally with the dashboard key, verifies ciphertext and plaintext SHA-256 digests, and downloads a canonical ZIP of retained CSV files. Plaintext CSV is not uploaded back to GitHub during export.
+Generated HTML dashboards use a summary plus per-repository chunk model so the browser loads repository detail data only as repos are selected for display. Encrypted hosted dashboards contain an encrypted summary plus per-repository encrypted chunks and include an `Export CSV` control after unlock. Plaintext dashboard artifacts use the same summary/chunk boundary without encryption. CSV export downloads an encrypted export asset, decrypts it locally with the dashboard key, verifies ciphertext and plaintext SHA-256 digests, and downloads a canonical ZIP of retained CSV files. Plaintext CSV is not uploaded back to GitHub during export.
 
 For `plain`, download the `dashboard-data` workflow artifact directly.
 

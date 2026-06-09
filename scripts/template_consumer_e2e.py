@@ -278,7 +278,9 @@ def _assert_successful_profile(consumer_dir: Path, profile: ConsumerProfile) -> 
         if not list((consumer_dir / "docs" / "assets").glob("export-data-*.enc")):
             raise TemplateConsumerE2EError(f"{profile.name}: encrypted export asset missing")
     elif "encrypted-dashboard-data" in dashboard or "encrypted-payload" in dashboard:
-        raise TemplateConsumerE2EError(f"{profile.name}: plain dashboard contains encrypted payload")
+        raise TemplateConsumerE2EError(f"{profile.name}: plain dashboard contains encrypted data")
+    elif "dashboardDataObject" not in dashboard or "dashboardPayload" in dashboard:
+        raise TemplateConsumerE2EError(f"{profile.name}: plain dashboard chunk object missing")
 
     managed_manifest = consumer_dir / "docs" / "reponomics" / ".manifest.json"
     if not managed_manifest.is_file():
