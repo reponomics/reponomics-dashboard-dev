@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.9...v0.8.0) (2026-06-09)
+
+
+### deps
+
+* **action:** bump reponomics-dashboard-action to v0.21.0 ([#75](https://github.com/reponomics/reponomics-dashboard-dev/issues/75)) ([21cd1cd](https://github.com/reponomics/reponomics-dashboard-dev/commit/21cd1cda98e41978b411c822b9fb0d40d03f68e8))
+
+
+### Features
+
+* split dashboard data into chunks ([#74](https://github.com/reponomics/reponomics-dashboard-dev/issues/74)) ([1f9acb7](https://github.com/reponomics/reponomics-dashboard-dev/commit/1f9acb7f34711453bbc09aa2768c05e74d35b66d))
+
 ## [0.7.9](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.8...v0.7.9) (2026-06-09)
 
 
