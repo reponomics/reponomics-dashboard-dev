@@ -14,7 +14,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
 
 import build_template
 
-
 COMMAND_TIMEOUT_SECONDS = 15
 NONINTERACTIVE_ENV = {
     "CI": "true",
@@ -26,15 +25,21 @@ NONINTERACTIVE_ENV = {
 }
 
 
-def _timeout_output(value: str | bytes | None) -> str:
+def _timeout_output(value: str | bytes | bytearray | memoryview | None) -> str:
     if value is None:
         return ""
+    if isinstance(value, memoryview):
+        return value.tobytes().decode("utf-8", errors="replace")
     if isinstance(value, bytes):
         return value.decode("utf-8", errors="replace")
+    if isinstance(value, bytearray):
+        return bytes(value).decode("utf-8", errors="replace")
     return value
 
 
-def _run(command: list[str], cwd: Path, env: dict[str, str]) -> subprocess.CompletedProcess[str]:
+def _run(
+    command: list[str], cwd: Path, env: dict[str, str]
+) -> subprocess.CompletedProcess[str]:
     try:
         return subprocess.run(
             command,
@@ -68,8 +73,11 @@ def _read_env_file(path: Path) -> dict[str, str]:
 
 def _initialise_generated_repo(repo: Path, remote: Path) -> None:
     _run(["git", "init", "-b", "main"], repo, os.environ.copy())
+    _run(["git", "config", "core.hooksPath", "/dev/null"], repo, os.environ.copy())
     _run(["git", "config", "user.name", "Test User"], repo, os.environ.copy())
-    _run(["git", "config", "user.email", "test@example.invalid"], repo, os.environ.copy())
+    _run(
+        ["git", "config", "user.email", "test@example.invalid"], repo, os.environ.copy()
+    )
     _run(["git", "add", "-A"], repo, os.environ.copy())
     _run(["git", "commit", "-m", "initial template"], repo, os.environ.copy())
     _run(["git", "init", "--bare", str(remote)], repo, os.environ.copy())
@@ -112,7 +120,9 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
     build_template.build_template(repo)
     _initialise_generated_repo(repo, remote)
 
-    workflow = yaml.safe_load((repo / ".github" / "workflows" / "setup.yml").read_text(encoding="utf-8"))
+    workflow = yaml.safe_load(
+        (repo / ".github" / "workflows" / "setup.yml").read_text(encoding="utf-8")
+    )
     run_steps = [step for step in workflow["jobs"]["setup"]["steps"] if "run" in step]
     env_file = tmp_path / "github-env"
     summary_file = tmp_path / "github-step-summary"
@@ -126,7 +136,9 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
         "GITHUB_REPOSITORY": "owner/generated-dashboard",
         "GITHUB_REPOSITORY_OWNER": "owner",
         "GITHUB_SERVER_URL": "https://github.com",
-        "GITHUB_SHA": _run(["git", "rev-parse", "HEAD"], repo, os.environ.copy()).stdout.strip(),
+        "GITHUB_SHA": _run(
+            ["git", "rev-parse", "HEAD"], repo, os.environ.copy()
+        ).stdout.strip(),
     }
 
     for step in run_steps:
@@ -159,4 +171,6 @@ def test_generated_setup_workflow_runs_with_default_github_app_token_permissions
         repo,
         os.environ.copy(),
     ).stdout.splitlines()
-    assert not any(path.startswith(".github/workflows/") for path in changed_paths), changed_paths
+    assert not any(
+        path.startswith(".github/workflows/") for path in changed_paths
+    ), changed_paths
