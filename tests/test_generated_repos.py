@@ -1,9 +1,12 @@
 """Tests for generated Reponomics dashboard repository outputs."""
 
+import io
 import hashlib
 import json
 import re
 import sys
+import urllib.error
+from email.message import Message
 from pathlib import Path
 
 import pytest
@@ -432,6 +435,9 @@ def test_action_release_sync_workflow_can_update_existing_branch():
         encoding="utf-8"
     )
 
+    assert "Verify synced action release" not in workflow
+    assert "GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}" in workflow
+    assert "scripts/sync_action_release.py sync" in workflow
     assert 'git ls-remote --exit-code --heads origin "$branch"' in workflow
     assert (
         'git fetch --depth=1 origin "${remote_ref}:refs/remotes/origin/${branch}"'
@@ -442,6 +448,66 @@ def test_action_release_sync_workflow_can_update_existing_branch():
         'origin "HEAD:${remote_ref}"'
     ) in workflow
     assert 'git push origin "HEAD:${remote_ref}"' in workflow
+
+
+def test_dev_ci_verifies_action_release_once_outside_python_matrix():
+    workflow = Path(".github/workflows/dev-ci.yml").read_text(encoding="utf-8")
+
+    assert (
+        "make validate-requirement-locks lint typecheck coverage "
+        "verify-workflow-classification release-dry-run"
+    ) in workflow
+    assert (
+        "make validate-requirement-locks lint typecheck coverage "
+        "verify-workflow-classification verify-action-release release-dry-run"
+    ) not in workflow
+    assert "action-release-verification:" in workflow
+    assert "GITHUB_TOKEN: ${{ github.token }}" in workflow
+    assert workflow.count("make verify-action-release") == 1
+
+
+def test_action_release_requests_use_github_token(monkeypatch):
+    monkeypatch.setenv("GITHUB_TOKEN", "ghs_primary")
+    monkeypatch.setenv("GH_TOKEN", "ghs_fallback")
+
+    headers = sync_action_release._request_headers(accept="application/vnd.github+json")
+
+    assert headers["Authorization"] == "Bearer ghs_primary"
+    assert headers["Accept"] == "application/vnd.github+json"
+    assert headers["X-GitHub-Api-Version"] == "2022-11-28"
+
+
+def test_action_release_requests_fall_back_to_gh_token(monkeypatch):
+    monkeypatch.delenv("GITHUB_TOKEN", raising=False)
+    monkeypatch.setenv("GH_TOKEN", "ghs_fallback")
+
+    headers = sync_action_release._request_headers()
+
+    assert headers["Authorization"] == "Bearer ghs_fallback"
+
+
+def test_action_release_http_errors_include_rate_limit_headers():
+    headers = Message()
+    headers["x-ratelimit-resource"] = "core"
+    headers["x-ratelimit-limit"] = "60"
+    headers["x-ratelimit-remaining"] = "0"
+    headers["x-ratelimit-reset"] = "1781029999"
+    headers["x-github-request-id"] = "ABC1:DEF2:12345"
+    error = urllib.error.HTTPError(
+        "https://api.github.com/repos/example/repo/git/trees/deadbeef?recursive=1",
+        403,
+        "rate limit exceeded",
+        headers,
+        io.BytesIO(b'{"message":"API rate limit exceeded"}'),
+    )
+
+    message = sync_action_release._format_http_error(error.url, error)
+
+    assert "HTTP 403 rate limit exceeded" in message
+    assert "resource=core" in message
+    assert "remaining=0" in message
+    assert "request_id=ABC1:DEF2:12345" in message
+    assert "API rate limit exceeded" in message
 
 
 def test_action_release_sync_rewrites_refs_and_status(tmp_path):
