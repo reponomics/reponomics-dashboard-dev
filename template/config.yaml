@@ -10,13 +10,13 @@ use_github_app: false
 
 # Repository selection --------------------------------------------------------
 #
-# By default, Reponomics auto-discovers up to 50 eligible repositories visible
+# By default, Reponomics auto-discovers up to 200 eligible repositories visible
 # to COLLECTION_TOKEN and fills the tracked set from newest to oldest by creation
 # date.
 #
 # Use full owner/repo names for explicit entries.
 
-max_repos: 50
+max_repos: 200
 
 # If non-empty, track exactly these repositories and ignore all other selection
 # settings.

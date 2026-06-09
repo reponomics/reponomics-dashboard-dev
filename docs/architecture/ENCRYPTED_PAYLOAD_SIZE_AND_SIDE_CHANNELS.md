@@ -1,4 +1,4 @@
-# Encrypted Payload Size And Side Channels
+# Encrypted Dashboard Data Size And Side Channels
 
 Status: current for action `v0.21.0`.
 
@@ -12,15 +12,15 @@ The public hosted surface can still reveal:
 
 - that a dashboard exists
 - publication timing
-- encrypted payload size
-- payload size changes over time
+- encrypted dashboard data size
+- encrypted dashboard data size changes over time
 - static shell changes across action releases
 
-This is metadata leakage, not plaintext disclosure. With a strong dashboard key, AES-GCM prevents content inspection, but payload length can still suggest rough dashboard scale.
+This is metadata leakage, not plaintext disclosure. With a strong dashboard key, AES-GCM prevents content inspection, but encrypted summary/chunk lengths can still suggest rough dashboard scale.
 
 ## Size Drivers
 
-Payload size is influenced by:
+Encrypted dashboard data size is influenced by:
 
 - number of tracked repositories
 - retained day count
@@ -42,7 +42,7 @@ have the dashboard key. They do not hide the existence of the site, update
 timing, artifact size, or the fact that the repository is using Reponomics.
 ```
 
-`casual` mode weakens the content-protection claim because weak or shared secrets can be guessed offline from the encrypted payload.
+`casual` mode weakens the content-protection claim because weak or shared secrets can be guessed offline from the encrypted dashboard data object.
 
 ## Mitigations
 

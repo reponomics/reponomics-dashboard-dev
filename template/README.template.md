@@ -27,7 +27,7 @@ Setup writes your selected options to `config.yaml`, creates the empty `.reponom
 `config.yaml` is owned by this repository. Reponomics reads it during workflow runs but does not silently rewrite it.
 
 ```yaml
-max_repos: 50
+max_repos: 200
 
 include_only:
   # - owner/repo-name
@@ -62,7 +62,8 @@ The canonical store is the `dashboard-data` Actions artifact.
 
 - `strong` and `casual` store encrypted retained data.
 - `plain` stores retained CSV files directly in the artifact and is rejected in public repositories.
-- Hosted dashboard publication is optional and requires GitHub Pages to use GitHub Actions as the deployment source.
+- Hosted encrypted dashboard publication is optional and requires GitHub Pages to use GitHub Actions as the deployment source.
+- Plain-mode HTML dashboards are private-repository downloadable artifacts only and are not published to Pages.
 - Metric README dashboard generation is only available in private repositories.
 
 For the full mode comparison, see [Privacy Configuration Matrix](docs/reponomics/privacy-configuration-matrix.md). For repository access implications, see [Repository Access And Trust Boundary](docs/reponomics/trust-boundary.md). Common questions are answered in the [FAQ](docs/reponomics/faq.md).

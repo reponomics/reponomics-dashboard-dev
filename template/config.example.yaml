@@ -20,7 +20,7 @@ use_github_app: false
 # Repository selection -------------------------------------------------------
 
 # Maximum number of repositories to track.
-max_repos: 50
+max_repos: 200
 
 # If non-empty, track exactly these repositories and ignore all other selection
 # settings.
