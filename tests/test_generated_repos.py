@@ -622,6 +622,39 @@ def test_template_consumer_e2e_absolutizes_cwd_relative_paths(tmp_path, monkeypa
     assert template_consumer_e2e._absolute_path(action_python) == tmp_path / action_python
 
 
+def test_template_consumer_e2e_accepts_chunked_encrypted_dashboard_marker(tmp_path):
+    (tmp_path / ".e2e-github-output").write_text(
+        "artifact-mode=encrypted\npublish-pages=true\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "assets").mkdir(parents=True)
+    (tmp_path / "docs" / "assets" / "export-data-test.enc").write_text(
+        "encrypted",
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "reponomics").mkdir(parents=True)
+    (tmp_path / "docs" / "reponomics" / ".manifest.json").write_text(
+        "{}\n",
+        encoding="utf-8",
+    )
+    (tmp_path / "docs" / "index.html").write_text(
+        '<script id="encrypted-dashboard-data" type="application/json"></script>'
+        '<script id="export-manifest" type="application/json"></script>',
+        encoding="utf-8",
+    )
+    profile = template_consumer_e2e.ConsumerProfile(
+        name="chunked-encrypted",
+        privacy_mode="strong",
+        repo_is_public=False,
+        generate_readme=False,
+        dashboard_secret="DASHBOARD_SECRET_DO_NOT_REPLACE_0123456789",
+        expected_artifact_mode="encrypted",
+        expected_publish_pages=True,
+    )
+
+    template_consumer_e2e._assert_successful_profile(tmp_path, profile)
+
+
 def test_template_docs_do_not_reference_old_brand_or_maintenance_docs(tmp_path):
     output = tmp_path / "template"
 

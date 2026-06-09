@@ -273,11 +273,11 @@ def _assert_successful_profile(consumer_dir: Path, profile: ConsumerProfile) -> 
         raise TemplateConsumerE2EError(f"{profile.name}: dashboard HTML was not rendered")
     dashboard = dashboard_path.read_text(encoding="utf-8")
     if profile.expected_artifact_mode == "encrypted":
-        if "encrypted-payload" not in dashboard or "export-manifest" not in dashboard:
+        if "encrypted-dashboard-data" not in dashboard or "export-manifest" not in dashboard:
             raise TemplateConsumerE2EError(f"{profile.name}: encrypted dashboard markers missing")
         if not list((consumer_dir / "docs" / "assets").glob("export-data-*.enc")):
             raise TemplateConsumerE2EError(f"{profile.name}: encrypted export asset missing")
-    elif "encrypted-payload" in dashboard:
+    elif "encrypted-dashboard-data" in dashboard or "encrypted-payload" in dashboard:
         raise TemplateConsumerE2EError(f"{profile.name}: plain dashboard contains encrypted payload")
 
     managed_manifest = consumer_dir / "docs" / "reponomics" / ".manifest.json"
