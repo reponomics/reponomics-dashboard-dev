@@ -1,6 +1,6 @@
 # Reponomics Versioning And Update Policy
 
-Status: current for action `v0.20.5` and pre-v1 template hardening.
+Status: current for action `v0.20.6` and pre-v1 template hardening.
 
 Reponomics has two update channels:
 
