@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import re
 import sys
 import urllib.error
@@ -98,17 +99,16 @@ class ActionRelease:
 
 
 def _request_json(url: str) -> dict[str, Any]:
+    headers = _request_headers(accept="application/vnd.github+json")
     request = urllib.request.Request(
         url,
-        headers={
-            "Accept": "application/vnd.github+json",
-            "X-GitHub-Api-Version": "2022-11-28",
-            "User-Agent": "reponomics-dashboard-dev-action-release-sync",
-        },
+        headers=headers,
     )
     try:
         with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             payload = json.loads(response.read().decode("utf-8"))
+    except urllib.error.HTTPError as exc:
+        raise ActionReleaseError(_format_http_error(url, exc)) from exc
     except (urllib.error.URLError, json.JSONDecodeError) as exc:
         raise ActionReleaseError(f"Could not fetch {url}: {exc}") from exc
     if not isinstance(payload, dict):
@@ -119,13 +119,58 @@ def _request_json(url: str) -> dict[str, Any]:
 def _request_text(url: str) -> str:
     request = urllib.request.Request(
         url,
-        headers={"User-Agent": "reponomics-dashboard-dev-action-release-sync"},
+        headers=_request_headers(),
     )
     try:
         with urllib.request.urlopen(request, timeout=REQUEST_TIMEOUT_SECONDS) as response:
             return response.read().decode("utf-8")
+    except urllib.error.HTTPError as exc:
+        raise ActionReleaseError(_format_http_error(url, exc)) from exc
     except urllib.error.URLError as exc:
         raise ActionReleaseError(f"Could not fetch {url}: {exc}") from exc
+
+
+def _github_token() -> str:
+    return os.environ.get("GITHUB_TOKEN", "").strip() or os.environ.get("GH_TOKEN", "").strip()
+
+
+def _request_headers(*, accept: str | None = None) -> dict[str, str]:
+    headers = {
+        "User-Agent": "reponomics-dashboard-dev-action-release-sync",
+    }
+    if accept:
+        headers["Accept"] = accept
+        headers["X-GitHub-Api-Version"] = "2022-11-28"
+    token = _github_token()
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+def _format_http_error(url: str, exc: urllib.error.HTTPError) -> str:
+    headers = exc.headers
+    rate_limit = {
+        "resource": headers.get("x-ratelimit-resource", ""),
+        "limit": headers.get("x-ratelimit-limit", ""),
+        "remaining": headers.get("x-ratelimit-remaining", ""),
+        "reset": headers.get("x-ratelimit-reset", ""),
+        "used": headers.get("x-ratelimit-used", ""),
+        "request_id": headers.get("x-github-request-id", ""),
+    }
+    details = ", ".join(
+        f"{key}={value}" for key, value in rate_limit.items() if value
+    )
+    try:
+        body = exc.read().decode("utf-8", errors="replace").strip()
+    except OSError:
+        body = ""
+    body_excerpt = body[:500]
+    message = f"Could not fetch {url}: HTTP {exc.code} {exc.reason}"
+    if details:
+        message += f" ({details})"
+    if body_excerpt:
+        message += f": {body_excerpt}"
+    return message
 
 
 def _validate_tag(tag: str) -> None:
@@ -551,6 +596,12 @@ def _sync(args: argparse.Namespace) -> None:
         action_yml,
         managed_docs_bundle=managed_docs_bundle,
     )
+    verify_release(
+        args.root,
+        release,
+        action_yml,
+        managed_docs_bundle=managed_docs_bundle,
+    )
     print(f"Synchronized {release.repository}@{release.tag}")
 
 
@@ -600,8 +651,6 @@ def main() -> None:
     if args.command == "sync":
         args.action_tag = ""
         if not args.tag:
-            import os
-
             args.action_tag = os.environ.get("ACTION_TAG", "")
     try:
         args.func(args)
