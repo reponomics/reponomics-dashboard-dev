@@ -1,0 +1,20 @@
+repos:
+  - repo: local
+    hooks:
+      - id: make-lint
+        name: make lint
+        entry: make lint
+        language: system
+        pass_filenames: false
+
+      - id: make-typecheck
+        name: make typecheck
+        entry: make typecheck
+        language: system
+        pass_filenames: false
+
+      - id: make-test
+        name: make test
+        entry: make test
+        language: system
+        pass_filenames: false
