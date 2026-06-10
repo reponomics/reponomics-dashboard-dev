@@ -111,6 +111,26 @@ jobs:
           github-token: ${{ github.token }}
           run-id: ${{ inputs.artifact_run_id }}
 
+      - name: Explain artifact restore failure
+        if: failure() && env.REPONOMICS_SETUP_COMPLETE == 'true'
+        run: |
+          {
+            echo "## Reponomics dashboard doctor could not restore artifacts"
+            echo
+            echo "Doctor did not run because an earlier artifact download or HTML normalization step failed."
+            echo
+            echo "This is not evidence that \`DASHBOARD_SECRET_DO_NOT_REPLACE\` or \`COMPARISON_SECRET\` is wrong."
+            echo
+            echo "Inspect the failed restore step above and check:"
+            echo
+            echo "- the workflow run ID is \`${{ inputs.artifact_run_id }}\` and belongs to this repository;"
+            echo "- the producing run completed and uploaded the expected dashboard artifacts;"
+            echo "- the artifact has not expired under the configured retention period;"
+            echo "- this workflow has \`actions: read\` permission;"
+            echo "- GitHub Actions artifact download service was available for the run."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
+
       - name: Run dashboard doctor
         if: env.REPONOMICS_SETUP_COMPLETE == 'true'
         uses: reponomics/reponomics-dashboard-action@v0
