@@ -18,6 +18,7 @@ MANIFEST_PATH = ROOT / "template-manifest.yml"
 
 TEMPLATE_WORKFLOW_OUTPUTS = {
     "template/.github/workflows/collect-and-publish.yml": ".github/workflows/collect-and-publish.yml",
+    "template/.github/workflows/doctor.yml": ".github/workflows/doctor.yml",
     "template/.github/workflows/incident-reset.yml": ".github/workflows/incident-reset.yml",
     "template/.github/workflows/keepalive.yml": ".github/workflows/keepalive.yml",
     "template/.github/workflows/rotate-key.yml": ".github/workflows/rotate-key.yml",

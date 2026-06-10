@@ -72,6 +72,7 @@ The canonical data store is the `dashboard-data` GitHub Actions artifact.
 - `publish` restores retained data and collect provenance, renders dashboard output, optionally renders private-repository metric README output, and deploys an encrypted Pages artifact for `strong` and `casual` only when hosted dashboard publication is enabled. Otherwise, it uploads a downloadable dashboard artifact.
 - `rotate-key` restores encrypted retained state, decrypts with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, and publishes rotated encrypted outputs.
 - `incident-reset` is a manual emergency workflow for suspected dashboard-key exposure. Make the dashboard repository private and disable any exposed Pages dashboard first. The action restores retained state, decrypts it with `DASHBOARD_SECRET_DO_NOT_REPLACE`, re-encrypts with `DASHBOARD_NEXT_SECRET`, uploads the new retained artifact, then deletes old workflow runs associated with prior `dashboard-data` artifacts.
+- `doctor` is a manual, read-only diagnostic workflow. It restores dashboard HTML and retained `dashboard-data` artifacts from an explicit workflow run ID, then reports dashboard payload, named-key, retained artifact, export, and Pages platform checks separately.
 - `docs-sync` runs before collection and writes the action-bundled managed documentation to `docs/reponomics/` when enabled.
 - `keepalive` runs monthly, updates `.reponomics/keepalive.md`, and tries to create a persistent data safety reminder issue so scheduled collection is less likely to be silently disabled.
 
@@ -96,6 +97,14 @@ Encrypted hosted dashboards include an `Export CSV` control after unlock. The br
 Generated HTML dashboards use a chunked data model: the page loads a summary first and loads per-repository detail chunks only as repositories are selected for display. In `strong` and `casual`, the summary and chunks are encrypted. In `plain`, the same summary/chunk boundary is used for the downloadable plaintext HTML artifact, but it does not add confidentiality.
 
 For `plain`, download the `dashboard-data` workflow artifact directly.
+
+## Dashboard Doctor
+
+Use **Actions -> Diagnose Reponomics dashboard** when the dashboard does not open, a key seems suspect, an export fails, or you need to verify whether the stored repository secret still matches a generated dashboard artifact.
+
+Enter the workflow run ID that produced the artifacts you want to inspect. The workflow restores artifacts first and then runs the action's read-only `doctor` mode. Artifact download failures are intentionally isolated before doctor runs; they usually mean the run ID or artifact name is wrong, the artifact expired, the workflow token cannot read Actions artifacts, or GitHub could not serve the artifact.
+
+For encrypted repositories, doctor always checks `DASHBOARD_SECRET_DO_NOT_REPLACE` when it is configured. If you also create a repository secret named `COMPARISON_SECRET`, doctor checks that label separately and tells you exactly which label authenticated the dashboard summary. This lets maintainers compare the repository-stored secret against a user-held key without exposing either value in workflow inputs or logs.
 
 ## Offline Viewing
 

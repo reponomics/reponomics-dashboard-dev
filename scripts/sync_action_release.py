@@ -54,6 +54,7 @@ MANAGED_TEXT_PATHS = [
     "docs/architecture/VERSIONING_AND_UPDATES.md",
     "template/README.template.md",
     "template/.github/workflows/collect-and-publish.yml",
+    "template/.github/workflows/doctor.yml",
     "template/.github/workflows/incident-reset.yml",
     "template/.github/workflows/rotate-key.yml",
     "tests/test_generated_repos.py",
