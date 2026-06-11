@@ -281,7 +281,10 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "name: dashboard-data" in doctor
     assert "mode: doctor" in doctor
     assert "comparison-secret: ${{ secrets.COMPARISON_SECRET }}" in doctor
-    assert "not evidence that `DASHBOARD_SECRET_DO_NOT_REPLACE` or `COMPARISON_SECRET` is wrong" in doctor
+    assert (
+        r"not evidence that \`DASHBOARD_SECRET_DO_NOT_REPLACE\` or \`COMPARISON_SECRET\` is wrong"
+        in doctor
+    )
     assert "Explain artifact restore failure" in doctor
     assert "Doctor did not run because an earlier artifact download or HTML normalization step failed." in doctor
     assert r"this workflow has \`actions: read\` permission" in doctor

@@ -40,7 +40,7 @@ jobs:
             echo "Restoring dashboard artifacts from workflow run \`${{ inputs.artifact_run_id }}\`."
             echo
             echo "If an artifact download step fails, that is a workflow artifact restore problem,"
-            echo 'not evidence that `DASHBOARD_SECRET_DO_NOT_REPLACE` or `COMPARISON_SECRET` is wrong.'
+            echo "not evidence that \`DASHBOARD_SECRET_DO_NOT_REPLACE\` or \`COMPARISON_SECRET\` is wrong."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Restore encrypted dashboard HTML artifact
