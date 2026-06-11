@@ -24,7 +24,7 @@ import verify_workflow_classification
 ACTION_YML_FIXTURE = """
 inputs:
   mode:
-    description: "Runtime mode: collect, publish, rotate-key, incident-reset, or docs-sync."
+    description: "Runtime mode: collect, publish, rotate-key, incident-reset, docs-sync, or doctor."
   allow-docs-sync:
     description: "Optional managed docs sync override."
 outputs:
@@ -45,6 +45,7 @@ def test_template_manifest_includes_thin_template_surface(tmp_path):
     required = [
         ".github/scripts/resolve-reponomics-config.py",
         ".github/workflows/collect-and-publish.yml",
+        ".github/workflows/doctor.yml",
         ".github/workflows/incident-reset.yml",
         ".github/workflows/keepalive.yml",
         ".github/workflows/setup.yml",
@@ -199,6 +200,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
 
     workflows = output / ".github" / "workflows"
     collect_publish = (workflows / "collect-and-publish.yml").read_text(encoding="utf-8")
+    doctor = (workflows / "doctor.yml").read_text(encoding="utf-8")
     incident_reset = (workflows / "incident-reset.yml").read_text(encoding="utf-8")
     keepalive = (workflows / "keepalive.yml").read_text(encoding="utf-8")
     setup = (workflows / "setup.yml").read_text(encoding="utf-8")
@@ -208,6 +210,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     ).read_text(encoding="utf-8")
     collect_publish_workflow = yaml.safe_load(collect_publish)
     incident_reset_workflow = yaml.safe_load(incident_reset)
+    doctor_workflow = yaml.safe_load(doctor)
 
     action_ref = f"uses: {release.repository}@{release.major_tag}"
     html_env = 'GENERATE_HTML_DASHBOARD: "false"'
@@ -219,6 +222,7 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert "github-token: ${{ github.token }}" in collect_publish
     assert "allow-docs-sync" not in collect_publish
     assert action_ref in collect_publish
+    assert action_ref in doctor
     assert action_ref in incident_reset
     assert 'REPONOMICS_ACTION_REF: "' not in collect_publish
     assert 'REPONOMICS_ACTION_SHA: "' not in collect_publish
@@ -238,12 +242,14 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
     assert action_ref not in setup
     assert action_ref in rotate
     assert "python scripts/" not in collect_publish
+    assert "python scripts/" not in doctor
     assert "python scripts/" not in incident_reset
     assert "python scripts/" not in keepalive
     assert "python scripts/" not in setup
     assert "python scripts/" not in rotate
     assert "mode: collect" in collect_publish
     assert collect_publish_workflow["permissions"] == {"contents": "read"}
+    assert doctor_workflow["permissions"] == {"contents": "read"}
     assert "workflow_run:" not in collect_publish
     assert "workflow_dispatch:" in collect_publish
     assert "skip_collect:" in collect_publish
@@ -263,6 +269,25 @@ def test_template_workflows_delegate_to_reponomics_action(tmp_path):
         "pages": "write",
         "id-token": "write",
     }
+    assert doctor_workflow["jobs"]["doctor"]["permissions"] == {
+        "contents": "read",
+        "actions": "read",
+    }
+    assert "artifact_run_id:" in doctor
+    assert "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c" in doctor
+    assert "run-id: ${{ inputs.artifact_run_id }}" in doctor
+    assert "name: html-dashboard-encrypted" in doctor
+    assert "name: html-dashboard-plain" in doctor
+    assert "name: dashboard-data" in doctor
+    assert "mode: doctor" in doctor
+    assert "comparison-secret: ${{ secrets.COMPARISON_SECRET }}" in doctor
+    assert (
+        r"not evidence that \`DASHBOARD_SECRET_DO_NOT_REPLACE\` or \`COMPARISON_SECRET\` is wrong"
+        in doctor
+    )
+    assert "Explain artifact restore failure" in doctor
+    assert "Doctor did not run because an earlier artifact download or HTML normalization step failed." in doctor
+    assert r"this workflow has \`actions: read\` permission" in doctor
     assert "github-token: ${{ github.token }}" in collect_publish
     assert 'USE_GITHUB_APP: "false"' in collect_publish
     assert "actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1" in collect_publish
