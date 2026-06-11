@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.9.0...v0.9.1) (2026-06-11)
+
+
+### Bug Fixes
+
+* improve dashboard handling of API failures ([13d6de3](https://github.com/reponomics/reponomics-dashboard-dev/commit/13d6de3a42d74db58a5f0a45ef9854e0cc6608b5))
+
 ## [0.9.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.8.0...v0.9.0) (2026-06-11)
 
 
