@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.8.0...v0.9.0) (2026-06-11)
+
+
+### Features
+
+* **doctor:** expand doctor with staged diagnostics ([#78](https://github.com/reponomics/reponomics-dashboard-dev/issues/78)) ([a471fa2](https://github.com/reponomics/reponomics-dashboard-dev/commit/a471fa2638b83ac22d0edf00fcc264bc7b935710))
+
 ## [0.8.0](https://github.com/reponomics/reponomics-dashboard-dev/compare/v0.7.9...v0.8.0) (2026-06-09)
 
 
