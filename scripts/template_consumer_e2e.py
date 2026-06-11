@@ -65,6 +65,7 @@ def build_config(mode):
         "github_token": "ghp_runtime",
         "dashboard_secret": profile["dashboard_secret"],
         "dashboard_next_secret": "",
+        "comparison_secret": "",
         "privacy_mode": profile["privacy_mode"],
         "repo_is_public": profile["repo_is_public"],
         "config_path": consumer_repo / "config.yaml",
